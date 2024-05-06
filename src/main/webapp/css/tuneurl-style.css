@@ -1,0 +1,204 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #5300E3;
+}
+
+.hide {
+    display: none !important;
+}
+
+.show {
+    display: block !important;
+}
+
+.primeColor1 {
+    background-color: #5300E3 !important;
+    border-color: #5300E3 !important;
+}
+
+.primeColor2 {
+    background-color: #8385E2 !important;
+    border-color: #8385E2 !important;
+}
+
+.primeColor3 {
+    background-color: #F69964 !important;
+    border-color: #F69964 !important;
+}
+
+.primeColor3text {
+    color: #F69964 !important;
+}
+
+.primeColorWhite {
+    color: white !important;
+}
+
+div#spinner {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+div#playstop {
+    padding: 0;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+button#play {
+    color: white;
+    background-color: gray;
+    /* width: 20%; */
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+button#play:not(:disabled) {
+    color: gold;
+    background-color: rosybrown;
+}
+
+button#stop {
+    color: white;
+    background-color: gray;
+    /* width: 20%; */
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+button#stop:not(:disabled) {
+    color: gold;
+    background-color: rosybrown;
+}
+
+div#channelbtn {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+div#instruction {
+    font-size: medium;
+}
+
+div#instruction a {
+    color: white;
+}
+
+div#instruction a::before {
+    color: red;
+}
+
+div#instruction a::after {
+    color: black;
+}
+
+.instructionspan {
+    width: 5%;
+    text-align: left;
+    font-size: larger;
+    margin-right: 16px;
+}
+
+.stories {
+    width: 95%;
+    height: 75%;
+    text-align: justify;
+}
+
+h4#title {
+    text-align: center;
+    color: aliceblue;
+}
+
+button#btnselect1 {
+    margin-right: 12px;
+}
+
+button#btnselect2 {
+    margin-right: 12px;
+}
+
+button#btnselect3 {
+    margin-right: 12px;
+}
+
+button#btnselect4 {
+    margin-right: 12px;
+}
+
+button#btnselect5 {
+    margin-right: 12px;
+}
+
+button#btnselect6 {
+    margin-right: 12px;
+}
+
+button#btnselect7 {
+    margin-right: 12px;
+}
+
+button#btnselect8 {
+    margin-right: 12px;
+}
+
+button#btnselect9 {
+    margin-right: 12px;
+}
+
+button#btnselect10 {
+    margin-right: 12px;
+}
+
+button#btnselect11 {
+    margin-right: 12px;
+}
+
+button#btnselect12 {
+    margin-right: 12px;
+}
+
+/* modal css */
+.modal-header {
+    color: #5300E3;
+}
+
+.modal-body {
+    color: #8385E2;
+}
+
+.btn-spacer-y {
+    margin-right: 32px;
+}
+
+.btn-modal-s,
+.btn-modal-s:focus {
+    background-color: #8385E2;
+    border: 1px solid #8385E2;
+}
+
+.btn-modal-p,
+.btn-modal-p:focus,
+.btn-modal-p:active {
+    background-color: #5300E3;
+    border: 1px solid #5300E3;
+}
+
+.btn-modal-s:hover,
+.btn-modal-s:active,
+.btn-modal-p:active,
+.btn-modal-p:hover {
+    transition-duration: 0.4s;
+    background-color: #b7b8ed;
+    border: 1px solid #b7b8ed;
+    color: white;
+}

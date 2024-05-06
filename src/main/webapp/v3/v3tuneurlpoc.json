@@ -1,0 +1,1032 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Stream Radio POC - Java TuneUrl API server",
+    "version": "1.0.3",
+    "description": "<code>Stream Radio POC - Java TuneUrl API server.</code>\n\n<code>BSD 3-Clause License</code>\n\n<code>Copyright (c) 2023-2024, Jaap Dekkinga, <jaap.dekkinga@gmail.com></code>\n\n<code>Copyright (c) 2023-2024, Teodoro M. Albon, <albonteddy@gmail.com></code>\n\nRedistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:\n\n1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.\n\n2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.\n\n3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n",
+    "termsOfService": "https://opensource.org/osd/",
+    "contact": {
+      "email": "albonteddy@gmail.com"
+    },
+    "license": {
+      "name": "BSD 3-Clause License",
+      "url": "https://opensource.org/license/bsd-3-clause"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://streaming.tuneurl-demo.com",
+      "description": "Stream Radio POC - Java TuneUrl API server URI"
+    }
+  ],
+  "tags": [
+    {
+      "name": "user",
+      "description": "User API"
+    },
+    {
+      "name": "webrtc",
+      "description": "Play audio stream"
+    },
+    {
+      "name": "training",
+      "description": "Train audio stream"
+    },
+    {
+      "name": "fingerprint",
+      "description": "Fingerprint audio stream"
+    }
+  ],
+  "paths": {
+    "/v1/user/login": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "operationId": "userLogin",
+        "summary": "Log In into the Java TuneUrl API server",
+        "description": "<br /><b>Implementation Notes</b>:\n<br /><b>A. Input is <code>LoginEntry</code>.</b>\n  <ul>\n    <li><code>LoginEntry.username</code>: user email address in plain text.</li>\n    <li><code>LoginEntry.password</code>: user password in plain text.</li>\n  </ul>\n<br /><b>B. How the Log in works.</b>\n  <ul>\n    <li><b>Note:</b>No user table for this.</li>\n    <li>Login as <code>admin@example.com</code> and password is <code>admin-1234</code> to have an <code>ADMIN role</code>.</li>\n    <li>Login as <code>user@example.com</code> and password is <code>user-1234</code> to have an <code>USER role</code>.</li>\n    <li>If given username or password is not valid,\n      response with HTTP 400 - Invalid User name and/or password.</li>\n  </ul>\n<br /><b>C. Output is LoginResponse.</b>\n  <ul>\n    <li><code>LoginResponse.userId</code>: User ID</li>\n    <li>header <code>x-jwt-token</code> will hold the simulated token to be use in Authorization header</li>\n  </ul>\n",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginEntry"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/LoginResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/v1/user/logout": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "operationId": "userLogout",
+        "summary": "Log out from the Java TuneUrl API server",
+        "description": "Log out from the Java TuneUrl API server",
+        "responses": {
+          "301": {
+            "$ref": "#/components/headers/Location"
+          }
+        }
+      }
+    },
+    "/v1/oauth/token": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "operationId": "refreshToken",
+        "summary": "Refresh token",
+        "description": "Refresh token",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OauthTokenEntry"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/LoginResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/dev/v3/saveAudioStream": {
+      "post": {
+        "tags": [
+          "webrtc"
+        ],
+        "operationId": "saveAudioStream",
+        "summary": "Save Audio Stream",
+        "description": "<br /><b>Implementation Notes</b>:\n<br /><b>A. Input is <code>AudioStreamEntry</code>.</b>\n  <ul>\n    <li><code>AudioStreamEntry.Url</code>: the Audio Stream URL to save.</li>\n    <li><code>AudioStreamEntry.duration</code>: the total audio stream to save in seconds.</li>\n    <li><code>AudioStreamEntry.sampleRate</code>: the audio sample rate as per fingerprinting requirement. This currently ignored and always set to 10240.</li>\n  </ul>\n<br /><b>B. How the Save Audio Stream works.</b>\n  <ul>\n    <li>The Url and duration is concatenated and is converted into crc32 String to be use as unique filename.</li>\n    <li>If the filename already exist, this end-point return immediately,</li>\n    <li>otherwise it will get 5 seconds of the audio stream and pre-process it.</li>\n    <li>The audio stream is downloaded by wget until the duration expires.</li>\n    <li>The downloaded audio is then ffmpeg converted into audio PCM 16 with 10240 sample rate.</li>\n    <li>The PCM audio is then converted into fingerprint</li>\n    <li>The trigger audio is then search on the PCM audio fingerprint</li>\n    <li>The conversion information can then be accessible by /dev/v2/getAudioStreamInfo.</li>\n  </ul>\n<br /><b>C. Output is AudioStreamResponse</b>\n  <ul>\n    <li><code>AudioStreamResponse.conversionId</code>: Audio stream conversion ID</li>\n    <li><code>AudioStreamResponse.fiveSecondAudio</code>: URL for a five seconds audio</li>\n    <li><code>AudioStreamResponse.finalAudioStream</code>: URL for a 600+ seconds audio</li>\n    <li><code>AudioStreamResponse.duration</code>: the actual audio stream duration in seconds.</li>\n    <li>Noted that: the value of <code>AudioStreamResponse.finalAudioStream</code> is the same with <code>AudioStreamResponse.fiveSecondAudio</code>,</li>\n    <li>until the conversion is completed</li>\n  </ul>\n",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AudioStreamEntry"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/AudioStreamDataResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/dev/v3/getAudioStream": {
+      "get": {
+        "tags": [
+          "webrtc"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "operationId": "getAudioStreamData",
+        "summary": "Get Status of previously save Audio Stream",
+        "description": "<br /><b>Implementation Notes</b>:\n<br /><b>A. Input is <code>conversionId</code>.</b>\n  <ul>\n    <li>The <code>conversionId</code> is the conversation ID returned from calling POST /dev/v2/saveAudioStream.</li>\n  </ul>\n<br /><b>B. How the get Audio Stream Data works.</b>\n  <ul>\n    <li>It will check for the status of previous conversion.</li>\n    <li>The <code>AudioStreamResponse.duration</code> will be updated with home much time in second had pass since the last call.</li>\n    <li>The maximum value of <code>AudioStreamResponse.duration</code> will be 1 more than the requested duration.</li>\n    <li>If the value of <code>AudioStreamResponse.duration</code> is greater than the requested duration, the conversion is completed.</li>\n    <li>If the conversion is completed, the <code>AudioStreamResponse.finalAudioStream</code> is fully created,</li>\n    <li>otherwise, caller must still use the value of <code>AudioStreamResponse.fiveSecondAudio</code>.</li>\n  </ul>\n<br /><b>C. Output is AudioStreamResponse</b>\n  <ul>\n    <li><code>AudioStreamResponse.conversionId</code>: Audio stream conversion ID</li>\n    <li><code>AudioStreamResponse.fiveSecondAudio</code>: URL for a five seconds audio</li>\n    <li><code>AudioStreamResponse.finalAudioStream</code>: URL for a 600+ seconds audio</li>\n    <li><code>AudioStreamResponse.duration</code>: the actual audio stream duration in seconds.</li>\n    <li>Noted that: the value of <code>AudioStreamResponse.finalAudioStream</code> is the same with <code>AudioStreamResponse.fiveSecondAudio</code>,</li>\n    <li>until the conversion is completed</li>\n  </ul>\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "name": "conversionId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "The conversion ID created during previous saveAudioStream call"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/AudioStreamDataResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/dev/v3/trainAudioStream": {
+      "post": {
+        "tags": [
+          "training"
+        ],
+        "operationId": "trainAudioStream",
+        "summary": "Associate Audio Stream with action",
+        "description": "<br /><b>Implementation Notes</b>:\n<br /><b>A. Input is <code>AudioStreamTrainingEntry</code>.</b>\n  <ul>\n    <li><code>AudioStreamTrainingEntry.channel</code>: the Channel ID</li>\n    <li><code>AudioStreamTrainingEntry.Url</code>: the Audio Stream URL to play</li>\n    <li><code>AudioStreamTrainingEntry.offset</code>: the starting location 1 second after trigger audio location.</li>\n    <li><code>AudioStreamTrainingEntry.duration</code>: the total audio stream to play in seconds.</li>\n    <li><code>AudioStreamTrainingEntry.category</code>: one of the audio sample rate as per fingerprinting requirement. This currently ignored and always set to 10240.</li>\n    <li><code>AudioStreamTrainingEntry.title</code>: the audio sample title.</li>\n    <li><code>AudioStreamTrainingEntry.popup</code>: the popp messages.</li>\n  </ul>\n<br /><b>B. How the train Audio Stream works.</b>\n  <ul>\n    <li>The given Audio stream is associated with category and its description is at the title field.</li>\n    <li>The location of the trigger audio plus 1 second is specified on the offset field</li>\n    <li>If the channel ID already exists, its content will be overwritten.</li>\n  </ul>\n<br /><b>C. Output is AudioStreamTrainingResponse</b>\n  <ul>\n    <li><code>ItemId.id</code>: Audio stream training ID</li>\n  </ul>\n",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AudioStreamTrainingEntry"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ItemId"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/dev/v3/getAudioStreamChannel": {
+      "get": {
+        "tags": [
+          "training"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "operationId": "getAudioStreamChannel",
+        "summary": "Retrieves Channel data",
+        "description": "<br /><b>Implementation Notes</b>:\n<br /><b>A. Input is <code>channelCounts</code>.</b>\n  <ul>\n    <li>The <code>channelCounts</code> specify the total number of Channel data to retrieve. Valid value from 1 to 12.</li>\n  </ul>\n<br /><b>B. Output is AudioStreamChannelDataResponse</b>\n  <ul>\n    <li><code>AudioStreamChannelDataResponse.channelId</code>: Channel ID</li>\n    <li><code>AudioStreamChannelDataResponse.offset</code>: start of audio to play</li>\n    <li><code>AudioStreamChannelDataResponse.duration</code>: the actual audio stream duration in seconds.</li>\n  </ul>\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "name": "channelCounts",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "The channel count to retrieved. Valid is 1 to 12."
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/AudioStreamChannelDataResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/dev/v3/calculateFingerprint": {
+      "post": {
+        "tags": [
+          "fingerprint"
+        ],
+        "operationId": "calculateFingerprint",
+        "summary": "Convert the given data bits into fingerprint.",
+        "description": "<br /><b>Implementation Notes</b>:\n<br /><b>A. Input is <code>AudioDataEntry</code>.</b>\n  <ul>\n    <li><code>AudioDataEntry.Url</code>: The Audio Stream URL.</li>\n    <li><code>AudioDataEntry.Data</code>: Audio data bits. Array of Byte.</li>\n    <li><code>AudioDataEntry.Size</code>: Size of Data.</li>\n    <li><code>AudioDataEntry.sampleRate</code>: Audio sampel rate. Normally 44100.</li>\n    <li><code>AudioDataEntry.duration</code>: Length of audio bits in seconds.</li>\n    <li><code>AudioDataEntry.fingerprintRate</code>: the Data is converted into this sample rate. Normall 11025.</li>\n  </ul>\n<br /><b>B. Output is FingerprintResponse</b>\n  <ul>\n    <li><code>FingerprintResponse.size</code>: size of Fingerprint.</li>\n    <li><code>FingerprintResponse.data</code>: the Fingeprint. Array of Byte.</li>\n  </ul>\n",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AudioDataEntry"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/FingerprintResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/dev/v3/evaluateAudioStream": {
+      "post": {
+        "tags": [
+          "fingerprint"
+        ],
+        "operationId": "evaluateAudioStream",
+        "summary": "Find all triggersound from the given audio stream",
+        "description": "<br /><b>Implementation Notes</b>:\n<br /><b>A. Input is <code>EvaluateAudioStreamEntry</code>.</b>\n  <ul>\n    <li><code>EvaluateAudioStreamEntry.audioData</code>: The AudioDataEntry.</li>\n    <li><code>EvaluateAudioStreamEntry.sizeFingerprint</code>: Size of dataFingerprint.</li>\n    <li><code>EvaluateAudioStreamEntry.dataFingerprint</code>: Triggersound fingerprint. Array of Byte.</li>\n  </ul>\n<br /><b>B. Output is EvaluateAudioStreamEntry</b>\n  <ul>\n    <li><code>EvaluateAudioStreamResponse.tuneUrlCounts</code>: 0 to 64 total number TuneUrlTag found.</li>\n    <li><code>EvaluateAudioStreamResponse.tagCounts</code>: total number of TuneUrlTag.</li>\n    <li><code>EvaluateAudioStreamResponse.liveTags</code>: array of TuneUrlTag.</li>\n  </ul>\n",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateAudioStreamEntry"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/EvaluateAudioStreamResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/dev/v3/evaluateOneSecondAudioStream": {
+      "post": {
+        "tags": [
+          "fingerprint"
+        ],
+        "operationId": "evaluateOneSecondAudioStream",
+        "summary": "Find all triggersound from the given audio stream",
+        "description": "<br /><b>Implementation Notes</b>:\n<br /><b>A. Input is <code>EvaluateAudioStreamEntry</code>.</b>\n  <ul>\n    <li><code>EvaluateAudioStreamEntry.audioData</code>: The AudioDataEntry.</li>\n    <li><code>EvaluateAudioStreamEntry.sizeFingerprint</code>: Size of dataFingerprint.</li>\n    <li><code>EvaluateAudioStreamEntry.dataFingerprint</code>: Triggersound fingerprint. Array of Byte.</li>\n  </ul>\n<br /><b>B. Output is EvaluateAudioStreamEntry</b>\n  <ul>\n    <li><code>EvaluateAudioStreamResponse.tuneUrlCounts</code>: 0 to 64 total number TuneUrlTag found.</li>\n    <li><code>EvaluateAudioStreamResponse.tagCounts</code>: total number of TuneUrlTag.</li>\n    <li><code>EvaluateAudioStreamResponse.liveTags</code>: array of TuneUrlTag.</li>\n  </ul>\n",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateAudioStreamEntry"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/EvaluateAudioStreamResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "parameters": {
+      "AcceptLanguage": {
+        "name": "Accept-Language",
+        "in": "header",
+        "description": "The accept language.",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "en",
+            "sa"
+          ],
+          "default": "en"
+        }
+      },
+      "x-sdk-client-id": {
+        "name": "x-sdk-client-id",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "User or Application identity authorize to use the Java TuneUrl API server."
+      },
+      "x-audio-title": {
+        "name": "x-audio-title",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "The title of the audio, song or music for fingerprinting training."
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "status",
+          "message"
+        ],
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorMessage": {
+        "type": "object",
+        "required": [
+          "status",
+          "message"
+        ],
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "OauthTokenEntry": {
+        "type": "object",
+        "properties": {
+          "grant_type": {
+            "type": "string",
+            "description": "The Grant Type."
+          },
+          "refresh_token": {
+            "type": "string",
+            "description": "The Prevous JWT."
+          },
+          "token_expiration": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The Token expiration."
+          }
+        }
+      },
+      "ItemId": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Response ID."
+          }
+        }
+      },
+      "LoginEntry": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "The User Name."
+          },
+          "password": {
+            "type": "string",
+            "description": "The Password."
+          }
+        }
+      },
+      "LoginId": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The User ID."
+          },
+          "token": {
+            "type": "string",
+            "description": "The JWT Token."
+          }
+        }
+      },
+      "AudioStreamEntry": {
+        "type": "object",
+        "properties": {
+          "Url": {
+            "type": "string",
+            "description": "The Audio Stream URL."
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The duration time to capture."
+          },
+          "sampleRate": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The sample rate of audio in PCM16 format."
+          }
+        }
+      },
+      "AudioStreamData": {
+        "type": "object",
+        "properties": {
+          "conversionId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The conversion reference ID."
+          },
+          "fiveSecondAudioUrl": {
+            "type": "string",
+            "description": "The Audio Stream URL with 5 seconds duration."
+          },
+          "finalAudioStreamUrl": {
+            "type": "string",
+            "description": "The Audio Stream URL with more than 600 seconds duration."
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The actual duration time in seconds."
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The conversion completion status."
+          }
+        }
+      },
+      "AudioStreamTrainingEntry": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The Channel ID."
+          },
+          "Url": {
+            "type": "string",
+            "description": "The Audio Stream URL."
+          },
+          "offset": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The Offset in seconds."
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The audio stream duration to save in seconds."
+          },
+          "category": {
+            "type": "string",
+            "description": "The Category."
+          },
+          "title": {
+            "type": "string",
+            "description": "The audio stream description"
+          },
+          "popup": {
+            "type": "string",
+            "description": "The Popup messages."
+          }
+        }
+      },
+      "AudioStreamChannelInfo": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The Channel ID."
+          },
+          "Url": {
+            "type": "string",
+            "description": "The Audio Stream URL."
+          },
+          "offset": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The Offset in seconds."
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The audio stream duration in seconds."
+          },
+          "category": {
+            "type": "string",
+            "description": "The Category."
+          },
+          "title": {
+            "type": "string",
+            "description": "The audio stream description."
+          },
+          "popup": {
+            "type": "string",
+            "description": "The Popup messages."
+          }
+        }
+      },
+      "AudioStreamChannelData": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AudioStreamChannelInfo"
+            },
+            "description": "The Channel data."
+          }
+        }
+      },
+      "AudioStreamCaptureEntry": {
+        "type": "object",
+        "properties": {
+          "conversionId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The conversion reference ID."
+          },
+          "audioChannel": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The audio channel 0 or 1."
+          },
+          "offset": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The sound offset in milli seconds."
+          },
+          "captureNext": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The capture flag."
+          },
+          "fingerprint": {
+            "type": "string",
+            "description": "The hEx encoded triggersound fingerprint."
+          },
+          "IfScan": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The hunt triggersound flag."
+          }
+        }
+      },
+      "Integer": {
+        "type": "integer",
+        "format": "int32",
+        "description": "Integer"
+      },
+      "Byte": {
+        "type": "string",
+        "format": "byte",
+        "description": "Unsigned char"
+      },
+      "AudioDataEntry": {
+        "type": "object",
+        "properties": {
+          "Url": {
+            "type": "string",
+            "description": "The Audio Stream URL."
+          },
+          "Data": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "byte",
+              "description": "Array of Unsigned char"
+            }
+          },
+          "Size": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The Size of data."
+          },
+          "sampleRate": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The Sample rate."
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The Duration."
+          },
+          "fingerprintRate": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The Fingerprint rate."
+          }
+        }
+      },
+      "FingerPrintData": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The Fingerprint data type."
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "byte",
+              "description": "Array of unsigned char"
+            }
+          }
+        }
+      },
+      "FingerprintResponse": {
+        "type": "object",
+        "properties": {
+          "size": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The size."
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "byte",
+              "description": "Array of Unsigned char"
+            }
+          }
+        }
+      },
+      "EvaluateAudioStreamEntry": {
+        "type": "object",
+        "properties": {
+          "audioData": {
+            "$ref": "#/components/schemas/AudioDataEntry"
+          },
+          "sizeFingerprint": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Size of dataFingerprint."
+          },
+          "dataFingerprint": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "byte"
+            },
+            "description": "Triggersound fingerprint. Array of Byte"
+          }
+        }
+      },
+      "TuneUrlTag": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 301
+          },
+          "name": {
+            "type": "string",
+            "example": "Mae Muller iTunes"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "example": "open_page"
+          },
+          "info": {
+            "type": "string",
+            "example": "https://music.apple.com/us/album/better-days-single/1585274078"
+          },
+          "matchPercentage": {
+            "type": "integer",
+            "format": "int32",
+            "example": 99
+          },
+          "score": {
+            "type": "number",
+            "format": "double",
+            "example": 0.57
+          },
+          "similarity": {
+            "type": "number",
+            "format": "double",
+            "example": 0.57
+          },
+          "index": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "dataPosition": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "EvaluateAudioStreamResponse": {
+        "type": "object",
+        "properties": {
+          "tuneUrlCounts": {
+            "type": "integer",
+            "format": "int64",
+            "description": "0 to tagCounts/61 total number TuneUrlTag found."
+          },
+          "tagCounts": {
+            "type": "integer",
+            "format": "int64",
+            "description": "total number of TuneUrlTag."
+          },
+          "liveTags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TuneUrlTag"
+            },
+            "description": "array of TuneUrlTag."
+          }
+        }
+      }
+    },
+    "headers": {
+      "Location": {
+        "schema": {
+          "type": "string"
+        },
+        "description": "Moved Permanently to this new URL."
+      },
+      "x-sdk-client-id": {
+        "schema": {
+          "type": "string"
+        },
+        "description": "User or Application identity authorize to use the Java TuneUrl API server."
+      },
+      "x-audio-title": {
+        "schema": {
+          "type": "string"
+        },
+        "description": "The title of the audio, song or music for fingerprinting training."
+      }
+    },
+    "responses": {
+      "LoginResponse": {
+        "description": "Login response with a JWT in x-jwt-token header",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/LoginId"
+            }
+          }
+        }
+      },
+      "ItemId": {
+        "description": "Item ID",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ItemId"
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Too Many Requests",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "Bad request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "ErrorMessage": {
+        "description": "Error Messages",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorMessage"
+            }
+          }
+        }
+      },
+      "AudioStreamDataResponse": {
+        "description": "Response to Saving of Audio Stream",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AudioStreamData"
+            }
+          }
+        }
+      },
+      "AudioStreamChannelDataResponse": {
+        "description": "Retrieves Channel data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AudioStreamChannelData"
+            }
+          }
+        }
+      },
+      "FingerprintResponse": {
+        "description": "Retrieves Fingerprint data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/FingerprintResponse"
+            }
+          }
+        }
+      },
+      "EvaluateAudioStreamResponse": {
+        "description": "Retrieves EvaluateAudioStreamResponse",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EvaluateAudioStreamResponse"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,7 +1,5 @@
 #! /bin/bash
 
-sudo apt install wget
-
 sh setup-builder/prerequisites/install-basics.sh
 
 sh setup-builder/prerequisites/install-apache.sh

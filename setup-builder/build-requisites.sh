@@ -1,8 +1,10 @@
 #! /bin/bash
 
-sh prerequisites.sh
+sudo -i
 
-sh env.sh
+sh setup-builder/prerequisites.sh
 
-sh config-mysql.sh
+sh setup-builder/env.sh
+
+sh setup-builder/config-mysql.sh
 

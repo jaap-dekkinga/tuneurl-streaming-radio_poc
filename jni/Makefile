@@ -2,7 +2,7 @@
 
 EMPTY=
 
-JAVA_HOME=/opt/java/jdk1.8.0_231
+JAVA_HOME=/usr/lib/jvm/java-1.19.0-openjdk-amd64
 
 DEPS=-g2 -O2 -D__for_unix -D__ubuntu__ -shared -fPIC
 

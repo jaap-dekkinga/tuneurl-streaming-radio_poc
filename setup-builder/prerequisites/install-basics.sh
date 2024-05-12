@@ -6,4 +6,6 @@ apt install -y build-essential autoconf libtool pkg-config git cmake ssh curl db
 apt install -y net-tools
 apt install -y wget
 
+apt install -y systemctl
+
 apt install -y ffmpeg

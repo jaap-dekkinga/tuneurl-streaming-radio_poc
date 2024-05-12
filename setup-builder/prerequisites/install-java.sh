@@ -1,3 +1,3 @@
 #! /bin/bash
 
-sudo apt install -y openjdk-17-jdk openjdk-17-jre
+sudo apt install -y openjdk-19-jdk openjdk-19-jre

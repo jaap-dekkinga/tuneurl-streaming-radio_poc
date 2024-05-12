@@ -2,32 +2,21 @@
 
 sudo -i
 
-systemctl stop mysql
+sudo service mysql stop
 systemctl set-environment MYSQLD_OPTS="--skip-grant-tables --skip-networking"
+sudo service mysql start
 
-systemctl start mysql
-
-mysql -u root
-# TODO - This do not work straight from here, must pass command to mysql-client format
-'''
-USE mysql;
-UPDATE user SET plugin='mysql_native_password' WHERE User='root';
-FLUSH PRIVILEGES;
-exit
-'''
+mysql -u root < mysql-configs/reset-admin.sql
 
 
-mysql -u root -p
-# TODO - This do not work straight from here, must pass command to mysql-client format
-'''
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'passWord@123';
-COMMIT ;
-exit
-'''
+mysql -u root -p < mysql-configs/set-admin-password.sql
 
 sudo service mysql stop
 sudo service mysql start
 
-mysql --user=root --password=$PASSWORD
 
-mysql> exit
+cd db/
+
+export PASSWORD=passWord@123
+
+#sh ./setup-db.sh install

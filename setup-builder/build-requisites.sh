@@ -2,7 +2,7 @@
 
 sudo -i
 
-sh setup-builder/prerequisites.sh
+sh setup-builder/build-prerequisites.sh
 
 sh setup-builder/env.sh
 

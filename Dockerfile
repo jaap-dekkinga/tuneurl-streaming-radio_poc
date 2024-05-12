@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:22.04
 
 COPY . /home/tuneurl/src
 WORKDIR /home/tuneurl/src

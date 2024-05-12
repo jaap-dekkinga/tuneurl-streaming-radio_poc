@@ -7,10 +7,8 @@ sudo apt install -y apache2
 sudo ufw allow 'Apache'
 # sudo ufw status
 
-
-sudo systemctl status apache2
+# sudo systemctl status apache2
 export MY_URL=(curl -s4 icanhazip.com)
-
 
 # sudo systemctl stop apache2
 sudo systemctl start apache2

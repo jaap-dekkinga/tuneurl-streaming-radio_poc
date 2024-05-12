@@ -1,11 +1,5 @@
 #! /bin/bash
 
-sudo -i
-
-apt install -y build-essential autoconf libtool pkg-config git cmake ssh curl dbus-x11 --fix-missing
-apt install -y net-tools
-apt install -y wget
-
-apt install -y systemctl
-
-apt install -y ffmpeg
+sudo apt install -y build-essential autoconf libtool pkg-config git cmake ssh curl dbus-x11 --fix-missing
+sudo apt install -y net-tools wget systemctl ffmpeg
+sudo apt install -y vim

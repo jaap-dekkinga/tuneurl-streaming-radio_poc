@@ -1,12 +1,12 @@
 
-mkdir /home/ubuntu/
-mkdir /home/ubuntu/audio/
+sudo mkdir /home/ubuntu/
+sudo mkdir /home/ubuntu/audio/
 
-mkdir -p /home/ubuntu/audio/debug
+sudo mkdir -p /home/ubuntu/audio/debug
 
-cp -f script/*.sh  /home/ubuntu/audio/
+sudo cp -f script/*.sh  /home/ubuntu/audio/
 
-cp -f src/main/webapp/audio/10240-audio-streams-0230000.mp3  /home/ubuntu/audio/webrtc-source.mp3
+sudo cp -f src/main/webapp/audio/10240-audio-streams-0230000.mp3  /home/ubuntu/audio/webrtc-source.mp3
 
 
 cd /home/ubuntu/audio/

@@ -1,8 +1,9 @@
 
 sudo mkdir /home/ubuntu/
 sudo mkdir /home/ubuntu/audio/
+sudo mkdir /home/ubuntu/audio/debug
 
-sudo mkdir -p /home/ubuntu/audio/debug
+sudo chmod -R 0777 /home/ubuntu/audio/
 
 sudo cp -f script/*.sh  /home/ubuntu/audio/
 

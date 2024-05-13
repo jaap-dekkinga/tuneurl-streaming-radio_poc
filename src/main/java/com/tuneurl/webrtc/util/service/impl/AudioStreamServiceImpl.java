@@ -391,7 +391,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         return fileName + ".wav";
     }
 
-    private void updateAsDB(AudioStreamDatabase asDB, String crc32, String url, Long duration, Integer status) {
+    private AudioStreamDatabase updateAsDB(AudioStreamDatabase asDB, String crc32, String url, Long duration, Integer status) {
         // 11. Save conversion into audio_stream_data table.
         asDB = audioStreamDatabaseService.createAudioStreamDatabase();
         // 12. Set the unique filename based from the CRC32 of the given URL.
@@ -405,6 +405,8 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         LocalDateTime localDate = CommonUtil.asLocalDateTime(new Date());
         asDB.setAsCreated(localDate);
         asDB.setAsModified(localDate);
+
+        return asDB;
     }
 
     /**
@@ -558,7 +560,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
             updateStatus(true, response, status, asDB);
         } else if (isExecute) {
             if (asDB == null) {
-                updateAsDB(asDB, crc32, url, duration, status);
+                asDB = updateAsDB(asDB, crc32, url, duration, status);
                 // 14. Commit the new audio stream conversion
                 updateStatus(true, response, status, asDB);
             } else {

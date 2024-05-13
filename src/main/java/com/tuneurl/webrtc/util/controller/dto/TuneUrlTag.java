@@ -409,6 +409,32 @@ public class TuneUrlTag {
     this.mostSimilarStartTime = mostSimilarStartTime;
   }
 
+  public void setFingerprintCompareResponseData(FingerprintCompareResponse fcr) {
+    this.setDataPosition(fcr.getOffset());
+    this.setScore(fcr.getScore());
+    this.setSimilarity(fcr.getSimilarity());
+    this.setMostSimilarFramePosition(fcr.getMostSimilarFramePosition());
+    this.setMostSimilarStartTime(fcr.getMostSimilarStartTime());
+  }
+
+  public void setTuneUrlEntryData(TuneUrlEntry entry) {
+    this.setId(entry.getId());
+    this.setName(entry.getName());
+    this.setDescription(entry.getDescription());
+    this.setType(entry.getType());
+    this.setInfo(entry.getInfo());
+    this.setMatchPercentage(entry.getMatchPercentage());
+  }
+
+  public void setTuneUrlEmptyEntryData(String payload) {
+    this.setId(0L);
+    this.setName("");
+    this.setDescription(payload);
+    this.setType("open_page");
+    this.setInfo("");
+    this.setMatchPercentage(1);
+  }
+
   /**
    * To String.
    *

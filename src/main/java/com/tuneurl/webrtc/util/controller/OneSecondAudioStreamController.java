@@ -73,8 +73,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/")
 public class OneSecondAudioStreamController extends BaseController {
 
-
-
   /** Default constructor . */
   public OneSecondAudioStreamController() {}
 
@@ -235,12 +233,12 @@ public class OneSecondAudioStreamController extends BaseController {
     long count, counts = Converter.muldiv(1000, duration, 100);
     long durationLimit = dataOffset + Converter.muldiv(1000, duration - 5L, 1L);
     int index;
-    FingerprintCompareResponse fcr = null;
+    FingerprintCompareResponse fcr;
+    FingerprintResponse fr;
     TuneUrlTag tag;
     boolean isDebugOn = Constants.DEBUG_FINGERPRINTING;
     String rootDir = audioStreamBaseService.getSaveAudioFilesFolder(null);
     String debugDir = String.format("%s/%s", rootDir, "debug");
-    FingerprintResponse fr = null;
     if (isDebugOn) {
       ProcessHelper.makeDir(debugDir);
     }

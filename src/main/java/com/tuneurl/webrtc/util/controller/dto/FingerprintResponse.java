@@ -105,7 +105,7 @@ public class FingerprintResponse {
   /**
    * Sets the data.
    *
-   * @param data the data to set
+   * @param dataEx the data to set
    */
   public void setDataEx(String dataEx) {
     this.dataEx = dataEx;

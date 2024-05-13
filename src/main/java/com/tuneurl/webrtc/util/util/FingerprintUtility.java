@@ -83,7 +83,7 @@ public final class FingerprintUtility {
    */
   public static TuneUrlEntry getTuneUrlEntry(
       MessageLogger logger, final long index, final String payload, final String Url) {
-    // Should call the Search Matching API here
+    // TODO - Should call the Search Matching API here
     // Not implemented as the Search Matching API was currently broken as of 04/29/2024
     return null;
   }
@@ -96,15 +96,12 @@ public final class FingerprintUtility {
    */
   public static final FingerprintCompareResponse findBestFingerprint(
       List<FingerprintCompareResponse> selection) {
-    if (selection == null || selection.size() < 1) {
+    if (selection == null || selection.isEmpty()) {
       return null;
     }
     FingerprintCompareResponse fcr = selection.get(0);
-    int index;
-    for (index = 1; index < selection.size(); index++) {
-      FingerprintCompareResponse fcx = selection.get(index);
+    for (FingerprintCompareResponse fcx : selection) {
       if (CommonUtil.compareDouble(fcx.getScore(), fcr.getScore()) >= 0) {
-
         if (CommonUtil.compareDouble(fcx.getSimilarity(), fcr.getSimilarity()) >= 0) {
           fcr = fcx;
         }
@@ -140,28 +137,14 @@ public final class FingerprintUtility {
       TuneUrlTag tag,
       long index,
       FingerprintCompareResponse fcr) {
-    Integer one = 1;
     final String payload = convertFingerprintToString(data);
     TuneUrlEntry entry = getTuneUrlEntry(logger, index, payload, Constants.TUNEURL_SEARCH_API_URL);
     tag.setIndex(index);
-    tag.setDataPosition(fcr.getOffset());
-    tag.setScore(fcr.getScore());
-    tag.setSimilarity(fcr.getSimilarity());
-    tag.setMostSimilarFramePosition(fcr.getMostSimilarFramePosition());
-    tag.setMostSimilarStartTime(fcr.getMostSimilarStartTime());
-    tag.setId(0L);
-    tag.setName("");
-    tag.setDescription(payload);
-    tag.setType("open_page");
-    tag.setInfo("");
-    tag.setMatchPercentage(one);
-    if (entry != null) {
-      tag.setId(entry.getId());
-      tag.setName(entry.getName());
-      tag.setDescription(entry.getDescription());
-      tag.setType(entry.getType());
-      tag.setInfo(entry.getInfo());
-      tag.setMatchPercentage(entry.getMatchPercentage());
+    tag.setFingerprintCompareResponseData(fcr);
+    if (entry == null) {
+      tag.setTuneUrlEmptyEntryData(payload);
+    } else {
+      tag.setTuneUrlEntryData(entry);
     }
     return true;
   }
@@ -282,7 +265,7 @@ public final class FingerprintUtility {
    * Helper method to run external executable ./jni/fingerprintexec via
    * runExternalFingerprintModule.sh to get the result on comparing two fingerprint.
    *
-   * @param random Random - use to ensure the generated file name is very unique.
+   * @param random Random - use to ensure the generated file name is unique.
    * @param logger MessageLogger
    * @param rootDir String
    * @param timeOffset Long
@@ -1071,7 +1054,7 @@ public final class FingerprintUtility {
    * Helper to prune List of TuneUrlTag for /dev/v3/evaluateOneSecondAudioStream .
    *
    * @param isDebugOn boolean
-   * @parma logger MessageLogger
+   * @param logger MessageLogger
    * @param tags List&lt;TuneUrlTag>
    * @return List&lt;TuneUrlTag>
    */

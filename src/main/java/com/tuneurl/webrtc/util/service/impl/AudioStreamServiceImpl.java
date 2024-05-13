@@ -35,13 +35,11 @@ import com.albon.auth.util.Helper;
 import com.tuneurl.webrtc.util.controller.dto.*;
 import com.tuneurl.webrtc.util.exception.BaseServiceException;
 import com.tuneurl.webrtc.util.model.AudioStreamDatabase;
-import com.tuneurl.webrtc.util.repository.AudioStreamDatabaseRepository;
 import com.tuneurl.webrtc.util.service.AudioStreamDatabaseService;
 import com.tuneurl.webrtc.util.service.AudioStreamService;
 import com.tuneurl.webrtc.util.util.*;
 import com.tuneurl.webrtc.util.value.Constants;
 import org.apache.logging.log4j.LogManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -59,11 +57,7 @@ import java.util.*;
 @Service
 public class AudioStreamServiceImpl implements AudioStreamService {
 
-    @Autowired
-    private AudioStreamDatabaseService audioStreamDatabaseService;
-
-    @Autowired
-    private AudioStreamDatabaseRepository repository;
+    private final AudioStreamDatabaseService audioStreamDatabaseService;
 
     @Value("${save.audio.files:/home/ubuntu/audio}")
     private String saveAudioFiles;
@@ -73,14 +67,20 @@ public class AudioStreamServiceImpl implements AudioStreamService {
 
     private MessageLogger logger;
 
+    /**
+     * Set @logger class variable with a MessageLogger.
+     */
     protected void setupMessageLogger() {
-        this.logger = new MessageLogger();
-        this.logger.setLogger(
-            LogManager.getLogger(com.tuneurl.webrtc.util.util.MessageLogger.class));
+        if (this.logger == null) {
+            this.logger = new MessageLogger();
+            this.logger.setLogger(
+                    LogManager.getLogger(com.tuneurl.webrtc.util.util.MessageLogger.class));
+        }
     }
 
-    public AudioStreamServiceImpl() {
+    public AudioStreamServiceImpl(AudioStreamDatabaseService audioStreamDatabaseService) {
         setupMessageLogger();
+        this.audioStreamDatabaseService = audioStreamDatabaseService;
     }
 
     public EvaluateAudioStreamResponse evaluateAudioStream(AudioDataEntry audioDataEntry, EvaluateAudioStreamEntry evaluateAudioStreamEntry, String signature) {
@@ -131,7 +131,6 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         long count, counts = Converter.muldiv(1000, duration - 6L, 100);
         int dSize;
         short[] dData;
-        FingerprintCompareResponse fcr = null;
 
         TuneUrlTag tag;
         boolean isDebugOn = Constants.DEBUG_FINGERPRINTING;
@@ -139,8 +138,10 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         String debugUniqueName = ProcessHelper.createUniqueFilename();
         String debugDir = String.format("%s/%s", rootDir, "debug");
         String rootDebugDir = String.format("%s/%s", debugDir, debugUniqueName);
+
+        FingerprintCompareResponse fcr = null;
         FingerprintResponse fr = null;
-        FingerprintResponse audioFr = null;
+        FingerprintResponse audioFr;
         if (isDebugOn) {
             ProcessHelper.makeDir(debugDir);
         }
@@ -162,9 +163,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
             List<FingerprintResponse> frSelection = result.getFrCollection();
             List<FingerprintCompareResponse> selection = result.getFcrCollection();
 
-            timeOffset = elapse;
-            fcr = null;
-            fr = null;
+            // timeOffset = elapse; // possible legacy code
             if (selection.size() == 5) {
                 Object[] fingerprintComparisonsResponse = fingerprintComparisons(selection, frSelection, fcr, fr);
                 fcr = (FingerprintCompareResponse) fingerprintComparisonsResponse[0];
@@ -288,7 +287,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
     /**
      * Append filename with Audio Stream URL.
      *
-     * @param fileName
+     * @param fileName String The url file name
      * @return String
      */
     public String getStreamAudioUrlPrefix(final String fileName) {
@@ -391,9 +390,9 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         return fileName + ".wav";
     }
 
-    private AudioStreamDatabase updateAsDB(AudioStreamDatabase asDB, String crc32, String url, Long duration, Integer status) {
+    private AudioStreamDatabase updateAsDB(String crc32, String url, Long duration, Integer status) {
         // 11. Save conversion into audio_stream_data table.
-        asDB = audioStreamDatabaseService.createAudioStreamDatabase();
+        AudioStreamDatabase asDB = audioStreamDatabaseService.createAudioStreamDatabase();
         // 12. Set the unique filename based from the CRC32 of the given URL.
         asDB.setAsFilename(crc32);
         asDB.setAsUrl(url);
@@ -520,7 +519,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
             String value = results.get(key);
             switch (key) {
                 case "FILENAME":
-                    // Check if run_webrtc_script.sh setup the correct Filename.
+                    // Check if run_webrtc_script.sh set up the correct Filename.
                     if (!crc32.equals(value)) {
                         if (!error.isEmpty()) {
                             error += "\n";
@@ -552,15 +551,17 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         }
 
         if (!error.isEmpty()) {
-            CommonUtil.BadRequestException(error);
-            /** NOTREACH */
+            CommonUtil.BadRequestException(error); // Do not reach further
         }
         if (executionMode.equals("KILL")) {
             status = Constants.AUDIOSTREAM_STATUS_FINAL;
             updateStatus(true, response, status, asDB);
         } else if (isExecute) {
             if (asDB == null) {
-                asDB = updateAsDB(asDB, crc32, url, duration, status);
+                // 11. Save conversion into audio_stream_data table.
+                // 12. Set the unique filename based from the CRC32 of the given URL.
+                // 13. Status becomes Constants.AUDIOSTREAM_STATUS_FINAL if audio stream conversion is
+                asDB = updateAsDB(crc32, url, duration, status);
                 // 14. Commit the new audio stream conversion
                 updateStatus(true, response, status, asDB);
             } else {

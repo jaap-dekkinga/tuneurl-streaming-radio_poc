@@ -83,11 +83,11 @@ public class JSFileController extends BaseController {
   private static final String contentTypeJs = "text/javascript";
 
   private boolean isFileToMonitor(final String fileName) {
-    for (int index = 0; index < JS_WASM_FILES.length; index++) {
-      if (fileName.endsWith(JS_WASM_FILES[index])) {
-        return true;
+      for (String jsWasmFile : JS_WASM_FILES) {
+          if (fileName.endsWith(jsWasmFile)) {
+              return true;
+          }
       }
-    }
     return false;
   }
 

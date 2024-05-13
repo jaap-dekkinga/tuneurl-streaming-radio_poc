@@ -73,6 +73,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/")
 public class OneSecondAudioStreamController extends BaseController {
 
+
+
   /** Default constructor . */
   public OneSecondAudioStreamController() {}
 
@@ -234,14 +236,9 @@ public class OneSecondAudioStreamController extends BaseController {
     long durationLimit = dataOffset + Converter.muldiv(1000, duration - 5L, 1L);
     int index;
     FingerprintCompareResponse fcr = null;
-    FingerprintCompareResponse fca;
-    FingerprintCompareResponse fcb;
-    FingerprintCompareResponse fcc;
-    FingerprintCompareResponse fcd;
-    FingerprintCompareResponse fce;
     TuneUrlTag tag;
     boolean isDebugOn = Constants.DEBUG_FINGERPRINTING;
-    String rootDir = super.getSaveAudioFilesFolder(null);
+    String rootDir = audioStreamBaseService.getSaveAudioFilesFolder(null);
     String debugDir = String.format("%s/%s", rootDir, "debug");
     FingerprintResponse fr = null;
     if (isDebugOn) {
@@ -267,45 +264,9 @@ public class OneSecondAudioStreamController extends BaseController {
       fcr = null;
       fr = null;
       if (selection.size() == 5) {
-        fca = selection.get(0);
-        fcb = selection.get(1);
-        fcc = selection.get(2);
-        fcd = selection.get(3);
-        fce = selection.get(4);
-
-        //  8: N P N N N => P is the valid TuneUrl trigger sound
-        // 15: N P P P P => N is the valid TuneUrl trigger sound
-        // 30: P P P P N => N is the valid TuneUrl trigger sound
-        if (FingerprintUtility.hasNegativeFrameStartTimeEx(fca)
-            && FingerprintUtility.hasPositiveFrameStartTimeEx(fcb)) {
-          if (FingerprintUtility.hasNegativeFrameStartTimeEx(fcc)) {
-            // N P N
-            if (FingerprintUtility.isFrameStartTimeEqual(fca, fcc)
-                && FingerprintUtility.isFrameStartTimeEqual(fcc, fcd)
-                && FingerprintUtility.isFrameStartTimeEqual(fcd, fce)) {
-              // N P N N N => P is the valid TuneUrl trigger sound
-              fcr = selection.get(1);
-              fr = frSelection.get(1);
-            }
-          } else if (FingerprintUtility.hasPositiveFrameStartTimeEx(fcc)
-              && FingerprintUtility.isFrameStartTimeEqual(fcc, fcb)
-              && FingerprintUtility.isFrameStartTimeEqual(fcc, fcd)
-              && FingerprintUtility.isFrameStartTimeEqual(fcd, fce)) {
-            // N P P P P => N is the valid TuneUrl trigger sound
-            fcr = selection.get(0);
-            fr = frSelection.get(0);
-          }
-        } else if (FingerprintUtility.hasPositiveFrameStartTimeEx(fca)
-            && FingerprintUtility.hasNegativeFrameStartTimeEx(fce)) {
-          // P . . . N
-          if (FingerprintUtility.isFrameStartTimeEqual(fca, fcb)
-              && FingerprintUtility.isFrameStartTimeEqual(fcb, fcc)
-              && FingerprintUtility.isFrameStartTimeEqual(fcc, fcd)) {
-            // P P P P N => N is the valid TuneUrl trigger sound
-            fcr = selection.get(4);
-            fr = frSelection.get(4);
-          } // if (FingerprintUtility.isFrameStartTimeEqual(fca, fcb)
-        } // if (FingerprintUtility.hasNegativeFrameStartTimeEx(fca)
+        Object[] fingerprintComparisonsResponse = audioStreamBaseService.fingerprintComparisons(selection, frSelection, fcr, fr);
+        fcr = (FingerprintCompareResponse) fingerprintComparisonsResponse[0];
+        fr = (FingerprintResponse) fingerprintComparisonsResponse[1];
 
         if (null != fcr) {
           tag = FingerprintUtility.newTag(true, dataOffset, fr, fcr);
@@ -317,7 +278,7 @@ public class OneSecondAudioStreamController extends BaseController {
         }
       } // if (selection.size() == 5)
     } // for (count = 0L, ...)
-    if (liveTags.size() > 0) {
+    if (!liveTags.isEmpty()) {
       tags = FingerprintUtility.pruneTagsEx(isDebugOn, logger, liveTags);
       if (isDebugOn) {
         logger.logExit(signature2, "before=", liveTags.size(), "after=", tags.size());

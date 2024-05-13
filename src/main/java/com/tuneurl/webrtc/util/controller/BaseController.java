@@ -40,6 +40,7 @@ import com.albon.auth.value.Constant;
 import com.tuneurl.webrtc.util.controller.dto.*;
 import com.tuneurl.webrtc.util.exception.BaseServiceException;
 import com.tuneurl.webrtc.util.model.*;
+import com.tuneurl.webrtc.util.service.AudioStreamService;
 import com.tuneurl.webrtc.util.service.LdapInfoService;
 import com.tuneurl.webrtc.util.service.SdkUserService;
 import com.tuneurl.webrtc.util.service.SessionDataService;
@@ -78,18 +79,14 @@ import org.springframework.web.servlet.ModelAndView;
  */
 public abstract class BaseController {
 
+  @Autowired protected AudioStreamService audioStreamBaseService;
+
   @Autowired protected SessionDataService sessionService;
   @Autowired protected LdapInfoService ldapService;
   @Autowired protected SdkUserService userService;
 
   @Value("${audio.access.without.login:false}")
   protected boolean isAllowAccessToWaveWithoutLogin;
-
-  @Value("${save.audio.files:/home/ubuntu/audio}")
-  private String saveAudioFiles;
-
-  @Value("${audio.stream.url.prefix}")
-  private String streamAudioUrlPrefix;
 
   @Value("${gather.sdk.analytics:false}")
   private boolean isSaveAnalytic;
@@ -132,28 +129,6 @@ public abstract class BaseController {
     userEntry.setEmail(sdk.getEmail());
     userEntry.setRoles(sdk.getRoles());
     return userEntry;
-  }
-
-  /**
-   * Append filename with Audio Stream URL.
-   *
-   * @param fileName
-   * @return String
-   */
-  public String getStreamAudioUrlPrefix(final String fileName) {
-    if (Helper.isStringNullOrEmpty(fileName)) return saveAudioFiles;
-    return String.format("%s/%s", streamAudioUrlPrefix, fileName);
-  }
-
-  /**
-   * Append filename with Audio Stream folder.
-   *
-   * @param subDir String filename
-   * @return String
-   */
-  public String getSaveAudioFilesFolder(final String subDir) {
-    if (Helper.isStringNullOrEmpty(subDir)) return saveAudioFiles;
-    return String.format("%s/%s", saveAudioFiles, subDir);
   }
 
   /** URL for redirection. */

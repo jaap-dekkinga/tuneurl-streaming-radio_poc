@@ -34,11 +34,7 @@ package com.tuneurl.webrtc.util.controller;
 import com.albon.auth.dto.UserEntry;
 import com.albon.auth.jwt.JwtTool;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tuneurl.webrtc.util.controller.dto.*;
 import com.tuneurl.webrtc.util.model.*;
-import com.tuneurl.webrtc.util.repository.*;
-import com.tuneurl.webrtc.util.service.*;
-import javax.validation.constraints.*;
 
 /**
  * Class ClientCredential DTO to hold SDK User credentials.
@@ -237,7 +233,7 @@ public class ClientCredential {
    * @return String
    */
   public String toString() {
-    java.lang.StringBuffer sb = new java.lang.StringBuffer();
+    StringBuffer sb = new StringBuffer();
     sb.append("class ClientCredential {\n");
     sb.append("    \"sdk_uuid\": ").append('"').append(getSdkUuid()).append("\",\n");
     sb.append("    \"jwt_tool\": ").append('"').append(getJwtTool()).append("\",\n");

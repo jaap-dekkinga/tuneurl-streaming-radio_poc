@@ -159,7 +159,7 @@ public class SwaggerController extends BaseController {
   public ModelAndView handleAnyError(HttpServletRequest httpRequest) {
     String path = httpRequest.getRequestURI();
     if (Helper.isStringNullOrEmpty(path)) path = "/";
-    if (path.indexOf("/v1") < 0 && path.indexOf("/dev") < 0) {
+    if (!path.contains("/v1") && !path.contains("/dev")) {
       return super.getModelViewErrorPage("404", path, "error-404");
     }
     return super.getModelViewErrorPage("500", path, "error-500");

@@ -138,7 +138,7 @@ public final class FingerprintUtility {
     final String payload = convertFingerprintToString(data);
     TuneUrlEntry entry = getTuneUrlEntry(logger, index, payload, Constants.TUNEURL_SEARCH_API_URL);
     tag.setIndex(index);
-    tag.setFingerprintCompareResponseData(fcr);
+    tag.setFingerprintCompareResponseData(fcr, true);
     if (entry == null) {
       tag.setTuneUrlEmptyEntryData(payload);
     } else {
@@ -310,7 +310,7 @@ public final class FingerprintUtility {
     // 5. the JSON string should be written to this file
     // 6. Run ./jni/fingerprintexec via runExternalFingerprintModule.sh
     // 7. read the JSON string
-    String json = executeFingerprintExecAsProcess(uniqueName, rootDir, outputFilename, logger, signature, "jsCompareFingerprint");
+    String json = FingerprintUtility.executeFingerprintExecAsProcess(uniqueName, rootDir, outputFilename, logger, signature, "jsCompareFingerprint");
     if (json == null) {
       return response;
     }
@@ -406,7 +406,7 @@ public final class FingerprintUtility {
     // 5. the JSON string should be written to this file
     // 6. Run ./jni/fingerprintexec via runExternalFingerprintModule.sh
     // 7. read the JSON string
-    String json = executeFingerprintExecAsProcess(uniqueName, rootDir, outputFilename, logger, signature, "fingerprint");
+    String json = FingerprintUtility.executeFingerprintExecAsProcess(uniqueName, rootDir, outputFilename, logger, signature, "fingerprint");
     if (json == null) {
       return response;
     }
@@ -865,7 +865,6 @@ public final class FingerprintUtility {
       Long dataOffset,
       FingerprintResponse fr,
       FingerprintCompareResponse fcr) {
-    Integer one = 1;
     TuneUrlTag tag = new TuneUrlTag();
     long offset = fcr.getOffset().longValue();
     offset += dataOffset;
@@ -873,17 +872,10 @@ public final class FingerprintUtility {
     tag.setDataPosition(offset);
     offset = Converter.muldiv(1L, offset, 100L);
     tag.setIndex(offset);
-    tag.setScore(fcr.getScore());
-    tag.setSimilarity(fcr.getSimilarity());
-    tag.setMostSimilarFramePosition(fcr.getMostSimilarFramePosition());
-    tag.setMostSimilarStartTime(fcr.getMostSimilarStartTime());
-    tag.setId(0L);
-    tag.setName("");
-    tag.setType("open_page");
-    tag.setInfo("");
-    tag.setMatchPercentage(one);
+    tag.setFingerprintCompareResponseData(fcr, false);
+
     final String payload = convertFingerprintToString(fr.getData());
-    tag.setDescription(payload);
+    tag.setTuneUrlEmptyEntryData(payload);
     return tag;
   }
 
@@ -917,9 +909,9 @@ public final class FingerprintUtility {
    */
   public static final void displayLiveTags(
       final String signature, MessageLogger logger, List<TuneUrlTag> liveTags) {
-    for (int index = 0; index < liveTags.size(); index++) {
-      displayLiveTagsEx(signature, logger, liveTags.get(index));
-    }
+      for (TuneUrlTag liveTag : liveTags) {
+          displayLiveTagsEx(signature, logger, liveTag);
+      }
   }
 
   /**
@@ -950,7 +942,7 @@ public final class FingerprintUtility {
       }
       // Try to locate the X-Y-X or X-Y-Z-Y-X pattern
       List<TuneUrlTag> newTag = FingerprintUtility.pruneTags(tags);
-      if (newTag.size() > 0) return newTag;
+      if (!newTag.isEmpty()) return newTag;
       tags.clear();
     }
     if (limit == 1) {

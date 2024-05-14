@@ -97,11 +97,32 @@ public final class Converter {
    */
   public static byte[] convertListByte(List<Byte> data) {
     byte[] datus = new byte[data.size()];
-    for (int index = 0; index < data.size(); index++) {
-      datus[index] = data.get(index);
+
+    int index = 0;
+    for (Byte item: data) {
+      datus[index] = item;
+      index++;
     }
     return datus;
   }
+
+  /**
+   * Helper method to convert List&lt;Short> to short[].
+   *
+   * @param data List&lt;Short>
+   * @return array of short
+   */
+  public static short[] convertListShort(List<Short> data) {
+    short[] datus = new short[data.size()];
+
+    int index = 0;
+    for (short item: data) {
+      datus[index] = item;
+      index++;
+    }
+    return datus;
+  }
+
 
   /**
    * Helper method to convert List&lt;Byte> to byte[] starting at offset with size.
@@ -120,20 +141,6 @@ public final class Converter {
         index < size && offset < dsize;
         offset++, index++) {
       datus[index] = data.get(offset);
-    }
-    return datus;
-  }
-
-  /**
-   * Helper method to convert List&lt;Short> to short[].
-   *
-   * @param data List&lt;Short>
-   * @return array of short
-   */
-  public static short[] convertListShort(List<Short> data) {
-    short[] datus = new short[data.size()];
-    for (int index = 0; index < data.size(); index++) {
-      datus[index] = data.get(index);
     }
     return datus;
   }
@@ -263,7 +270,7 @@ public final class Converter {
   public static final List<AudioStreamChannelInfo> trainingChannelToInfo(
       List<AudioStreamTrainingChannel> lists) {
     ArrayList<AudioStreamChannelInfo> instance = new ArrayList<>();
-    if (lists != null && lists.size() > 0) {
+    if (lists != null && !lists.isEmpty()) {
       for (AudioStreamTrainingChannel list : lists) {
         AudioStreamChannelInfo info = new AudioStreamChannelInfo();
         info.setChannelId(list.getAcChannel());

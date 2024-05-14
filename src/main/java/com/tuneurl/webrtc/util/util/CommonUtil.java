@@ -136,7 +136,7 @@ public final class CommonUtil {
   public static void checkNullOrEmptyParameter(final String param, final String name)
       throws BaseServiceException {
     checkNullParameter(param, name);
-    if (0 == param.trim().length()) {
+    if (param.trim().isEmpty()) {
       throw new BaseServiceException("'" + name + "' cannot be empty.", HttpStatus.BAD_REQUEST);
     }
   }
@@ -335,7 +335,7 @@ public final class CommonUtil {
       // NOTREACH
     } else {
       data = value.trim();
-      if (data.length() == 0) {
+      if (data.isEmpty()) {
         CommonUtil.BadRequestException("The '" + name + "' cannot be empty.");
         // NOTREACH
       } else if (data.length() > size) {

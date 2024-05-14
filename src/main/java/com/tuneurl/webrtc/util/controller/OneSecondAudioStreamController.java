@@ -235,7 +235,6 @@ public class OneSecondAudioStreamController extends BaseController {
     int index;
     FingerprintCompareResponse fcr;
     FingerprintResponse fr;
-    TuneUrlTag tag;
     boolean isDebugOn = Constants.DEBUG_FINGERPRINTING;
     String rootDir = audioStreamBaseService.getSaveAudioFilesFolder(null);
     String debugDir = String.format("%s/%s", rootDir, "debug");
@@ -267,7 +266,7 @@ public class OneSecondAudioStreamController extends BaseController {
         fr = (FingerprintResponse) fingerprintComparisonsResponse[1];
 
         if (null != fcr) {
-          tag = FingerprintUtility.newTag(true, dataOffset, fr, fcr);
+          TuneUrlTag tag = FingerprintUtility.newTag(true, dataOffset, fr, fcr);
           if (isDebugOn) {
             FingerprintUtility.displayLiveTagsEx(signature, logger, tag);
           }
@@ -282,8 +281,7 @@ public class OneSecondAudioStreamController extends BaseController {
         logger.logExit(signature2, "before=", liveTags.size(), "after=", tags.size());
       }
       liveTags = new ArrayList<TuneUrlTag>();
-      for (index = 0; index < tags.size(); index++) {
-        tag = tags.get(index);
+      for (TuneUrlTag tag : tags) {
         if (isDebugOn) {
           logger.logExit(
               signature,

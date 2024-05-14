@@ -31,8 +31,6 @@
 
 package com.tuneurl.webrtc.util.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tuneurl.webrtc.util.controller.dto.AudioDataEntry;
 import com.tuneurl.webrtc.util.controller.dto.CompareStringResult;
@@ -198,7 +196,9 @@ public final class FingerprintUtility {
     ProcessHelper.deleteFile(fileName);
     try {
       file = new File(fileName);
-      file.createNewFile();
+      if(!file.createNewFile()) {
+        throw new IOException();
+      }
     } catch (IOException ex) {
       CommonUtil.BadRequestException(ex.getMessage());
       /*NOTREACH*/
@@ -306,47 +306,24 @@ public final class FingerprintUtility {
     // [0, ..., one size-1]
     // [0, ..., two size-1]
     writeFingerprintData(outputFilename, one, onesize, two, twosize);
+
     // 5. the JSON string should be written to this file
-    String resultFilename = String.format("/tmp/%s.out", uniqueName);
-    String command = rootDir + "/runExternalFingerprintModule.sh";
     // 6. Run ./jni/fingerprintexec via runExternalFingerprintModule.sh
-    ProcessBuilder processBuilder =
-        new ProcessBuilder(
-            "/bin/bash", command, resultFilename, outputFilename, "jsCompareFingerprint");
-    processBuilder.redirectErrorStream(true);
-    processBuilder.directory(new File(rootDir));
-    Process process;
-    try {
-      process = processBuilder.start();
-      process.waitFor();
-    } catch (IOException | InterruptedException ex) {
-      logger.logExit(signature, "processBuilder.start() Failed: " + ex.getMessage());
-      ProcessHelper.deleteFile(outputFilename);
-      ProcessHelper.deleteFile(resultFilename);
+    // 7. read the JSON string
+    String json = executeFingerprintExecAsProcess(uniqueName, rootDir, outputFilename, logger, signature, "jsCompareFingerprint");
+    if (json == null) {
       return response;
     }
-    // 7. read the JSON string
-    String json;
-    ProcessHelper.deleteFile(outputFilename);
-    if (ProcessHelper.isFileExist(resultFilename)) {
-      json = ProcessHelper.readTextFile(resultFilename);
-    } else {
-      json = "";
-    }
-    ProcessHelper.deleteFile(resultFilename);
     ObjectMapper mapper = new ObjectMapper();
+
     CompareStringResult result = null;
-    if (json.length() < 1 || json.charAt(0) != '{') {
+    if (json.isEmpty() || json.charAt(0) != '{') {
       return response;
     }
     // 8. JSON string should be in CompareStringResult structure
     try {
       result = mapper.readValue(json, CompareStringResult.class);
-    } catch (JsonMappingException ex) {
-      logger.logExit(
-          signature, "mapper.readValue(json) Failed: " + ex.getMessage() + ",json[" + json + "]");
-      return response;
-    } catch (JsonProcessingException ex) {
+    } catch (Exception ex) {
       logger.logExit(
           signature, "mapper.readValue(json) Failed: " + ex.getMessage() + ",json[" + json + "]");
       return response;
@@ -425,46 +402,24 @@ public final class FingerprintUtility {
     // one size
     // [0, ..., one size-1]
     writeFingerprintingData(outputFilename, one, onesize);
+
     // 5. the JSON string should be written to this file
-    String resultFilename = String.format("/tmp/%s.out", uniqueName);
-    String command = rootDir + "/runExternalFingerprintModule.sh";
     // 6. Run ./jni/fingerprintexec via runExternalFingerprintModule.sh
-    ProcessBuilder processBuilder =
-        new ProcessBuilder("/bin/bash", command, resultFilename, outputFilename, "fingerprint");
-    processBuilder.redirectErrorStream(true);
-    processBuilder.directory(new File(rootDir));
-    Process process;
-    try {
-      process = processBuilder.start();
-      process.waitFor();
-    } catch (IOException | InterruptedException ex) {
-      logger.logExit(signature, "processBuilder.start() Failed: " + ex.getMessage());
-      ProcessHelper.deleteFile(outputFilename);
-      ProcessHelper.deleteFile(resultFilename);
+    // 7. read the JSON string
+    String json = executeFingerprintExecAsProcess(uniqueName, rootDir, outputFilename, logger, signature, "fingerprint");
+    if (json == null) {
       return response;
     }
-    // 7. read the JSON string
-    String json;
-    ProcessHelper.deleteFile(outputFilename);
-    if (ProcessHelper.isFileExist(resultFilename)) {
-      json = ProcessHelper.readTextFile(resultFilename);
-    } else {
-      json = "";
-    }
-    ProcessHelper.deleteFile(resultFilename);
     ObjectMapper mapper = new ObjectMapper();
+
     FingerprintEntry result = null;
-    if (json.length() < 1 || json.charAt(0) != '{') {
+    if (json.isEmpty() || json.charAt(0) != '{') {
       return response;
     }
     // 8. JSON string should be in FingerprintEntry structure
     try {
       result = mapper.readValue(json, FingerprintEntry.class);
-    } catch (JsonMappingException ex) {
-      logger.logExit(
-          signature, "mapper.readValue(json) Failed: " + ex.getMessage() + ",json[" + json + "]");
-      return response;
-    } catch (JsonProcessingException ex) {
+    } catch (Exception ex) {
       logger.logExit(
           signature, "mapper.readValue(json) Failed: " + ex.getMessage() + ",json[" + json + "]");
       return response;
@@ -477,13 +432,49 @@ public final class FingerprintUtility {
     // 10. Convert the fingerprint for JavaScript consumption.
     StringBuffer sb = new StringBuffer();
     sb.append("[");
-    for (index = 0; index < limit; index++) {
-      if (index > 0) sb.append(",");
+    if (limit > 0) {
+      sb.append(ProcessHelper.byte2short(fingerprintData[0]));
+    }
+    for (index = 1; index < limit; index++) {
+      sb.append(",");
       sb.append(ProcessHelper.byte2short(fingerprintData[index]));
     }
     sb.append("]");
     response.setDataEx(sb.toString());
     return response;
+  }
+
+  private static String executeFingerprintExecAsProcess(Object uniqueName, String rootDir, String outputFilename, MessageLogger logger, String signature, String action) {
+    // 5. the JSON string should be written to this file
+    String resultFilename = String.format("/tmp/%s.out", uniqueName);
+    String command = rootDir + "/runExternalFingerprintModule.sh";
+    // 6. Run ./jni/fingerprintexec via runExternalFingerprintModule.sh
+    ProcessBuilder processBuilder =
+            new ProcessBuilder("/bin/bash", command, resultFilename, outputFilename, action);
+
+    processBuilder.redirectErrorStream(true);
+    processBuilder.directory(new File(rootDir));
+    Process process;
+    try {
+      process = processBuilder.start();
+      process.waitFor();
+    } catch (IOException | InterruptedException ex) {
+      logger.logExit(signature, "processBuilder.start() Failed: " + ex.getMessage());
+      ProcessHelper.deleteFile(outputFilename);
+      ProcessHelper.deleteFile(resultFilename);
+      return null;
+    }
+    // 7. read the JSON string
+    String json;
+    ProcessHelper.deleteFile(outputFilename);
+    if (ProcessHelper.isFileExist(resultFilename)) {
+      json = ProcessHelper.readTextFile(resultFilename);
+    } else {
+      json = "";
+    }
+    ProcessHelper.deleteFile(resultFilename);
+
+    return json;
   }
 
   /**

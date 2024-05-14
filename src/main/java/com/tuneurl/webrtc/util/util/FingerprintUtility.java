@@ -150,15 +150,11 @@ public final class FingerprintUtility {
   /**
    * Helper to initialized a FingerprintCompareResponse structure.
    *
-   * @param signature String
-   * @param logger MessageLogger
    * @param fcr FingerprintCompareResponse
    * @param timeOffset Long
    * @return FingerprintCompareResponse
    */
   public static final FingerprintCompareResponse resetResponseValue(
-      final String signature,
-      MessageLogger logger,
       FingerprintCompareResponse fcr,
       final long timeOffset) {
     double zero = 0.0;
@@ -289,7 +285,7 @@ public final class FingerprintUtility {
 
     final String signature = "runExternalFingerprintModule";
     FingerprintCompareResponse response = new FingerprintCompareResponse();
-    resetResponseValue(signature, logger, response, timeOffset);
+    resetResponseValue(response, timeOffset);
     // 1. a null offset signify Fingerprint extraction failure.
     response.setOffset(null);
     // 2. Create a unique temporary filename.

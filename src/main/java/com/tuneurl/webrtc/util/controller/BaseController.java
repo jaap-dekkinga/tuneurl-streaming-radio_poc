@@ -717,8 +717,6 @@ public abstract class BaseController {
     //          "d=", fileNameOnDisposition
     //        });
     try {
-      outputStream.write(b);
-      outputStream.flush();
       response.setStatus(200);
       response.setContentLength((int) size);
       response.addHeader(contentLength, sSize);
@@ -729,6 +727,8 @@ public abstract class BaseController {
       if (fileNameOnDisposition != null) {
         response.setHeader("Content-Disposition", "attachment; filename=" + fileNameOnDisposition);
       }
+      outputStream.write(b);
+      outputStream.flush();
     } catch (IOException ex) {
       ex.printStackTrace();
       outputStream = closeOutputStream(outputStream);

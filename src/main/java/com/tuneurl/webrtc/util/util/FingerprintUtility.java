@@ -451,7 +451,7 @@ public final class FingerprintUtility {
     int index, limit = response.getSize().intValue();
     byte[] fingerprintData = response.getData();
     // 10. Convert the fingerprint for JavaScript consumption.
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append("[");
     if (limit > 0) {
       sb.append(ProcessHelper.byte2short(fingerprintData[0]));

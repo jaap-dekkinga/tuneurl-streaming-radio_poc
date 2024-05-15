@@ -110,12 +110,15 @@ public final class FingerprintUtility {
 
   public static final String convertFingerprintToString(final byte[] data) {
     int offset;
-    StringBuffer sb = new StringBuffer();
+    final String Comma = ",";
+    StringBuilder sb = new StringBuilder();
     sb.append(fingerprint_prefix).append("[");
-    sb.append(ProcessHelper.byte2short(data[0]));
-    for (offset = 1; offset < data.length; offset++) {
-      sb.append(",");
-      sb.append(ProcessHelper.byte2short(data[offset]));
+    if (data.length > 0) {
+      sb.append(ProcessHelper.byte2short(data[0]));
+      for (offset = 1; offset < data.length; offset++) {
+        sb.append(Comma);
+        sb.append(ProcessHelper.byte2short(data[offset]));
+      }
     }
     sb.append("]").append(fingerprint_suffix);
     return sb.toString();
@@ -220,35 +223,57 @@ public final class FingerprintUtility {
     closeFileOutputStream(fib);
   }
 
+
+
   /**
-   * Helper to write the fingerprint into specified file.
+   * Helper to cache the fingerprint base part.
    *
-   * @param fileName String
-   * @param one array of byte
+   * @param one     array of byte
    * @param onesize int
-   * @param two array of byte
-   * @param twosize int
+   * @return a StringBuffer to optimize a recurring assemblage
    */
-  private static void writeFingerprintData(
-      final String fileName,
-      final byte[] one,
-      final int onesize,
-      final byte[] two,
-      final int twosize) {
-    int index;
+  private static StringBuffer getFingerprintBufferedPart(final byte[] one, final int onesize) {
     final String SPC = " ";
     final String CRLF = "\n";
     StringBuffer sb = new StringBuffer();
-    sb.append(onesize).append(CRLF).append(twosize).append(CRLF);
-    for (index = 0; index < onesize; index++) {
+    for (int index = 0; index < onesize; index++) {
       if (index > 0) sb.append(SPC);
       sb.append(ProcessHelper.byte2short(one[index]));
     }
     sb.append(CRLF);
-    for (index = 0; index < twosize; index++) {
-      if (index > 0) sb.append(SPC);
-      sb.append(ProcessHelper.byte2short(two[index]));
+
+    return sb;
+  }
+
+  /**
+   * Helper to write the fingerprint with buffer help into specified file.
+   *
+   * @param fileName String
+   * @param bufferedOne array of byte
+   * @param onesize int
+   * @param two array of byte
+   * @param twosize int
+   */
+  private static void writeFingerprintDataWithBuffer(
+          final String fileName,
+          final StringBuffer bufferedOne,
+          final byte[] two,
+          final int onesize,
+          final int twosize) {
+    final String SPC = " ";
+    final String CRLF = "\n";
+    StringBuffer sb = new StringBuffer();
+    sb.append(onesize).append(CRLF).append(twosize).append(CRLF);
+    sb.append(bufferedOne);
+
+    if (twosize > 0) {
+      sb.append(ProcessHelper.byte2short(two[0]));
+      for (int index = 1; index < twosize; index++) {
+        sb.append(SPC);
+        sb.append(ProcessHelper.byte2short(two[index]));
+      }
     }
+
     sb.append(CRLF);
 
     writeStringBuffer(fileName, sb);
@@ -277,7 +302,7 @@ public final class FingerprintUtility {
       MessageLogger logger,
       final String rootDir,
       final long timeOffset,
-      final byte[] one,
+      final StringBuffer one,
       final int onesize,
       final byte[] two,
       final int twosize)
@@ -301,7 +326,7 @@ public final class FingerprintUtility {
     // two size
     // [0, ..., one size-1]
     // [0, ..., two size-1]
-    writeFingerprintData(outputFilename, one, onesize, two, twosize);
+    writeFingerprintDataWithBuffer(outputFilename, one, two, onesize, twosize);
 
     // 5. the JSON string should be written to this file
     // 6. Run ./jni/fingerprintexec via runExternalFingerprintModule.sh
@@ -482,10 +507,9 @@ public final class FingerprintUtility {
    * @param timeOffset Long
    * @param logger MessageLogger
    * @param rootDir String
-   * @param data Array of short
    * @param random Random - use to ensure the generated file name is very unique.
-   * @param fingerprintRate Long
-   * @param dataFingerprint Array of byte
+   * @param dataFingerprintBuffer A String Buffer with the datafingerprint already processed
+   * @param dataFingerprintSize the lenght of the dataFingerprint - before buffered
    * @return FingerprintCompareResponse
    */
   public static final FingerprintCompareResponse compareFingerprint(
@@ -493,10 +517,9 @@ public final class FingerprintUtility {
       Long timeOffset,
       MessageLogger logger,
       final String rootDir,
-      final short[] data,
       Random random,
-      final Long fingerprintRate,
-      final byte[] dataFingerprint) {
+      StringBuffer dataFingerprintBuffer,
+      int dataFingerprintSize) {
     byte[] cData;
     FingerprintCompareResponse fcr = null;
     if ((null != fr) && fr.getSize().longValue() > 1L) {
@@ -508,8 +531,8 @@ public final class FingerprintUtility {
                 logger,
                 rootDir,
                 timeOffset,
-                dataFingerprint,
-                dataFingerprint.length,
+                dataFingerprintBuffer,
+                dataFingerprintSize,
                 cData,
                 cData.length);
         if (null == fcr.getOffset()) {
@@ -520,8 +543,8 @@ public final class FingerprintUtility {
                   logger,
                   rootDir,
                   timeOffset,
-                  dataFingerprint,
-                  dataFingerprint.length,
+                  dataFingerprintBuffer,
+                  dataFingerprintSize,
                   cData,
                   cData.length);
           if (null == fcr.getOffset()) {
@@ -569,6 +592,10 @@ public final class FingerprintUtility {
     FingerprintResponse fr = null;
     FingerprintCompareResponse fcr = null;
     boolean isDebugOn = Constants.DEBUG_FINGERPRINTING;
+
+    StringBuffer dataFingerprintBuffer = getFingerprintBufferedPart(dataFingerprint, dataFingerprint.length);
+    int dataFingerprintBufferSize = dataFingerprint.length;
+
     for (increment = 0; increment < 100; increment += incrementDelta) {
       timeOffset = elapse + increment;
 
@@ -580,13 +607,12 @@ public final class FingerprintUtility {
       dData = Converter.convertListShortEx(data, (int) iStart, dSize);
       if (dData == null) break;
 
-      fr =
-          FingerprintUtility.runExternalFingerprinting(
+      fr = FingerprintUtility.runExternalFingerprinting(
               random, logger, rootDir, dData, dData.length);
 
-      fcr =
-          FingerprintUtility.compareFingerprint(
-              fr, timeOffset, logger, rootDir, data, random, fingerprintRate, dataFingerprint);
+      fcr = FingerprintUtility.compareFingerprint(
+              fr, timeOffset, logger, rootDir, random, dataFingerprintBuffer, dataFingerprintBufferSize);
+
 
       if (fcr != null) {
         selection.add(fcr);

@@ -109,7 +109,7 @@ public final class ProcessHelper {
    */
   public static void checkNullOrEmptyString(String param, String name) throws BaseServiceException {
     checkNull(param, name);
-    if (param.trim().length() == 0) {
+    if (param.trim().isEmpty()) {
       throw new IllegalArgumentException("The '" + name + "' cannot be empty!");
     }
   }

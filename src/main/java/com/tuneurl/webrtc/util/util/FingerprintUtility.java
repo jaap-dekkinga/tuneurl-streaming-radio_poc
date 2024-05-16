@@ -229,7 +229,7 @@ public final class FingerprintUtility {
    * @param onesize int
    * @return a StringBuffer to optimize a recurring assemblage
    */
-  private static StringBuffer getFingerprintBufferedPart(final byte[] one, final int onesize) {
+  public static StringBuffer getFingerprintBufferedPart(final byte[] one, final int onesize) {
     final String SPC = " ";
     final String CRLF = "\n";
     StringBuffer sb = new StringBuffer();
@@ -586,7 +586,8 @@ public final class FingerprintUtility {
       Long elapse,
       Random random,
       final Long fingerprintRate,
-      final byte[] dataFingerprint,
+      StringBuffer dataFingerprintBuffer,
+      int dataFingerprintBufferSize,
       int incrementDelta) {
     final String signature = "collectFingerprint";
     ArrayList<FingerprintResponse> frSelection = new ArrayList<>();
@@ -599,10 +600,6 @@ public final class FingerprintUtility {
     FingerprintResponse fr = null;
     FingerprintCompareResponse fcr = null;
     boolean isDebugOn = Constants.DEBUG_FINGERPRINTING;
-
-    StringBuffer dataFingerprintBuffer =
-        getFingerprintBufferedPart(dataFingerprint, dataFingerprint.length);
-    int dataFingerprintBufferSize = dataFingerprint.length;
 
     for (increment = 0; increment < 100; increment += incrementDelta) {
       timeOffset = elapse + increment;

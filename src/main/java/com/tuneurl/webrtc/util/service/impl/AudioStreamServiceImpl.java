@@ -116,6 +116,9 @@ public class AudioStreamServiceImpl implements AudioStreamService {
     Converter.validateShortDataSize(data, size);
     Converter.validateDataSizeEx(dataFingerprint, sizeFingerprint.intValue());
     Converter.validateDurationEx(duration);
+    StringBuffer dataFingerprintBuffer = FingerprintUtility.getFingerprintBufferedPart(dataFingerprint, dataFingerprint.length);
+    int dataFingerprintBufferSize = dataFingerprint.length;
+
     final String fileName = Converter.validateUrlOrGencrc32(url);
     ProcessHelper.checkNullOrEmptyString(fileName, "AudioDataEntry.Url");
     if (duration < 1L || duration > 480L) {
@@ -156,7 +159,8 @@ public class AudioStreamServiceImpl implements AudioStreamService {
               elapse,
               random,
               fingerprintRate,
-              dataFingerprint,
+              dataFingerprintBuffer,
+              dataFingerprintBufferSize,
               Constants.FINGERPRINT_INCREMENT_DELTA);
 
       List<FingerprintResponse> frSelection = result.getFrCollection();

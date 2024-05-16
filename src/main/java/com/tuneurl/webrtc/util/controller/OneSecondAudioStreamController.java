@@ -220,6 +220,9 @@ public class OneSecondAudioStreamController extends BaseController {
     Converter.checkAudioDataEntryDataSize(audioDataEntry);
     Converter.validateShortDataSize(data, size);
     Converter.validateDataSizeEx(dataFingerprint, sizeFingerprint.intValue());
+    StringBuffer dataFingerprintBuffer = FingerprintUtility.getFingerprintBufferedPart(dataFingerprint, dataFingerprint.length);
+    int dataFingerprintBufferSize = dataFingerprint.length;
+
     final String fileName = Converter.validateUrlOrGencrc32(url);
     ProcessHelper.checkNullOrEmptyString(fileName, "AudioDataEntry.Url");
     if (duration < 6L || duration > 17L) {
@@ -253,7 +256,8 @@ public class OneSecondAudioStreamController extends BaseController {
               elapse,
               random,
               fingerprintRate,
-              dataFingerprint,
+              dataFingerprintBuffer,
+              dataFingerprintBufferSize,
               Constants.FINGERPRINT_INCREMENT_DELTA);
 
       List<FingerprintResponse> frSelection = result.getFrCollection();

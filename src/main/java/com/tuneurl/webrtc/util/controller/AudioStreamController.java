@@ -45,15 +45,10 @@ import com.tuneurl.webrtc.util.value.UserType;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -248,7 +243,8 @@ public class AudioStreamController extends BaseController {
     }
 
     /* 4. Assemble path where the bash shell reside: /home/ubuntu/audio/run_webrtc_script.sh */
-    final String command = audioStreamBaseService.getSaveAudioFilesFolder(Constants.RUN_WEBRTC_SCRIPT);
+    final String command =
+        audioStreamBaseService.getSaveAudioFilesFolder(Constants.RUN_WEBRTC_SCRIPT);
 
     // 5. Run the script.
     AudioStreamDataResponse response =
@@ -345,11 +341,13 @@ public class AudioStreamController extends BaseController {
     AudioStreamDatabase asdb = audioStreamService.getAudioStreamDatabaseById(pConversionid);
 
     /* 4. Assemble path where the bash shell reside: /home/ubuntu/audio/run_webrtc_script.sh */
-    final String command = audioStreamBaseService.getSaveAudioFilesFolder(Constants.RUN_WEBRTC_SCRIPT);
+    final String command =
+        audioStreamBaseService.getSaveAudioFilesFolder(Constants.RUN_WEBRTC_SCRIPT);
 
     // 5. Run the script.
     AudioStreamDataResponse response =
-            audioStreamBaseService.runWebRtcScript(signature, false, command, asdb.getAsUrl(), asdb.getAsDuration(), asdb);
+        audioStreamBaseService.runWebRtcScript(
+            signature, false, command, asdb.getAsUrl(), asdb.getAsDuration(), asdb);
     response.setConversionId(asdb.getAsId());
 
     return ResponseEntity.ok().body(response);
@@ -694,7 +692,6 @@ public class AudioStreamController extends BaseController {
       HttpServletRequest httpRequest,
       HttpServletResponse httpResponse) {
 
-
     final String signature = "evaluateAudioStream";
     // final String signature2 = "evaluateAudioStream:inner";
     super.saveAnalytics(signature, httpRequest);
@@ -707,7 +704,9 @@ public class AudioStreamController extends BaseController {
       super.getSdkClientCredentials(signature, UserType.LOGIN_FOR_USER, httpRequest, httpResponse);
     }
 
-    EvaluateAudioStreamResponse response = audioStreamBaseService.evaluateAudioStream(audioDataEntry, evaluateAudioStreamEntry, signature);
+    EvaluateAudioStreamResponse response =
+        audioStreamBaseService.evaluateAudioStream(
+            audioDataEntry, evaluateAudioStreamEntry, signature);
 
     return ResponseEntity.ok().body(response);
   }

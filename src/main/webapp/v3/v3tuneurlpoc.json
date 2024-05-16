@@ -15,7 +15,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:8281",
+      "url": "https://ec2-18-117-196-219.us-east-2.compute.amazonaws.com",
       "description": "Stream Radio POC - Java TuneUrl API server URI"
     }
   ],

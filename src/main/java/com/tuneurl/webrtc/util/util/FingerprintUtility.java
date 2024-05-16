@@ -158,8 +158,7 @@ public final class FingerprintUtility {
    * @return FingerprintCompareResponse
    */
   public static final FingerprintCompareResponse resetResponseValue(
-      FingerprintCompareResponse fcr,
-      final long timeOffset) {
+      FingerprintCompareResponse fcr, final long timeOffset) {
     double zero = 0.0;
     fcr.setOffset(timeOffset);
     fcr.setMostSimilarFramePosition(0);
@@ -195,7 +194,7 @@ public final class FingerprintUtility {
     ProcessHelper.deleteFile(fileName);
     try {
       file = new File(fileName);
-      if(!file.createNewFile()) {
+      if (!file.createNewFile()) {
         throw new IOException();
       }
     } catch (IOException ex) {
@@ -223,12 +222,10 @@ public final class FingerprintUtility {
     closeFileOutputStream(fib);
   }
 
-
-
   /**
    * Helper to cache the fingerprint base part.
    *
-   * @param one     array of byte
+   * @param one array of byte
    * @param onesize int
    * @return a StringBuffer to optimize a recurring assemblage
    */
@@ -255,11 +252,11 @@ public final class FingerprintUtility {
    * @param twosize int
    */
   private static void writeFingerprintDataWithBuffer(
-          final String fileName,
-          final StringBuffer bufferedOne,
-          final byte[] two,
-          final int onesize,
-          final int twosize) {
+      final String fileName,
+      final StringBuffer bufferedOne,
+      final byte[] two,
+      final int onesize,
+      final int twosize) {
     final String SPC = " ";
     final String CRLF = "\n";
     StringBuffer sb = new StringBuffer();
@@ -331,7 +328,9 @@ public final class FingerprintUtility {
     // 5. the JSON string should be written to this file
     // 6. Run ./jni/fingerprintexec via runExternalFingerprintModule.sh
     // 7. read the JSON string
-    String json = FingerprintUtility.executeFingerprintExecAsProcess(uniqueName, rootDir, outputFilename, logger, signature, "jsCompareFingerprint");
+    String json =
+        FingerprintUtility.executeFingerprintExecAsProcess(
+            uniqueName, rootDir, outputFilename, logger, signature, "jsCompareFingerprint");
     if (json == null) {
       return response;
     }
@@ -427,7 +426,9 @@ public final class FingerprintUtility {
     // 5. the JSON string should be written to this file
     // 6. Run ./jni/fingerprintexec via runExternalFingerprintModule.sh
     // 7. read the JSON string
-    String json = FingerprintUtility.executeFingerprintExecAsProcess(uniqueName, rootDir, outputFilename, logger, signature, "fingerprint");
+    String json =
+        FingerprintUtility.executeFingerprintExecAsProcess(
+            uniqueName, rootDir, outputFilename, logger, signature, "fingerprint");
     if (json == null) {
       return response;
     }
@@ -465,13 +466,19 @@ public final class FingerprintUtility {
     return response;
   }
 
-  private static String executeFingerprintExecAsProcess(Object uniqueName, String rootDir, String outputFilename, MessageLogger logger, String signature, String action) {
+  private static String executeFingerprintExecAsProcess(
+      Object uniqueName,
+      String rootDir,
+      String outputFilename,
+      MessageLogger logger,
+      String signature,
+      String action) {
     // 5. the JSON string should be written to this file
     String resultFilename = String.format("/tmp/%s.out", uniqueName);
     String command = rootDir + "/runExternalFingerprintModule.sh";
     // 6. Run ./jni/fingerprintexec via runExternalFingerprintModule.sh
     ProcessBuilder processBuilder =
-            new ProcessBuilder("/bin/bash", command, resultFilename, outputFilename, action);
+        new ProcessBuilder("/bin/bash", command, resultFilename, outputFilename, action);
 
     processBuilder.redirectErrorStream(true);
     processBuilder.directory(new File(rootDir));
@@ -593,7 +600,8 @@ public final class FingerprintUtility {
     FingerprintCompareResponse fcr = null;
     boolean isDebugOn = Constants.DEBUG_FINGERPRINTING;
 
-    StringBuffer dataFingerprintBuffer = getFingerprintBufferedPart(dataFingerprint, dataFingerprint.length);
+    StringBuffer dataFingerprintBuffer =
+        getFingerprintBufferedPart(dataFingerprint, dataFingerprint.length);
     int dataFingerprintBufferSize = dataFingerprint.length;
 
     for (increment = 0; increment < 100; increment += incrementDelta) {
@@ -607,12 +615,19 @@ public final class FingerprintUtility {
       dData = Converter.convertListShortEx(data, (int) iStart, dSize);
       if (dData == null) break;
 
-      fr = FingerprintUtility.runExternalFingerprinting(
+      fr =
+          FingerprintUtility.runExternalFingerprinting(
               random, logger, rootDir, dData, dData.length);
 
-      fcr = FingerprintUtility.compareFingerprint(
-              fr, timeOffset, logger, rootDir, random, dataFingerprintBuffer, dataFingerprintBufferSize);
-
+      fcr =
+          FingerprintUtility.compareFingerprint(
+              fr,
+              timeOffset,
+              logger,
+              rootDir,
+              random,
+              dataFingerprintBuffer,
+              dataFingerprintBufferSize);
 
       if (fcr != null) {
         selection.add(fcr);
@@ -931,9 +946,9 @@ public final class FingerprintUtility {
    */
   public static final void displayLiveTags(
       final String signature, MessageLogger logger, List<TuneUrlTag> liveTags) {
-      for (TuneUrlTag liveTag : liveTags) {
-          displayLiveTagsEx(signature, logger, liveTag);
-      }
+    for (TuneUrlTag liveTag : liveTags) {
+      displayLiveTagsEx(signature, logger, liveTag);
+    }
   }
 
   /**

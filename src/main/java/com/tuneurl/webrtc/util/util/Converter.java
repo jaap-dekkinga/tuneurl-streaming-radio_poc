@@ -99,7 +99,7 @@ public final class Converter {
     byte[] datus = new byte[data.size()];
 
     int index = 0;
-    for (Byte item: data) {
+    for (Byte item : data) {
       datus[index] = item;
       index++;
     }
@@ -116,13 +116,12 @@ public final class Converter {
     short[] datus = new short[data.size()];
 
     int index = 0;
-    for (short item: data) {
+    for (short item : data) {
       datus[index] = item;
       index++;
     }
     return datus;
   }
-
 
   /**
    * Helper method to convert List&lt;Byte> to byte[] starting at offset with size.
@@ -176,7 +175,7 @@ public final class Converter {
    */
   public static String validateUrlOrGencrc32(final String url) throws BaseServiceException {
     ProcessHelper.checkNullOrEmptyString(url, "AudioDataEntry.Url");
-    if (!url.startsWith("http://localhost") && (url.length() < 13 || !url.startsWith("https://"))){
+    if (!url.startsWith("http://localhost") && (url.length() < 13 || !url.startsWith("https://"))) {
       CommonUtil.BadRequestException("Specify valid AudioDataEntry.Url");
     }
     return ProcessHelper.genCrc32(url);

@@ -409,7 +409,8 @@ public class TuneUrlTag {
     this.mostSimilarStartTime = mostSimilarStartTime;
   }
 
-  public void setFingerprintCompareResponseData(FingerprintCompareResponse fcr, boolean shouldSetOffset) {
+  public void setFingerprintCompareResponseData(
+      FingerprintCompareResponse fcr, boolean shouldSetOffset) {
     if (shouldSetOffset) {
       this.setDataPosition(fcr.getOffset());
     }

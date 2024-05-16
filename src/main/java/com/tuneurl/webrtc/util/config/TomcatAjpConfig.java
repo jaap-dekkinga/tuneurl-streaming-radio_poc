@@ -69,8 +69,7 @@ public class TomcatAjpConfig {
       ajpConnector.setSecure(false);
       ajpConnector.setAllowTrace(false);
       ajpConnector.setScheme("http");
-      ((AjpNioProtocol) ajpConnector.getProtocolHandler())
-          .setSecretRequired(false);
+      ((AjpNioProtocol) ajpConnector.getProtocolHandler()).setSecretRequired(false);
       tomcat.addAdditionalTomcatConnectors(ajpConnector);
     }
 

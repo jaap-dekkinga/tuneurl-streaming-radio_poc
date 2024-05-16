@@ -108,7 +108,8 @@ public class OneSecondAudioStreamController extends BaseController {
     if (endOffset < duration) {
       tagOffset = tagOffset - dataOffset; // 3880 - 0
       endOffset = endOffset - dataOffset; // 8880 - 0
-      iStart = Converter.muldiv(tagOffset, fingerprintRate, 1000L); // 3380 x 11025 / 1000 := 37264.5
+      iStart =
+          Converter.muldiv(tagOffset, fingerprintRate, 1000L); // 3380 x 11025 / 1000 := 37264.5
       iEnd = Converter.muldiv(endOffset, fingerprintRate, 1000L); // 8880 x 11025 / 1000 := 97902
       dSize = (int) (iEnd - iStart);
       if (dSize < data.length) { // 10 seconds x 11025 := 110250
@@ -260,7 +261,8 @@ public class OneSecondAudioStreamController extends BaseController {
       fcr = null;
       fr = null;
       if (selection.size() == 5) {
-        Object[] fingerprintComparisonsResponse = audioStreamBaseService.fingerprintComparisons(selection, frSelection, fcr, fr);
+        Object[] fingerprintComparisonsResponse =
+            audioStreamBaseService.fingerprintComparisons(selection, frSelection, fcr, fr);
         fcr = (FingerprintCompareResponse) fingerprintComparisonsResponse[0];
         fr = (FingerprintResponse) fingerprintComparisonsResponse[1];
 

@@ -143,6 +143,7 @@ public abstract class BaseController {
 
   /** Salt ptr. */
   private byte[] jwtSalt = null;
+
   private MessageLogger logger;
 
   /**
@@ -165,8 +166,7 @@ public abstract class BaseController {
   protected MessageLogger getMessageLogger() {
     if (this.logger == null) {
       this.logger = new MessageLogger();
-      this.logger.setLogger(
-          LogManager.getLogger(com.tuneurl.webrtc.util.util.MessageLogger.class));
+      this.logger.setLogger(LogManager.getLogger(com.tuneurl.webrtc.util.util.MessageLogger.class));
     }
     return this.logger;
   }

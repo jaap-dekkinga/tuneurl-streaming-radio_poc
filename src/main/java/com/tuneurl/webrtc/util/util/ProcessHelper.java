@@ -91,8 +91,8 @@ public final class ProcessHelper {
    * @param param Object to check
    * @param name String the name of the object
    * @throws BaseServiceException
-   * eclipse-javadoc:%E2%98%82=webrtc.util/%5C/opt%5C/java%5C/jdk1.8.0_231%5C/jre%5C/lib%5C/rt.jar=/javadoc_location=/https:%5C/%5C/docs.oracle.com%5C/javase%5C/8%5C/docs%5C/api%5C/=/=/maven.pomderived=/true=/%3Cjava.lang(Double.class%E2%98%83Double~parseDouble~Ljava.lang.String;%E2%98%82NumberFormatException
-   * If param is <code>null</code>
+   *     eclipse-javadoc:%E2%98%82=webrtc.util/%5C/opt%5C/java%5C/jdk1.8.0_231%5C/jre%5C/lib%5C/rt.jar=/javadoc_location=/https:%5C/%5C/docs.oracle.com%5C/javase%5C/8%5C/docs%5C/api%5C/=/=/maven.pomderived=/true=/%3Cjava.lang(Double.class%E2%98%83Double~parseDouble~Ljava.lang.String;%E2%98%82NumberFormatException
+   *     If param is <code>null</code>
    */
   public static void checkNull(Object param, String name) throws BaseServiceException {
     if (param == null) {

@@ -220,7 +220,8 @@ public class OneSecondAudioStreamController extends BaseController {
     Converter.checkAudioDataEntryDataSize(audioDataEntry);
     Converter.validateShortDataSize(data, size);
     Converter.validateDataSizeEx(dataFingerprint, sizeFingerprint.intValue());
-    StringBuffer dataFingerprintBuffer = FingerprintUtility.getFingerprintBufferedPart(dataFingerprint, dataFingerprint.length);
+    StringBuffer dataFingerprintBuffer =
+        FingerprintUtility.getFingerprintBufferedPart(dataFingerprint, dataFingerprint.length);
     int dataFingerprintBufferSize = dataFingerprint.length;
 
     final String fileName = Converter.validateUrlOrGencrc32(url);

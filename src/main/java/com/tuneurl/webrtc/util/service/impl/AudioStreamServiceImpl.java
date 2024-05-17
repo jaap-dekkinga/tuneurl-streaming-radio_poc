@@ -156,9 +156,8 @@ public class AudioStreamServiceImpl implements AudioStreamService {
 
     FingerprintExternals fingerprintExternals = FingerprintExternals.getFingerprintInstance();
 
-    int index = 0;
-    ArrayList<FingerprintThreadCollector> fingerprintThreadList = new ArrayList<FingerprintThreadCollector>();
-    ArrayList<Thread> threadList = new ArrayList<Thread>();
+    LinkedList<FingerprintThreadCollector> fingerprintThreadList = new LinkedList<FingerprintThreadCollector>();
+    List<Thread> threadList = new LinkedList<Thread>();
     for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
       FingerprintThreadCollector fingerprintThread = new FingerprintThreadCollector(rootDir,
               data,
@@ -172,8 +171,6 @@ public class AudioStreamServiceImpl implements AudioStreamService {
       Thread t = new Thread(fingerprintThread);
       t.start();
       threadList.add(t);
-
-      index++;
     }
 
     for (Thread thread : threadList) {
@@ -184,10 +181,8 @@ public class AudioStreamServiceImpl implements AudioStreamService {
       }
     }
 
-    index = 0;
     for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
-      FingerprintCollection result = fingerprintThreadList.get(index).getFingerprintCollectionResult();
-      index++;
+      FingerprintCollection result = fingerprintThreadList.removeFirst().getFingerprintCollectionResult();
 
       List<FingerprintResponse> frSelection = result.getFrCollection();
       List<FingerprintCompareResponse> selection = result.getFcrCollection();

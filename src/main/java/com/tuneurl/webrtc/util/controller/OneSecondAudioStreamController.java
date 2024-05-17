@@ -327,9 +327,11 @@ public class OneSecondAudioStreamController extends BaseController {
     response.setTagCounts(counts);
     response.setLiveTags(liveTags);
     response.setTuneUrlCounts((long) liveTags.size());
+    /*
     if (isDebugOn) {
       FingerprintUtility.displayLiveTags(signature, logger, liveTags);
     }
+     */
     logger.logExit(
         signature,
         new Object[] {

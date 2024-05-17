@@ -103,6 +103,7 @@ public class FingerprintThreadCollector extends FingerprintUtility implements Ru
       if (fcr != null) {
         selection.add(fcr);
         frSelection.add(fr);
+        /*
         if (isDebugOn) {
           this.logger.logEntry(
               signature,
@@ -114,6 +115,7 @@ public class FingerprintThreadCollector extends FingerprintUtility implements Ru
                 "StartTime=", fcr.getMostSimilarStartTime()
               });
         }
+         */
       }
     }
     FingerprintCollection result = new FingerprintCollection();

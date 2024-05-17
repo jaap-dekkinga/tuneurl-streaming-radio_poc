@@ -178,7 +178,6 @@ public class UserController extends BaseController {
 
     final String signature = "userLogin";
     super.saveAnalytics(signature, httpRequest);
-    MessageLogger logger = super.getMessageLogger();
     String ipAddress = super.getCallersIPAddress(httpRequest);
 
     logger.logEntry(
@@ -267,7 +266,6 @@ public class UserController extends BaseController {
       HttpServletResponse httpResponse) {
     final String signature = "refreshToken";
     super.saveAnalytics(signature, httpRequest);
-    MessageLogger logger = super.getMessageLogger();
     // logger.logEntry(signature, new Object[] {"token=", oauthTokenEntry.toString()});
 
     // always refresh_token

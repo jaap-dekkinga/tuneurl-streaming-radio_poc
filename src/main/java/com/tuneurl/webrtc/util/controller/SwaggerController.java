@@ -134,7 +134,6 @@ public class SwaggerController extends BaseController {
       HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
     SdkUser sdk = userService.getSdkUserByName("user@example.com");
     UserEntry userEntry = super.convertSdkUser(sdk);
-    MessageLogger logger = super.getMessageLogger();
     JwtTool jwtTool = super.setupJwtTool(Constants.LOGIN_AUTHORIZATION_BEARER);
     String token = jwtTool.generateToken(logger, userEntry);
     Map<String, Object> maps = new HashMap<String, Object>();

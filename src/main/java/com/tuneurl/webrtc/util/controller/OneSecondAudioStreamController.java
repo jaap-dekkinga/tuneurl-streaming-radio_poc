@@ -38,20 +38,14 @@ import com.tuneurl.webrtc.util.controller.dto.FingerprintCollection;
 import com.tuneurl.webrtc.util.controller.dto.FingerprintCompareResponse;
 import com.tuneurl.webrtc.util.controller.dto.FingerprintResponse;
 import com.tuneurl.webrtc.util.controller.dto.TuneUrlTag;
-import com.tuneurl.webrtc.util.util.CommonUtil;
-import com.tuneurl.webrtc.util.util.Converter;
-import com.tuneurl.webrtc.util.util.FingerprintUtility;
-import com.tuneurl.webrtc.util.util.MessageLogger;
-import com.tuneurl.webrtc.util.util.ProcessHelper;
+import com.tuneurl.webrtc.util.util.*;
 import com.tuneurl.webrtc.util.value.Constants;
 import com.tuneurl.webrtc.util.value.UserType;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+
+import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -115,9 +109,8 @@ public class OneSecondAudioStreamController extends BaseController {
       if (dSize < data.length) { // 10 seconds x 11025 := 110250
         dData = Converter.convertListShortEx(data, (int) iStart, dSize);
         if (dData != null) {
-          fr =
-              FingerprintUtility.runExternalFingerprinting(
-                  random, logger, rootDir, dData, dData.length);
+          fr = fingerprintExternals.runExternalFingerprinting(
+                  random, rootDir, dData, dData.length);
 
           final String payload = FingerprintUtility.convertFingerprintToString(fr.getData());
           tag.setDescription(payload);
@@ -181,7 +174,6 @@ public class OneSecondAudioStreamController extends BaseController {
     String sOffset = httpRequest.getParameter("offset");
     Long dataOffset = CommonUtil.parseLong(sOffset, 0L);
     super.saveAnalytics(signature, httpRequest);
-    MessageLogger logger = super.getMessageLogger();
     AudioDataEntry audioDataEntry = evaluateAudioStreamEntry.getAudioData();
     // The Audio Stream URL.
     String url = CommonUtil.getString(audioDataEntry.getUrl(), Constants.AUDIOSTREAM_URL_SIZE);
@@ -236,7 +228,6 @@ public class OneSecondAudioStreamController extends BaseController {
     long maxDuration = Converter.muldiv(1000, duration, 1L);
     long count, counts = Converter.muldiv(1000, duration, 100);
     long durationLimit = dataOffset + Converter.muldiv(1000, duration - 5L, 1L);
-    int index;
     FingerprintCompareResponse fcr;
     FingerprintResponse fr;
     boolean isDebugOn = Constants.DEBUG_FINGERPRINTING;
@@ -247,19 +238,39 @@ public class OneSecondAudioStreamController extends BaseController {
     }
     Random random = new Random();
     random.setSeed(new Date().getTime());
-    for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
 
-      FingerprintCollection result =
-          FingerprintUtility.collectFingerprint(
-              logger,
-              rootDir,
-              data,
-              elapse,
-              random,
-              fingerprintRate,
-              dataFingerprintBuffer,
-              dataFingerprintBufferSize,
-              Constants.FINGERPRINT_INCREMENT_DELTA);
+    int index = 0;
+    ArrayList<FingerprintThread> fingerprintThreadList = new ArrayList<FingerprintThread>();
+    ArrayList<Thread> threadList = new ArrayList<Thread>();
+    for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
+      FingerprintThread fingerprintThread = new FingerprintThread(rootDir,
+        data,
+        elapse,
+        random,
+        fingerprintRate,
+        dataFingerprintBuffer,
+        dataFingerprintBufferSize);
+      fingerprintThreadList.add(fingerprintThread);
+
+      Thread t = new Thread(fingerprintThread);
+      t.start();
+      threadList.add(t);
+
+      index++;
+    }
+
+    for (Thread thread : threadList) {
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    index = 0;
+    for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
+      FingerprintCollection result = fingerprintThreadList.get(index).getFingerprintCollectionResult();
+      index++;
 
       List<FingerprintResponse> frSelection = result.getFrCollection();
       List<FingerprintCompareResponse> selection = result.getFcrCollection();

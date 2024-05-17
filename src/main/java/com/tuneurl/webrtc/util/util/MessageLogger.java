@@ -32,6 +32,7 @@
 package com.tuneurl.webrtc.util.util;
 
 import com.albon.auth.util.LogMessage;
+import org.apache.logging.log4j.LogManager;
 
 /**
  * Class LogMessage implementation.
@@ -46,6 +47,20 @@ public class MessageLogger extends LogMessage {
   /** Default constructor. */
   public MessageLogger() {
     super();
+  }
+
+  static MessageLogger logger;
+  /**
+   * Get MessageLogger.
+   *
+   * @return MessageLogger
+   */
+  public static MessageLogger getMessageLoggerInstance() {
+    if (logger == null) {
+      logger = new MessageLogger();
+      logger.setLogger(LogManager.getLogger(com.tuneurl.webrtc.util.util.MessageLogger.class));
+    }
+    return logger;
   }
 
   /**

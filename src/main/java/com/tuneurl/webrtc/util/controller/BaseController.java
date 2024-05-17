@@ -45,6 +45,8 @@ import com.tuneurl.webrtc.util.service.LdapInfoService;
 import com.tuneurl.webrtc.util.service.SdkUserService;
 import com.tuneurl.webrtc.util.service.SessionDataService;
 import com.tuneurl.webrtc.util.util.CommonUtil;
+import com.tuneurl.webrtc.util.util.FingerprintExternals;
+import com.tuneurl.webrtc.util.util.FingerprintUtility;
 import com.tuneurl.webrtc.util.util.MessageLogger;
 import com.tuneurl.webrtc.util.value.Constants;
 import com.tuneurl.webrtc.util.value.UserType;
@@ -144,7 +146,7 @@ public abstract class BaseController {
   /** Salt ptr. */
   private byte[] jwtSalt = null;
 
-  private MessageLogger logger;
+  protected MessageLogger logger;
 
   /**
    * Get Salt.
@@ -158,24 +160,13 @@ public abstract class BaseController {
     return jwtSalt;
   }
 
-  /**
-   * Get MessageLogger.
-   *
-   * @return MessageLogger
-   */
-  protected MessageLogger getMessageLogger() {
-    if (this.logger == null) {
-      this.logger = new MessageLogger();
-      this.logger.setLogger(LogManager.getLogger(com.tuneurl.webrtc.util.util.MessageLogger.class));
-    }
-    return this.logger;
-  }
 
   protected ClientCredential clientCredential = null;
+  protected FingerprintExternals fingerprintExternals = FingerprintUtility.getFingerprintInstance().getFingerprintExternals();
 
   /** Default constructor. */
   public BaseController() {
-    // Does nothing.
+    this.logger = MessageLogger.getMessageLoggerInstance();
   }
 
   /**
@@ -220,7 +211,7 @@ public abstract class BaseController {
       sb.append(",").append(bk + name + bk).append(":").append(bk + value + bk);
     }
     value = sb.toString();
-    getMessageLogger().logEntry(signature, new Object[] {"{" + value + "}"});
+    this.logger.logEntry(signature, new Object[] {"{" + value + "}"});
   }
 
   /**
@@ -448,7 +439,7 @@ public abstract class BaseController {
       final String sessionExpirationMessage)
       throws BaseServiceException {
     JwtTool jwt = setupJwtTool(useAuthBearer);
-    MessageLogger logger = getMessageLogger();
+    MessageLogger logger = this.logger;
 
     // Is Auth / x-jwt-token exist?
     String token = getToken(logger, httpRequest, Constant.HEADER_AUTHORIZATION_LOWERCASE);
@@ -531,7 +522,7 @@ public abstract class BaseController {
 
     this.clientCredential = new ClientCredential();
 
-    MessageLogger logger = getMessageLogger();
+    MessageLogger logger = this.logger;
 
     // 1.1 Gather callers information for SDK analytic usage.
     String clientId = httpRequest.getHeader(Constants.X_SDK_CLIENT_ID_HEADER_NAME);

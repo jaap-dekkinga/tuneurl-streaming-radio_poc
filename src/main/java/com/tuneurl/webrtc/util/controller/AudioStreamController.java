@@ -108,7 +108,6 @@ public class AudioStreamController extends BaseController {
       HttpServletResponse httpResponse) {
     final String signature = "getWaveFileAsByteArray";
     super.saveAnalytics(signature, httpRequest);
-    MessageLogger logger = super.getMessageLogger();
     final String xAudioReturn = httpRequest.getHeader("x-audio-return");
     logger.logEntry(
         signature,
@@ -147,7 +146,7 @@ public class AudioStreamController extends BaseController {
     try {
       IOUtils.copy(fileInput, httpResponse.getOutputStream());
     } catch (Exception ignore) {
-      logger.logExit(
+      this.logger.logExit(
           signature, new Object[] {"Retry: " + pWaveFile + " is not available right now."});
     }
   }
@@ -218,7 +217,6 @@ public class AudioStreamController extends BaseController {
       HttpServletResponse httpResponse) {
     final String signature = "saveAudioStream";
     super.saveAnalytics(signature, httpRequest);
-    MessageLogger logger = super.getMessageLogger();
 
     logger.logEntry(signature, new Object[] {audioStreamEntry});
 
@@ -322,7 +320,6 @@ public class AudioStreamController extends BaseController {
       HttpServletResponse httpResponse) {
     final String signature = "getAudioStreamData";
     super.saveAnalytics(signature, httpRequest);
-    MessageLogger logger = super.getMessageLogger();
 
     logger.logEntry(signature, new Object[] {"conversionId=", pConversionid});
 
@@ -413,7 +410,6 @@ public class AudioStreamController extends BaseController {
       HttpServletResponse httpResponse) {
     final String signature = "trainAudioStream";
     super.saveAnalytics(signature, httpRequest);
-    MessageLogger logger = super.getMessageLogger();
     // 1. Check inputs
     String category = null;
     String title = null;
@@ -535,7 +531,6 @@ public class AudioStreamController extends BaseController {
       HttpServletResponse httpResponse) {
     final String signature = "getAudioStreamChannel";
     super.saveAnalytics(signature, httpRequest);
-    MessageLogger logger = super.getMessageLogger();
 
     logger.logEntry(signature, new Object[] {"channelCounts=", pChannelcounts});
 
@@ -600,7 +595,6 @@ public class AudioStreamController extends BaseController {
       HttpServletResponse httpResponse) {
     final String signature = "Controller:calculateFingerprint";
     super.saveAnalytics(signature, httpRequest);
-    MessageLogger logger = super.getMessageLogger();
     // The Audio Stream URL.
     String url = CommonUtil.getString(audioDataEntry.getUrl(), Constants.AUDIOSTREAM_URL_SIZE);
     // The Data.
@@ -639,7 +633,7 @@ public class AudioStreamController extends BaseController {
     Random random = new Random();
     random.setSeed(new Date().getTime());
     FingerprintResponse response =
-        FingerprintUtility.runExternalFingerprinting(random, logger, rootDir, data, data.length);
+        fingerprintExternals.runExternalFingerprinting(random, rootDir, data, data.length);
     return ResponseEntity.ok().body(response);
   }
 
@@ -696,7 +690,6 @@ public class AudioStreamController extends BaseController {
     // final String signature2 = "evaluateAudioStream:inner";
     super.saveAnalytics(signature, httpRequest);
 
-    MessageLogger logger = super.getMessageLogger();
     AudioDataEntry audioDataEntry = evaluateAudioStreamEntry.getAudioData();
 
     // 1. Check for ADMIN or USER role.

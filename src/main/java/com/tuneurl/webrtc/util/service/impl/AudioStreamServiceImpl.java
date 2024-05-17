@@ -150,19 +150,20 @@ public class AudioStreamServiceImpl implements AudioStreamService {
     }
     Random random = new Random();
     random.setSeed(new Date().getTime());
+
+    FingerprintUtility fingerprintUtility = FingerprintUtility.getFingerprintInstance();
+    FingerprintExternals fingerprintExternals = FingerprintExternals.getFingerprintInstance();
     for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
 
       FingerprintCollection result =
-          FingerprintUtility.collectFingerprint(
-              this.logger,
+              fingerprintUtility.collectFingerprint(
               rootDir,
               data,
               elapse,
               random,
               fingerprintRate,
               dataFingerprintBuffer,
-              dataFingerprintBufferSize,
-              Constants.FINGERPRINT_INCREMENT_DELTA);
+              dataFingerprintBufferSize);
 
       List<FingerprintResponse> frSelection = result.getFrCollection();
       List<FingerprintCompareResponse> selection = result.getFcrCollection();
@@ -186,9 +187,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
           if (dData == null) break;
           // Calculate the audio's fingerprint
           // audioFr = ExternalCppModules.calculateFingerprint(null, dData, dData.length);
-          audioFr =
-              FingerprintUtility.runExternalFingerprinting(
-                  random, this.logger, rootDir, dData, dData.length);
+          audioFr = fingerprintExternals.runExternalFingerprinting(random, rootDir, dData, dData.length);
 
           tag = FingerprintUtility.newTag(false, 0L, audioFr, fcr);
           liveTags.add(tag);

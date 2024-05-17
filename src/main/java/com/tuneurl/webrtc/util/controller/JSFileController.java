@@ -122,7 +122,7 @@ public class JSFileController extends BaseController {
     }
     // Set the appropriate content type
     super.writeResponseStreamResult(
-        endPoint, outputStream, contentType, httpResponse, theFile, true, fileNameOnDisposition);
+        endPoint, outputStream, contentType, httpResponse, theFile, fileNameOnDisposition);
   }
 
   // access the mp3 or wav file

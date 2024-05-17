@@ -283,9 +283,11 @@ public class OneSecondAudioStreamController extends BaseController {
 
         if (null != fcr) {
           TuneUrlTag tag = FingerprintUtility.newTag(true, dataOffset, fr, fcr);
+          /*
           if (isDebugOn) {
             FingerprintUtility.displayLiveTagsEx(signature, logger, tag);
           }
+           */
           if (tag.getDataPosition() > durationLimit) break;
           liveTags.add(tag);
         }

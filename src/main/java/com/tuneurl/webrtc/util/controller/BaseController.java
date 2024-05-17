@@ -89,7 +89,7 @@ public abstract class BaseController {
   @Value("${audio.access.without.login:false}")
   protected boolean isAllowAccessToWaveWithoutLogin;
 
-  @Value("${gather.sdk.analytics:false}")
+  @Value("false")
   private boolean isSaveAnalytic;
 
   @Value("${jwt.signing.key.secret:6bZrVzB4@5hYt370S12f15Tc}")
@@ -660,7 +660,6 @@ public abstract class BaseController {
    * @param style String
    * @param response HttpServletResponse
    * @param fileName String
-   * @param isClose Boolean
    * @param fileNameOnDisposition String
    * @return long the size
    * @throws BaseServiceException If any file operation fails
@@ -671,7 +670,6 @@ public abstract class BaseController {
       final String style,
       HttpServletResponse response,
       final String fileName,
-      final boolean isClose,
       final String fileNameOnDisposition)
       throws BaseServiceException {
     OutputStream outputStream = pOutputStream;

@@ -34,8 +34,6 @@ package com.tuneurl.webrtc.util.util.fingerprint;
 import com.tuneurl.webrtc.util.controller.dto.*;
 import com.tuneurl.webrtc.util.util.*;
 import com.tuneurl.webrtc.util.value.Constants;
-import lombok.Getter;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -43,6 +41,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import lombok.Getter;
 
 /**
  * Fingerprint utility.
@@ -58,13 +57,13 @@ import java.util.Random;
 public class FingerprintUtility {
 
   static FingerprintUtility fingerprintInstance;
+
   public static FingerprintUtility getFingerprintInstance() {
     if (fingerprintInstance == null) {
       fingerprintInstance = new FingerprintUtility();
     }
     return fingerprintInstance;
   }
-
 
   FingerprintExternals fingerprintExternals;
   /** Default constructor. */
@@ -89,7 +88,7 @@ public class FingerprintUtility {
    * @return TuneUrlEntry or null.
    */
   public static TuneUrlEntry getTuneUrlEntry(
-          MessageLogger logger, final long index, final String payload, final String Url) {
+      MessageLogger logger, final long index, final String payload, final String Url) {
     // TODO - Should call the Search Matching API here
     // Not implemented as the Search Matching API was currently broken as of 04/29/2024
     return null;
@@ -108,15 +107,22 @@ public class FingerprintUtility {
    * @return FingerprintCollection
    */
   public FingerprintCollection collectFingerprint(
-          final String rootDir,
-          final short[] data,
-          Long elapse,
-          Random random,
-          final Long fingerprintRate,
-          StringBuffer dataFingerprintBuffer,
-          int dataFingerprintBufferSize) {
+      final String rootDir,
+      final short[] data,
+      Long elapse,
+      Random random,
+      final Long fingerprintRate,
+      StringBuffer dataFingerprintBuffer,
+      int dataFingerprintBufferSize) {
     FingerprintThreadCollector fingerprintThread = new FingerprintThreadCollector();
-    return fingerprintThread.collectFingerprint(rootDir, data, elapse, random, fingerprintRate, dataFingerprintBuffer, dataFingerprintBufferSize);
+    return fingerprintThread.collectFingerprint(
+        rootDir,
+        data,
+        elapse,
+        random,
+        fingerprintRate,
+        dataFingerprintBuffer,
+        dataFingerprintBufferSize);
   }
 
   /**
@@ -319,8 +325,7 @@ public class FingerprintUtility {
    * @param one array of byte
    * @param onesize int
    */
-  public void writeFingerprintingData(
-      final String fileName, final short[] one, final int onesize) {
+  public void writeFingerprintingData(final String fileName, final short[] one, final int onesize) {
     int index;
     final String SPC = " ";
     final String CRLF = "\n";
@@ -375,7 +380,7 @@ public class FingerprintUtility {
         if (null == fcr.getOffset()) {
           // Retry again
           fcr =
-                  fingerprintExternals.runExternalFingerprintModule(
+              fingerprintExternals.runExternalFingerprintModule(
                   random,
                   rootDir,
                   timeOffset,
@@ -394,8 +399,6 @@ public class FingerprintUtility {
     }
     return fcr;
   }
-
-
 
   /**
    * Helper method to save audio clips and it's fingerprint.

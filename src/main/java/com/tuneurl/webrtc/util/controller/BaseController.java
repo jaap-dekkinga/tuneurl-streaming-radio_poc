@@ -45,9 +45,9 @@ import com.tuneurl.webrtc.util.service.LdapInfoService;
 import com.tuneurl.webrtc.util.service.SdkUserService;
 import com.tuneurl.webrtc.util.service.SessionDataService;
 import com.tuneurl.webrtc.util.util.CommonUtil;
+import com.tuneurl.webrtc.util.util.MessageLogger;
 import com.tuneurl.webrtc.util.util.fingerprint.FingerprintExternals;
 import com.tuneurl.webrtc.util.util.fingerprint.FingerprintUtility;
-import com.tuneurl.webrtc.util.util.MessageLogger;
 import com.tuneurl.webrtc.util.value.Constants;
 import com.tuneurl.webrtc.util.value.UserType;
 import java.io.File;
@@ -62,7 +62,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -160,9 +159,9 @@ public abstract class BaseController {
     return jwtSalt;
   }
 
-
   protected ClientCredential clientCredential = null;
-  protected FingerprintExternals fingerprintExternals = FingerprintUtility.getFingerprintInstance().getFingerprintExternals();
+  protected FingerprintExternals fingerprintExternals =
+      FingerprintUtility.getFingerprintInstance().getFingerprintExternals();
 
   /** Default constructor. */
   public BaseController() {

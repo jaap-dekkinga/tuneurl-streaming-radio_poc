@@ -37,8 +37,6 @@ import com.tuneurl.webrtc.util.model.*;
 import com.tuneurl.webrtc.util.service.*;
 import com.tuneurl.webrtc.util.util.CommonUtil;
 import com.tuneurl.webrtc.util.util.Converter;
-import com.tuneurl.webrtc.util.util.FingerprintUtility;
-import com.tuneurl.webrtc.util.util.MessageLogger;
 import com.tuneurl.webrtc.util.util.ProcessHelper;
 import com.tuneurl.webrtc.util.value.Constants;
 import com.tuneurl.webrtc.util.value.UserType;

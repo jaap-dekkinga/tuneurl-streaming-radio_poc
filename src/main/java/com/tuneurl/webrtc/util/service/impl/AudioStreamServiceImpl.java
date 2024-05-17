@@ -38,6 +38,9 @@ import com.tuneurl.webrtc.util.model.AudioStreamDatabase;
 import com.tuneurl.webrtc.util.service.AudioStreamDatabaseService;
 import com.tuneurl.webrtc.util.service.AudioStreamService;
 import com.tuneurl.webrtc.util.util.*;
+import com.tuneurl.webrtc.util.util.fingerprint.FingerprintExternals;
+import com.tuneurl.webrtc.util.util.fingerprint.FingerprintThreadCollector;
+import com.tuneurl.webrtc.util.util.fingerprint.FingerprintUtility;
 import com.tuneurl.webrtc.util.value.Constants;
 import java.io.File;
 import java.io.IOException;
@@ -151,19 +154,40 @@ public class AudioStreamServiceImpl implements AudioStreamService {
     Random random = new Random();
     random.setSeed(new Date().getTime());
 
-    FingerprintUtility fingerprintUtility = FingerprintUtility.getFingerprintInstance();
     FingerprintExternals fingerprintExternals = FingerprintExternals.getFingerprintInstance();
-    for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
 
-      FingerprintCollection result =
-              fingerprintUtility.collectFingerprint(
-              rootDir,
+    int index = 0;
+    ArrayList<FingerprintThreadCollector> fingerprintThreadList = new ArrayList<FingerprintThreadCollector>();
+    ArrayList<Thread> threadList = new ArrayList<Thread>();
+    for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
+      FingerprintThreadCollector fingerprintThread = new FingerprintThreadCollector(rootDir,
               data,
               elapse,
               random,
               fingerprintRate,
               dataFingerprintBuffer,
               dataFingerprintBufferSize);
+      fingerprintThreadList.add(fingerprintThread);
+
+      Thread t = new Thread(fingerprintThread);
+      t.start();
+      threadList.add(t);
+
+      index++;
+    }
+
+    for (Thread thread : threadList) {
+      try {
+        thread.join();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    index = 0;
+    for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
+      FingerprintCollection result = fingerprintThreadList.get(index).getFingerprintCollectionResult();
+      index++;
 
       List<FingerprintResponse> frSelection = result.getFrCollection();
       List<FingerprintCompareResponse> selection = result.getFcrCollection();

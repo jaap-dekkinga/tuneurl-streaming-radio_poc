@@ -1,8 +1,11 @@
-package com.tuneurl.webrtc.util.util;
+package com.tuneurl.webrtc.util.util.fingerprint;
 
 import com.tuneurl.webrtc.util.controller.dto.FingerprintCollection;
 import com.tuneurl.webrtc.util.controller.dto.FingerprintCompareResponse;
 import com.tuneurl.webrtc.util.controller.dto.FingerprintResponse;
+import com.tuneurl.webrtc.util.util.Converter;
+import com.tuneurl.webrtc.util.util.MessageLogger;
+import com.tuneurl.webrtc.util.util.fingerprint.FingerprintUtility;
 import com.tuneurl.webrtc.util.value.Constants;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,10 +13,10 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class FingerprintThread extends FingerprintUtility implements Runnable {
+public class FingerprintThreadCollector extends FingerprintUtility implements Runnable {
 
     final private MessageLogger logger;
-    public FingerprintThread() {
+    public FingerprintThreadCollector() {
         this.logger = MessageLogger.getMessageLoggerInstance();
 
     }
@@ -31,7 +34,7 @@ public class FingerprintThread extends FingerprintUtility implements Runnable {
     int dataFingerprintBufferSize;
 
 
-    public FingerprintThread(
+    public FingerprintThreadCollector(
             final String rootDir,
             final short[] data,
             Long elapse,

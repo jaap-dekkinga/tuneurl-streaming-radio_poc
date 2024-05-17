@@ -39,6 +39,8 @@ import com.tuneurl.webrtc.util.controller.dto.FingerprintCompareResponse;
 import com.tuneurl.webrtc.util.controller.dto.FingerprintResponse;
 import com.tuneurl.webrtc.util.controller.dto.TuneUrlTag;
 import com.tuneurl.webrtc.util.util.*;
+import com.tuneurl.webrtc.util.util.fingerprint.FingerprintThreadCollector;
+import com.tuneurl.webrtc.util.util.fingerprint.FingerprintUtility;
 import com.tuneurl.webrtc.util.value.Constants;
 import com.tuneurl.webrtc.util.value.UserType;
 import io.swagger.annotations.ApiOperation;
@@ -240,10 +242,10 @@ public class OneSecondAudioStreamController extends BaseController {
     random.setSeed(new Date().getTime());
 
     int index = 0;
-    ArrayList<FingerprintThread> fingerprintThreadList = new ArrayList<FingerprintThread>();
+    ArrayList<FingerprintThreadCollector> fingerprintThreadList = new ArrayList<FingerprintThreadCollector>();
     ArrayList<Thread> threadList = new ArrayList<Thread>();
     for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
-      FingerprintThread fingerprintThread = new FingerprintThread(rootDir,
+      FingerprintThreadCollector fingerprintThread = new FingerprintThreadCollector(rootDir,
         data,
         elapse,
         random,

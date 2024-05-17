@@ -29,10 +29,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.tuneurl.webrtc.util.util;
+package com.tuneurl.webrtc.util.util.fingerprint;
 
 import com.tuneurl.webrtc.util.controller.dto.*;
+import com.tuneurl.webrtc.util.util.*;
 import com.tuneurl.webrtc.util.value.Constants;
+import lombok.Getter;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -51,6 +54,7 @@ import java.util.Random;
  * @author albonteddy@gmail.com
  * @version 1.1
  */
+@Getter
 public class FingerprintUtility {
 
   static FingerprintUtility fingerprintInstance;
@@ -66,10 +70,6 @@ public class FingerprintUtility {
   /** Default constructor. */
   public FingerprintUtility() {
     this.fingerprintExternals = new FingerprintExternals(this);
-  }
-
-  public FingerprintExternals getFingerprintExternals() {
-    return fingerprintExternals;
   }
 
   private static final String fingerprint_prefix =
@@ -89,7 +89,7 @@ public class FingerprintUtility {
    * @return TuneUrlEntry or null.
    */
   public static TuneUrlEntry getTuneUrlEntry(
-      MessageLogger logger, final long index, final String payload, final String Url) {
+          MessageLogger logger, final long index, final String payload, final String Url) {
     // TODO - Should call the Search Matching API here
     // Not implemented as the Search Matching API was currently broken as of 04/29/2024
     return null;
@@ -115,7 +115,7 @@ public class FingerprintUtility {
           final Long fingerprintRate,
           StringBuffer dataFingerprintBuffer,
           int dataFingerprintBufferSize) {
-    FingerprintThread fingerprintThread = new FingerprintThread();
+    FingerprintThreadCollector fingerprintThread = new FingerprintThreadCollector();
     return fingerprintThread.collectFingerprint(rootDir, data, elapse, random, fingerprintRate, dataFingerprintBuffer, dataFingerprintBufferSize);
   }
 
@@ -360,7 +360,7 @@ public class FingerprintUtility {
       int dataFingerprintSize) {
     byte[] cData;
     FingerprintCompareResponse fcr = null;
-    if ((null != fr) && fr.getSize().longValue() > 1L) {
+    if ((null != fr) && fr.getSize() > 1L) {
       cData = fr.getData();
       try {
         fcr =
@@ -591,7 +591,7 @@ public class FingerprintUtility {
    *     otherwise false.
    */
   public static final boolean hasNegativeSimilarFrameStartTime(TuneUrlTag a, TuneUrlTag b) {
-    if (a.getMostSimilarFramePosition().intValue() < 0) {
+    if (a.getMostSimilarFramePosition() < 0) {
 
       if (a.getMostSimilarFramePosition().intValue()
           == b.getMostSimilarFramePosition().intValue()) {
@@ -613,7 +613,7 @@ public class FingerprintUtility {
    * @return boolean true if tag have negative Frame and StartTime values, otherwise false.
    */
   public static final boolean hasNegativeSimilarFrameStartTimeEx(TuneUrlTag a) {
-    if (a.getMostSimilarFramePosition().intValue() < 0) {
+    if (a.getMostSimilarFramePosition() < 0) {
 
       return CommonUtil.compareDouble(a.getMostSimilarStartTime(), 0.0) < 0;
     }
@@ -627,7 +627,7 @@ public class FingerprintUtility {
    * @return boolean true if tag have positive Frame and StartTime values, otherwise false.
    */
   public static final boolean hasPositiveSimilarFrameStartTime(TuneUrlTag a) {
-    if (a.getMostSimilarFramePosition().intValue() > 0) {
+    if (a.getMostSimilarFramePosition() > 0) {
 
       return CommonUtil.compareDouble(a.getMostSimilarStartTime(), 0.0) > 0;
     }
@@ -649,7 +649,7 @@ public class FingerprintUtility {
       FingerprintResponse fr,
       FingerprintCompareResponse fcr) {
     TuneUrlTag tag = new TuneUrlTag();
-    long offset = fcr.getOffset().longValue();
+    long offset = fcr.getOffset();
     offset += dataOffset;
     if (updateOffset) fcr.setOffset(offset);
     tag.setDataPosition(offset);
@@ -776,7 +776,7 @@ public class FingerprintUtility {
       distance = d.getDataPosition() - c.getDataPosition();
       if (distance > 800L) continue;
       // 509 509 -214748364 -50
-      if (c.getMostSimilarFramePosition().intValue() == Constants.FRAME_LOWEST_VALUE) {
+      if (c.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
         if (FingerprintUtility.hasPositiveSimilarFrameStartTime(a)
             && FingerprintUtility.hasSimilarFrameStartTime(a, b)
             && FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(d)) {
@@ -786,7 +786,7 @@ public class FingerprintUtility {
         }
       }
       // 509 -214748364 -50 -50
-      if (b.getMostSimilarFramePosition().intValue() == Constants.FRAME_LOWEST_VALUE) {
+      if (b.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
         if (FingerprintUtility.hasPositiveSimilarFrameStartTime(a)
             && FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(c)
             && FingerprintUtility.hasSimilarFrameStartTime(c, d)) {
@@ -796,7 +796,7 @@ public class FingerprintUtility {
         }
       }
       // -214748364 -50 -50 -50
-      if (a.getMostSimilarFramePosition().intValue() == Constants.FRAME_LOWEST_VALUE) {
+      if (a.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
         if (FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(b)
             && FingerprintUtility.hasSimilarFrameStartTime(b, c)
             && FingerprintUtility.hasSimilarFrameStartTime(c, d)) {
@@ -862,7 +862,7 @@ public class FingerprintUtility {
       }
       // 509 509 -214748364 -50
       // 509 509          N -50 SELECT C 2880
-      if (c.getMostSimilarFramePosition().intValue() == Constants.FRAME_LOWEST_VALUE) {
+      if (c.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
         if (FingerprintUtility.hasPositiveSimilarFrameStartTime(a)
             && FingerprintUtility.hasSimilarFrameStartTime(a, b)
             && FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(d)) {
@@ -876,7 +876,7 @@ public class FingerprintUtility {
       }
       // 509 -214748364 -50 -50
       // 509          N -50 -50 SELECT C 13200
-      if (b.getMostSimilarFramePosition().intValue() == Constants.FRAME_LOWEST_VALUE) {
+      if (b.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
         if (FingerprintUtility.hasPositiveSimilarFrameStartTime(a)
             && FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(c)
             && FingerprintUtility.hasSimilarFrameStartTime(c, d)) {
@@ -890,7 +890,7 @@ public class FingerprintUtility {
       }
       // -214748364 -50 -50 -50
       //          N -50 -50 -50 SELECT B 33900
-      if (a.getMostSimilarFramePosition().intValue() == Constants.FRAME_LOWEST_VALUE) {
+      if (a.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
         if (FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(b)
             && FingerprintUtility.hasSimilarFrameStartTime(b, c)
             && FingerprintUtility.hasSimilarFrameStartTime(c, d)) {

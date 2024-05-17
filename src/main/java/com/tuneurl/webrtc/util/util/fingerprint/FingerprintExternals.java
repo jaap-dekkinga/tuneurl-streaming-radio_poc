@@ -1,4 +1,4 @@
-package com.tuneurl.webrtc.util.util;
+package com.tuneurl.webrtc.util.util.fingerprint;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tuneurl.webrtc.util.controller.dto.CompareStringResult;
@@ -6,6 +6,8 @@ import com.tuneurl.webrtc.util.controller.dto.FingerprintCompareResponse;
 import com.tuneurl.webrtc.util.controller.dto.FingerprintEntry;
 import com.tuneurl.webrtc.util.controller.dto.FingerprintResponse;
 import com.tuneurl.webrtc.util.exception.BaseServiceException;
+import com.tuneurl.webrtc.util.util.MessageLogger;
+import com.tuneurl.webrtc.util.util.ProcessHelper;
 
 import java.io.File;
 import java.io.IOException;

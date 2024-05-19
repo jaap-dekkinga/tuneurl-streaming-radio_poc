@@ -320,19 +320,7 @@ public class FingerprintUtility {
                 cData,
                 cData.length);
         if (null == fcr.getOffset()) {
-          // Retry again
-          fcr =
-              fingerprintExternals.runExternalFingerprintModule(
-                  random,
-                  rootDir,
-                  timeOffset,
-                  dataFingerprintBuffer,
-                  dataFingerprintSize,
-                  cData,
-                  cData.length);
-          if (null == fcr.getOffset()) {
-            fcr = null;
-          }
+          fcr = null;
         }
       } catch (Exception ex) {
         ex.printStackTrace();

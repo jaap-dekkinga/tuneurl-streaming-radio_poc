@@ -288,7 +288,6 @@ public class FingerprintExternals {
   /**
    * Helper method to save audio clips and it's fingerprint.
    *
-   * @param logger MessageLogger
    * @param isTrigger boolean
    * @param evaluateAudioStreamEntry entry object
    * @param fr FingerprintResponse instance
@@ -300,7 +299,6 @@ public class FingerprintExternals {
    * @param debugUniqueName String
    */
   public final void saveAudioClipsAt(
-      MessageLogger logger,
       boolean isTrigger,
       EvaluateAudioStreamEntry evaluateAudioStreamEntry,
       FingerprintResponse fr,

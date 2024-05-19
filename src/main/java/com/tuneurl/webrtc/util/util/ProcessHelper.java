@@ -346,12 +346,13 @@ public final class ProcessHelper {
     BufferedReader reader = null;
     StringBuilder content = new StringBuilder();
     String line;
-    Long counter = 0L;
+    String lineSeparator = System.lineSeparator();
+    int counter = 0;
     try {
       reader = new BufferedReader(new FileReader(filename));
       while ((line = reader.readLine()) != null) {
         content.append(line);
-        content.append(System.lineSeparator());
+        content.append(lineSeparator);
         counter++;
       }
     } catch (IOException ex) {
@@ -365,7 +366,7 @@ public final class ProcessHelper {
         }
       }
     }
-    if (counter == 0L) return "";
+    if (counter == 0) return "";
     return content.toString();
   }
 

@@ -124,7 +124,7 @@ public class EvaluateAudioStreamResponse {
   /**
    * Retrieves the array of TuneUrlTag.
    *
-   * @return the array of TuneUrlTag
+   * @return the list of TuneUrlTag
    */
   public List<TuneUrlTag> getLiveTags() {
     return liveTags;
@@ -145,7 +145,7 @@ public class EvaluateAudioStreamResponse {
    * @return String
    */
   public String toString() {
-    java.lang.StringBuffer sb = new java.lang.StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append("class EvaluateAudioStreamResponse {\n");
     sb.append("    \"tuneUrlCounts\": ").append(getTuneUrlCounts()).append(",\n");
     sb.append("    \"tagCounts\": ").append(getTagCounts()).append(",\n");

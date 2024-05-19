@@ -29,7 +29,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.tuneurl.webrtc.util.controller;
+package com.tuneurl.webrtc.util.controller.dto;
 
 import com.albon.auth.dto.UserEntry;
 import com.albon.auth.jwt.JwtTool;
@@ -233,7 +233,7 @@ public class ClientCredential {
    * @return String
    */
   public String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append("class ClientCredential {\n");
     sb.append("    \"sdk_uuid\": ").append('"').append(getSdkUuid()).append("\",\n");
     sb.append("    \"jwt_tool\": ").append('"').append(getJwtTool()).append("\",\n");

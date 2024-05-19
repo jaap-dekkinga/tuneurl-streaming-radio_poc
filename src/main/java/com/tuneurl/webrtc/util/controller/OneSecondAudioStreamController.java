@@ -41,7 +41,6 @@ import com.tuneurl.webrtc.util.value.UserType;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -115,7 +114,6 @@ public class OneSecondAudioStreamController extends BaseController {
       HttpServletRequest httpRequest,
       HttpServletResponse httpResponse) {
     final String signature = "evaluateOneSecondAudioStream";
-    final String signature2 = "evaluateOneSecondAudioStream:Pruning";
 
     String sOffset = httpRequest.getParameter("offset");
     Long dataOffset = CommonUtil.parseLong(sOffset, 0L);

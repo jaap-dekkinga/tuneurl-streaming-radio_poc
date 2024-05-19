@@ -67,7 +67,10 @@ public class AudioStreamServiceImpl implements AudioStreamService {
   @Value("${audio.stream.url.prefix}")
   private String streamAudioUrlPrefix;
 
+  private final boolean isDebugOn = Constants.DEBUG_FINGERPRINTING;
+
   private MessageLogger logger;
+  private final TagsHelper tagsHelper = new TagsHelper();
 
   /** Set @logger class variable with a MessageLogger. */
   protected void setupMessageLogger() {
@@ -142,7 +145,6 @@ public class AudioStreamServiceImpl implements AudioStreamService {
     short[] dData;
 
     TuneUrlTag tag;
-    boolean isDebugOn = Constants.DEBUG_FINGERPRINTING;
     String rootDir = this.getSaveAudioFilesFolder(null);
     String debugUniqueName = ProcessHelper.createUniqueFilename();
     String debugDir = String.format("%s/%s", rootDir, "debug");
@@ -180,7 +182,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
       // timeOffset = elapse; // possible legacy code
       if (selection.size() == 5) {
         Object[] fingerprintComparisonsResponse =
-            fingerprintComparisons(selection, frSelection, fcr, fr);
+            FingerprintUtility.fingerprintComparisons(selection, frSelection, fcr, fr);
         fcr = (FingerprintCompareResponse) fingerprintComparisonsResponse[0];
         fr = (FingerprintResponse) fingerprintComparisonsResponse[1];
 
@@ -199,7 +201,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
           audioFr =
               fingerprintExternals.runExternalFingerprinting(random, rootDir, dData, dData.length);
 
-          tag = FingerprintUtility.newTag(false, 0L, audioFr, fcr);
+          tag = tagsHelper.newTag(false, 0L, audioFr, fcr);
           liveTags.add(tag);
 
           if (isDebugOn) {
@@ -215,72 +217,18 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         } // if (fcr != null)
       } // if (selection.size() == 5)
     } // for (...)
-    liveTags = FingerprintUtility.pruneTags(liveTags);
+    liveTags = tagsHelper.pruneTags(liveTags);
     counts = (long) liveTags.size();
     response.setTagCounts(counts);
     response.setLiveTags(liveTags);
     response.setTuneUrlCounts((long) liveTags.size());
     if (isDebugOn) {
-      FingerprintUtility.displayLiveTags(signature, this.logger, liveTags);
+      tagsHelper.displayLiveTags(signature, this.logger, liveTags);
     }
     this.logger.logExit(
         signature, new Object[] {"counts=", counts, "liveTags.size", liveTags.size()});
 
     return response;
-  }
-
-  public Object[] fingerprintComparisons(
-      List<FingerprintCompareResponse> selection,
-      List<FingerprintResponse> frSelection,
-      FingerprintCompareResponse fcr,
-      FingerprintResponse fr) {
-    FingerprintCompareResponse fca;
-    FingerprintCompareResponse fcb;
-    FingerprintCompareResponse fcc;
-    FingerprintCompareResponse fcd;
-    FingerprintCompareResponse fce;
-
-    fca = selection.get(0);
-    fcb = selection.get(1);
-    fcc = selection.get(2);
-    fcd = selection.get(3);
-    fce = selection.get(4);
-
-    //  8: N P N N N => P is the valid TuneUrl trigger sound
-    // 15: N P P P P => N is the valid TuneUrl trigger sound
-    // 30: P P P P N => N is the valid TuneUrl trigger sound
-    if (FingerprintUtility.hasNegativeFrameStartTimeEx(fca)
-        && FingerprintUtility.hasPositiveFrameStartTimeEx(fcb)) {
-      if (FingerprintUtility.hasNegativeFrameStartTimeEx(fcc)) {
-        // N P N
-        if (FingerprintUtility.isFrameStartTimeEqual(fca, fcc)
-            && FingerprintUtility.isFrameStartTimeEqual(fcc, fcd)
-            && FingerprintUtility.isFrameStartTimeEqual(fcd, fce)) {
-          // N P N N N => P is the valid TuneUrl trigger sound
-          fcr = selection.get(1);
-          fr = frSelection.get(1);
-        }
-      } else if (FingerprintUtility.hasPositiveFrameStartTimeEx(fcc)
-          && FingerprintUtility.isFrameStartTimeEqual(fcc, fcb)
-          && FingerprintUtility.isFrameStartTimeEqual(fcc, fcd)
-          && FingerprintUtility.isFrameStartTimeEqual(fcd, fce)) {
-        // N P P P P => N is the valid TuneUrl trigger sound
-        fcr = selection.get(0);
-        fr = frSelection.get(0);
-      }
-    } else if (FingerprintUtility.hasPositiveFrameStartTimeEx(fca)
-        && FingerprintUtility.hasNegativeFrameStartTimeEx(fce)) {
-      // P . . . N
-      if (FingerprintUtility.isFrameStartTimeEqual(fca, fcb)
-          && FingerprintUtility.isFrameStartTimeEqual(fcb, fcc)
-          && FingerprintUtility.isFrameStartTimeEqual(fcc, fcd)) {
-        // P P P P N => N is the valid TuneUrl trigger sound
-        fcr = selection.get(4);
-        fr = frSelection.get(4);
-      }
-    }
-
-    return new Object[] {fcr, fr};
   }
 
   private void saveFingerprintsDebug(
@@ -291,7 +239,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
       Long baseOffset,
       String rootDebugDir,
       String debugUniqueName) {
-    FingerprintUtility.saveAudioClipsAt(
+    fingerprintExternals.saveAudioClipsAt(
         logger,
         true,
         evaluateAudioStreamEntry,
@@ -303,7 +251,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         rootDebugDir,
         debugUniqueName);
 
-    FingerprintUtility.saveAudioClipsAt(
+    fingerprintExternals.saveAudioClipsAt(
         logger,
         false,
         evaluateAudioStreamEntry,
@@ -536,7 +484,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
     } catch (IOException | InterruptedException ex) {
       // 9. On error, return connection ID as zero.
       logger.logExit(signature, "processBuilder.start() Failed: " + ex.getMessage());
-      ex.printStackTrace();
+      // ex.printStackTrace(); // TODO - Avoid using stacktraces
       ProcessHelper.deleteFile(outputFilename);
       return resetResponseValue(signature, response, crc32);
     }
@@ -553,9 +501,10 @@ public class AudioStreamServiceImpl implements AudioStreamService {
           // Check if run_webrtc_script.sh set up the correct Filename.
           if (!crc32.equals(value)) {
             if (!error.isEmpty()) {
-              error += "\n";
+              error += "\nInvalid Filename value";
+            } else {
+              error += "Invalid Filename value";
             }
-            error += "Invalid Filename value";
           }
           break;
         case "fiveSecondAudioUrl":
@@ -670,7 +619,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
     long durationLimit = dataOffset + Converter.muldiv(1000, duration - 5L, 1L);
     FingerprintCompareResponse fcr;
     FingerprintResponse fr;
-    boolean isDebugOn = Constants.DEBUG_FINGERPRINTING;
+
     String rootDir = getSaveAudioFilesFolder(null);
     String debugDir = String.format("%s/%s", rootDir, "debug");
     if (isDebugOn) {
@@ -700,12 +649,12 @@ public class AudioStreamServiceImpl implements AudioStreamService {
       fr = null;
       if (selection.size() == 5) {
         Object[] fingerprintComparisonsResponse =
-            fingerprintComparisons(selection, frSelection, fcr, fr);
+            FingerprintUtility.fingerprintComparisons(selection, frSelection, fcr, fr);
         fcr = (FingerprintCompareResponse) fingerprintComparisonsResponse[0];
         fr = (FingerprintResponse) fingerprintComparisonsResponse[1];
 
         if (null != fcr) {
-          TuneUrlTag tag = FingerprintUtility.newTag(true, dataOffset, fr, fcr);
+          TuneUrlTag tag = tagsHelper.newTag(true, dataOffset, fr, fcr);
           /*
           if (isDebugOn) {
             FingerprintUtility.displayLiveTagsEx(signature, logger, tag);
@@ -717,7 +666,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
       } // if (selection.size() == 5)
     } // for (count = 0L, ...)
     if (!liveTags.isEmpty()) {
-      tags = FingerprintUtility.pruneTagsEx(isDebugOn, logger, liveTags);
+      tags = tagsHelper.pruneTagsEx(isDebugOn, logger, liveTags);
       if (isDebugOn) {
         logger.logExit(signature2, "before=", liveTags.size(), "after=", tags.size());
       }
@@ -741,7 +690,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         if (tag != null) {
           liveTags.add(tag);
           if (isDebugOn) {
-            FingerprintUtility.displayLiveTagsEx(signature2, logger, tag);
+            tagsHelper.displayLiveTagsEx(signature2, logger, tag);
           }
         }
       }

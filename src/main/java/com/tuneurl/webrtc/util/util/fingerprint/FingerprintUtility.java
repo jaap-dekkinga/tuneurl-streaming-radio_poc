@@ -34,11 +34,6 @@ package com.tuneurl.webrtc.util.util.fingerprint;
 import com.tuneurl.webrtc.util.controller.dto.*;
 import com.tuneurl.webrtc.util.util.*;
 import com.tuneurl.webrtc.util.value.Constants;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import lombok.Getter;
@@ -162,6 +157,7 @@ public class FingerprintUtility {
     sb.append("]").append(fingerprint_suffix);
     return sb.toString();
   }
+
   /**
    * Load the TuneUrl information for the given tag.
    *
@@ -190,7 +186,7 @@ public class FingerprintUtility {
   }
 
   /**
-   * Helper to initialized a FingerprintCompareResponse structure.
+   * Helper to initialize a FingerprintCompareResponse structure.
    *
    * @param fcr FingerprintCompareResponse
    * @param timeOffset Long
@@ -205,60 +201,6 @@ public class FingerprintUtility {
     fcr.setScore(zero);
     fcr.setSimilarity(zero);
     return fcr;
-  }
-
-  /**
-   * Helper to close FileOutputStream instance.
-   *
-   * @param fos FileOutputStream instance
-   */
-  private static void closeFileOutputStream(FileOutputStream fos) {
-    if (fos != null) {
-      try {
-        fos.close();
-      } catch (IOException ignore) {
-      }
-    }
-  }
-
-  /**
-   * Helper method to write StringBuffer into a file.
-   *
-   * @param fileName String
-   * @param sb StringBuffer
-   */
-  private static void writeStringBuffer(final String fileName, final StringBuffer sb) {
-    FileOutputStream fib = null;
-    File file = null;
-    ProcessHelper.deleteFile(fileName);
-    try {
-      file = new File(fileName);
-      if (!file.createNewFile()) {
-        throw new IOException();
-      }
-    } catch (IOException ex) {
-      CommonUtil.BadRequestException(ex.getMessage());
-      /*NOTREACH*/
-    } catch (SecurityException ex) {
-      CommonUtil.BadRequestException(ex.getMessage());
-      /*NOTREACH*/
-    }
-    try {
-      fib = new FileOutputStream(file);
-    } catch (FileNotFoundException ex) {
-      closeFileOutputStream(fib);
-      CommonUtil.BadRequestException(ex.getMessage());
-      /*NOTREACH*/
-    }
-    byte[] data = sb.toString().getBytes();
-    try {
-      fib.write(data);
-    } catch (IOException ex) {
-      closeFileOutputStream(fib);
-      CommonUtil.BadRequestException(ex.getMessage());
-      /*NOTREACH*/
-    }
-    closeFileOutputStream(fib);
   }
 
   /**
@@ -312,7 +254,7 @@ public class FingerprintUtility {
 
     sb.append(CRLF);
 
-    writeStringBuffer(fileName, sb);
+    fingerprintExternals.writeStringBuffer(fileName, sb);
     if (!ProcessHelper.isFileExist(fileName)) {
       CommonUtil.InternalServerException("File not created '" + fileName + "'");
     }
@@ -337,7 +279,7 @@ public class FingerprintUtility {
     }
     sb.append(CRLF);
 
-    writeStringBuffer(fileName, sb);
+    fingerprintExternals.writeStringBuffer(fileName, sb);
     if (!ProcessHelper.isFileExist(fileName)) {
       CommonUtil.InternalServerException("File not created '" + fileName + "'");
     }
@@ -345,13 +287,13 @@ public class FingerprintUtility {
 
   /**
    * Alternative to CompareFingerprints(Fingerprint *,Fingerprint *):FingerprintSimilarity method
-   * with stable results. It make use of main.cpp compiled in the executable at
+   * with stable results. This make use of main.cpp compiled in the executable at
    * ./jni/fingerprintexec .
    *
    * @param fr FingerprintResponse
    * @param timeOffset Long
    * @param rootDir String
-   * @param random Random - use to ensure the generated file name is very unique.
+   * @param random Random - use to ensure the generated file name is unique.
    * @param dataFingerprintBuffer A String Buffer with the datafingerprint already processed
    * @param dataFingerprintSize the lenght of the dataFingerprint - before buffered
    * @return FingerprintCompareResponse
@@ -400,136 +342,58 @@ public class FingerprintUtility {
     return fcr;
   }
 
-  /**
-   * Helper method to save audio clips and it's fingerprint.
-   *
-   * @param logger MessageLogger
-   * @param isTrigger boolean
-   * @param evaluateAudioStreamEntry
-   * @param fr FingerprintResponse instance
-   * @param fcr FingerprintCompareResponse
-   * @param prefix String
-   * @param timeOffset Long
-   * @param duration Long
-   * @param rootDebugDir String
-   * @param debugUniqueName String
-   */
-  public static final void saveAudioClipsAt(
-      MessageLogger logger,
-      boolean isTrigger,
-      EvaluateAudioStreamEntry evaluateAudioStreamEntry,
-      FingerprintResponse fr,
+  public static Object[] fingerprintComparisons(
+      List<FingerprintCompareResponse> selection,
+      List<FingerprintResponse> frSelection,
       FingerprintCompareResponse fcr,
-      final String prefix,
-      Long timeOffset,
-      Long duration,
-      final String rootDebugDir,
-      final String debugUniqueName) {
+      FingerprintResponse fr) {
+    FingerprintCompareResponse fca;
+    FingerprintCompareResponse fcb;
+    FingerprintCompareResponse fcc;
+    FingerprintCompareResponse fcd;
+    FingerprintCompareResponse fce;
 
-    final String signature = "saveAudioClipsAt";
-    final String which = isTrigger ? "Trigger audio bits" : "Audio bits";
-    final String CRLF = "\n";
-    final String NEXT_LINE = "' \\\n";
-    AudioDataEntry audioDataEntry = evaluateAudioStreamEntry.getAudioData();
-    String url = CommonUtil.getString(audioDataEntry.getUrl(), Constants.AUDIOSTREAM_URL_SIZE);
-    Long fingerprintRate = audioDataEntry.getFingerprintRate();
-    long iStart = Converter.muldiv(timeOffset, fingerprintRate, 1000L);
-    long iEnd = Converter.muldiv(timeOffset + duration, fingerprintRate, 1000L);
-    long index, offset, diff = iEnd - iStart;
-    // The Data.
-    short[] data = audioDataEntry.getData();
-    long size = (long) data.length;
-    String fileName =
-        String.format(
-            "%s/%s-%s-%s.txt", rootDebugDir, prefix, timeOffset.toString(), debugUniqueName);
-    StringBuffer sb = new StringBuffer();
+    fca = selection.get(0);
+    fcb = selection.get(1);
+    fcc = selection.get(2);
+    fcd = selection.get(3);
+    fce = selection.get(4);
 
-    logger.logEntry(
-        signature,
-        new Object[] {
-          "created=", fileName,
-          "which=", which
-        });
-    // bash script header
-    if (!isTrigger) sb.append("#/bin/bash").append(CRLF);
-
-    // File
-    sb.append("# File = '").append(fileName).append("'").append(CRLF);
-
-    // URL
-    sb.append("# URL = '")
-        .append(url)
-        .append("', size: ")
-        .append(size)
-        .append(", sample rate: ")
-        .append(fingerprintRate)
-        .append(CRLF);
-
-    // Formula
-    sb.append(
-            "# iStart = parseInt((offset * rate) / 1000), iEnd = parseInt(((offset + duration) * rate) / 1000);")
-        .append(CRLF);
-
-    // Values
-    sb.append("# ")
-        .append(which)
-        .append(" at offset ")
-        .append(timeOffset)
-        .append(" milli-seconds, duration: ")
-        .append(duration)
-        .append(" milli-seconds, iStart: ")
-        .append(iStart)
-        .append(", iEnd: ")
-        .append(iEnd)
-        .append(", iEnd-iStart: ")
-        .append(diff)
-        .append(" bytes")
-        .append(CRLF);
-
-    // RAW data
-    sb.append("# raw data: [");
-    for (index = 0L, offset = iStart; (offset < iEnd) && (index < diff); index++, offset++) {
-      if (index > 0L) sb.append(",");
-      sb.append(data[(int) offset]);
-    }
-    sb.append("]").append(CRLF);
-
-    if (isTrigger) {
-      sb.append("# Fingerprint size: ")
-          .append(fr.getSize())
-          .append(", data: ")
-          .append(fr.getDataEx())
-          .append(CRLF);
-    } else {
-      // Where the audio came from
-      sb.append(fingerprint_header).append(CRLF);
-
-      // Offset, score, similarity
-      sb.append("# offset position : ")
-          .append(timeOffset)
-          .append(" milli-seconds, score: ")
-          .append(fcr.getScore())
-          .append(", similarity: ")
-          .append(fcr.getSimilarity())
-          .append(CRLF);
-
-      // Curl statement
-      sb.append("echo \"\"").append(CRLF);
-      sb.append(
-              "curl -X 'POST' 'https://pnz3vadc52.execute-api.us-east-2.amazonaws.com/dev/search-fingerprint")
-          .append(NEXT_LINE);
-      sb.append("-H 'accept: application/json").append(NEXT_LINE);
-      sb.append("-H 'Content-Type: application/json; charset=UTF-8").append(NEXT_LINE);
-      sb.append("-H 'Access-Control-Allow-Origin: *").append(NEXT_LINE);
-      sb.append("-d '").append(fingerprint_prefix);
-      sb.append(fr.getDataEx());
-      sb.append(fingerprint_suffix).append("'").append(CRLF).append(CRLF);
-      sb.append("echo \"\"").append(CRLF);
-      sb.append("exit 0").append(CRLF).append(CRLF);
+    //  8: N P N N N => P is the valid TuneUrl trigger sound
+    // 15: N P P P P => N is the valid TuneUrl trigger sound
+    // 30: P P P P N => N is the valid TuneUrl trigger sound
+    if (FingerprintUtility.hasNegativeFrameStartTimeEx(fca)
+        && FingerprintUtility.hasPositiveFrameStartTimeEx(fcb)) {
+      if (FingerprintUtility.hasNegativeFrameStartTimeEx(fcc)) {
+        // N P N
+        if (FingerprintUtility.isFrameStartTimeEqual(fca, fcc)
+            && FingerprintUtility.isFrameStartTimeEqual(fcc, fcd)
+            && FingerprintUtility.isFrameStartTimeEqual(fcd, fce)) {
+          // N P N N N => P is the valid TuneUrl trigger sound
+          fcr = selection.get(1);
+          fr = frSelection.get(1);
+        }
+      } else if (FingerprintUtility.hasPositiveFrameStartTimeEx(fcc)
+          && FingerprintUtility.isFrameStartTimeEqual(fcc, fcb)
+          && FingerprintUtility.isFrameStartTimeEqual(fcc, fcd)
+          && FingerprintUtility.isFrameStartTimeEqual(fcd, fce)) {
+        // N P P P P => N is the valid TuneUrl trigger sound
+        fcr = selection.get(0);
+        fr = frSelection.get(0);
+      }
+    } else if (FingerprintUtility.hasPositiveFrameStartTimeEx(fca)
+        && FingerprintUtility.hasNegativeFrameStartTimeEx(fce)) {
+      // P . . . N
+      if (FingerprintUtility.isFrameStartTimeEqual(fca, fcb)
+          && FingerprintUtility.isFrameStartTimeEqual(fcb, fcc)
+          && FingerprintUtility.isFrameStartTimeEqual(fcc, fcd)) {
+        // P P P P N => N is the valid TuneUrl trigger sound
+        fcr = selection.get(4);
+        fr = frSelection.get(4);
+      }
     }
 
-    ProcessHelper.makeDir(rootDebugDir);
-    writeStringBuffer(fileName, sb);
+    return new Object[] {fcr, fr};
   }
 
   /**
@@ -539,7 +403,7 @@ public class FingerprintUtility {
    * @return boolean true if both Frame and StartTime have negative values, otherwise false.
    */
   public static final boolean hasNegativeFrameStartTimeEx(FingerprintCompareResponse fcr) {
-    return (fcr.getMostSimilarFramePosition().intValue() < 0)
+    return (fcr.getMostSimilarFramePosition() < 0)
         && (CommonUtil.compareDouble(fcr.getMostSimilarStartTime(), Converter.ZERO) < 0);
   }
 
@@ -550,7 +414,7 @@ public class FingerprintUtility {
    * @return boolean true if both Frame and StartTime have positive values, otherwise false.
    */
   public static final boolean hasPositiveFrameStartTimeEx(FingerprintCompareResponse fcr) {
-    return (fcr.getMostSimilarFramePosition().intValue() > 0)
+    return (fcr.getMostSimilarFramePosition() > 0)
         && (CommonUtil.compareDouble(fcr.getMostSimilarStartTime(), Converter.ZERO) > 0);
   }
 
@@ -635,277 +499,5 @@ public class FingerprintUtility {
       return CommonUtil.compareDouble(a.getMostSimilarStartTime(), 0.0) > 0;
     }
     return false;
-  }
-
-  /**
-   * Helper method to create TuneUrlTag from FingerprintResponse and FingerprintCompareResponse.
-   *
-   * @param updateOffset boolean
-   * @param dataOffset Long
-   * @param fr FingerprintResponse
-   * @param fcr FingerprintCompareResponse
-   * @return TuneUrlTag
-   */
-  public static final TuneUrlTag newTag(
-      boolean updateOffset,
-      Long dataOffset,
-      FingerprintResponse fr,
-      FingerprintCompareResponse fcr) {
-    TuneUrlTag tag = new TuneUrlTag();
-    long offset = fcr.getOffset();
-    offset += dataOffset;
-    if (updateOffset) fcr.setOffset(offset);
-    tag.setDataPosition(offset);
-    offset = Converter.muldiv(1L, offset, 100L);
-    tag.setIndex(offset);
-    tag.setFingerprintCompareResponseData(fcr, false);
-
-    final String payload = convertFingerprintToString(fr.getData());
-    tag.setTuneUrlEmptyEntryData(payload);
-    return tag;
-  }
-
-  /**
-   * Display live tags for debugging.
-   *
-   * @param signature String
-   * @param logger MessageLogger
-   * @param tag TuneUrlTag
-   */
-  public static final void displayLiveTagsEx(
-      final String signature, MessageLogger logger, TuneUrlTag tag) {
-    logger.logExit(
-        signature,
-        new Object[] {
-          "pos=", tag.getDataPosition(),
-          "score=", tag.getScore(),
-          "similarity=", tag.getSimilarity(),
-          "Frame=", tag.getMostSimilarFramePosition(),
-          "StartTime=", tag.getMostSimilarStartTime(),
-          "index=", tag.getIndex()
-        });
-  }
-
-  /**
-   * Display live tags for debugging.
-   *
-   * @param signature String
-   * @param logger MessageLogger
-   * @param liveTags List&lt;TuneUrlTag>
-   */
-  public static final void displayLiveTags(
-      final String signature, MessageLogger logger, List<TuneUrlTag> liveTags) {
-    for (TuneUrlTag liveTag : liveTags) {
-      displayLiveTagsEx(signature, logger, liveTag);
-    }
-  }
-
-  /**
-   * Helper method to create Array of tags.
-   *
-   * @param dataOffset Long data offset
-   * @param frSelection List&lt;FingerprintResponse>
-   * @param fcrSelection List&lt;FingerprintCompareResponse>
-   * @return List&lt;TuneUrlTag>
-   */
-  public static final List<TuneUrlTag> createTags(
-      Long dataOffset,
-      List<FingerprintResponse> frSelection,
-      List<FingerprintCompareResponse> fcrSelection) {
-    ArrayList<TuneUrlTag> tags = new ArrayList<>();
-    TuneUrlTag tag;
-    FingerprintResponse fx;
-    FingerprintResponse fr;
-    FingerprintCompareResponse fcx;
-    FingerprintCompareResponse fcr;
-    int index, limit = fcrSelection.size();
-    if (limit > 2) {
-      for (index = 0; index < limit; index++) {
-        fr = frSelection.get(index);
-        fcr = fcrSelection.get(index);
-        tag = newTag(false, dataOffset, fr, fcr);
-        tags.add(tag);
-      }
-      // Try to locate the X-Y-X or X-Y-Z-Y-X pattern
-      List<TuneUrlTag> newTag = FingerprintUtility.pruneTags(tags);
-      if (!newTag.isEmpty()) return newTag;
-      tags.clear();
-    }
-    if (limit == 1) {
-      tag = newTag(true, dataOffset, frSelection.get(0), fcrSelection.get(0));
-      tags.add(tag);
-    } else if (limit > 1) {
-      fx = frSelection.get(0);
-      fcx = fcrSelection.get(0);
-      for (index = 1; index < limit; index++) {
-        fr = frSelection.get(index);
-        fcr = fcrSelection.get(index);
-        if (CommonUtil.compareDouble(fcr.getScore(), fcx.getScore()) > 0) {
-          fcx = fcr;
-          fx = fr;
-        }
-      }
-      tag = newTag(true, dataOffset, fx, fcx);
-      tags.add(tag);
-    }
-    return tags;
-  }
-
-  /**
-   * Helper to prune List of TuneUrlTag
-   *
-   * @param tags List&lt;TuneUrlTag>
-   * @return List&lt;TuneUrlTag>
-   */
-  public static final List<TuneUrlTag> pruneTags(List<TuneUrlTag> tags) {
-
-    ArrayList<TuneUrlTag> newTags = new ArrayList<>();
-    int index, limit = tags.size() - 4;
-    long distance;
-    TuneUrlTag a;
-    TuneUrlTag b;
-    TuneUrlTag c;
-    TuneUrlTag d;
-
-    for (index = 0; index <= limit; index++) {
-      a = tags.get(index);
-      b = tags.get(index + 1);
-      c = tags.get(index + 2);
-      d = tags.get(index + 3);
-      distance = b.getDataPosition() - a.getDataPosition();
-      if (distance > 800L) continue;
-      distance = c.getDataPosition() - b.getDataPosition();
-      if (distance > 800L) continue;
-      distance = d.getDataPosition() - c.getDataPosition();
-      if (distance > 800L) continue;
-      // 509 509 -214748364 -50
-      if (c.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
-        if (FingerprintUtility.hasPositiveSimilarFrameStartTime(a)
-            && FingerprintUtility.hasSimilarFrameStartTime(a, b)
-            && FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(d)) {
-          newTags.add(c);
-          index += 3;
-          continue;
-        }
-      }
-      // 509 -214748364 -50 -50
-      if (b.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
-        if (FingerprintUtility.hasPositiveSimilarFrameStartTime(a)
-            && FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(c)
-            && FingerprintUtility.hasSimilarFrameStartTime(c, d)) {
-          newTags.add(d);
-          index += 3;
-          continue;
-        }
-      }
-      // -214748364 -50 -50 -50
-      if (a.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
-        if (FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(b)
-            && FingerprintUtility.hasSimilarFrameStartTime(b, c)
-            && FingerprintUtility.hasSimilarFrameStartTime(c, d)) {
-
-          distance = d.getDataPosition() - a.getDataPosition();
-          if (distance < 1100L) continue;
-          if (distance > 1100L) {
-            newTags.add(b);
-          } else {
-            newTags.add(d);
-          }
-          index += 3;
-          continue;
-        }
-      }
-    }
-    return newTags;
-  }
-
-  /**
-   * Helper to prune List of TuneUrlTag for /dev/v3/evaluateOneSecondAudioStream .
-   *
-   * @param isDebugOn boolean
-   * @param logger MessageLogger
-   * @param tags List&lt;TuneUrlTag>
-   * @return List&lt;TuneUrlTag>
-   */
-  public static final List<TuneUrlTag> pruneTagsEx(
-      boolean isDebugOn, MessageLogger logger, List<TuneUrlTag> tags) {
-
-    ArrayList<TuneUrlTag> newTags = new ArrayList<>();
-    int index, limit = tags.size() - 4;
-    long d1, d2, d3, distance;
-    TuneUrlTag a;
-    TuneUrlTag b;
-    TuneUrlTag c;
-    TuneUrlTag d;
-
-    for (index = 0; index <= limit; index++) {
-      a = tags.get(index);
-      b = tags.get(index + 1);
-      c = tags.get(index + 2);
-      d = tags.get(index + 3);
-      d1 = b.getDataPosition() - a.getDataPosition();
-      if (d1 > 800L) continue;
-      d2 = c.getDataPosition() - b.getDataPosition();
-      if (d2 > 800L) continue;
-      d3 = d.getDataPosition() - c.getDataPosition();
-      if (d3 > 800L) continue;
-      distance = d.getDataPosition() - a.getDataPosition();
-      if (isDebugOn) {
-        logger.debug(
-            "{\"Leaving\":{pruneTagsEx(%d %d %d %d %d, diff=%d %d %d %d)}}",
-            a.getDataPosition(),
-            a.getMostSimilarFramePosition(),
-            b.getMostSimilarFramePosition(),
-            c.getMostSimilarFramePosition(),
-            d.getMostSimilarFramePosition(),
-            d1,
-            d2,
-            d3,
-            distance);
-      }
-      // 509 509 -214748364 -50
-      // 509 509          N -50 SELECT C 2880
-      if (c.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
-        if (FingerprintUtility.hasPositiveSimilarFrameStartTime(a)
-            && FingerprintUtility.hasSimilarFrameStartTime(a, b)
-            && FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(d)) {
-
-          if (distance > 1840L) {
-            newTags.add(c);
-            index += 3;
-          }
-          continue;
-        }
-      }
-      // 509 -214748364 -50 -50
-      // 509          N -50 -50 SELECT C 13200
-      if (b.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
-        if (FingerprintUtility.hasPositiveSimilarFrameStartTime(a)
-            && FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(c)
-            && FingerprintUtility.hasSimilarFrameStartTime(c, d)) {
-
-          if (distance > 1280L) {
-            newTags.add(c);
-            index += 3;
-          }
-          continue;
-        }
-      }
-      // -214748364 -50 -50 -50
-      //          N -50 -50 -50 SELECT B 33900
-      if (a.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
-        if (FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(b)
-            && FingerprintUtility.hasSimilarFrameStartTime(b, c)
-            && FingerprintUtility.hasSimilarFrameStartTime(c, d)) {
-
-          if (distance > 1096L) {
-            newTags.add(b);
-            index += 3;
-          }
-          continue;
-        }
-      }
-    }
-    return newTags;
   }
 }

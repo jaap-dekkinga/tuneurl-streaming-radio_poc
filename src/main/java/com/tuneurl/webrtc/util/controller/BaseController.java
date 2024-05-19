@@ -661,10 +661,9 @@ public abstract class BaseController {
    * @param response HttpServletResponse
    * @param fileName String
    * @param fileNameOnDisposition String
-   * @return long the size
    * @throws BaseServiceException If any file operation fails
    */
-  protected long writeResponseStreamResult(
+  protected void writeResponseStreamResult(
       final String endPoint,
       OutputStream pOutputStream,
       final String style,
@@ -678,15 +677,10 @@ public abstract class BaseController {
     try {
       file = new File(fileName);
     } catch (NullPointerException npe) {
-      npe.printStackTrace();
+      // npe.printStackTrace();
       CommonUtil.ForbiddenException(accessDeniedMessages);
       /*NOTREACH*/
     }
-    //    final long fileSize = file.length();
-    //    if (fileSize < 1L || !file.canRead()) {
-    //      CommonUtil.ForbiddenException(accessDeniedMessages);
-    //      /*NOTREACH*/
-    //    }
     byte[] b = readFileToStream(file, accessDeniedMessages);
     if (b == null) {
       CommonUtil.ForbiddenException(accessDeniedMessages);
@@ -695,15 +689,7 @@ public abstract class BaseController {
     long size = b.length < 1 ? file.length() : b.length;
     final String sSize = "" + size;
     final String contentLength = "Content-Length";
-    //    MessageLogger logger = getMessageLogger();
-    //    logger.logEntry(
-    //        "writeResponseStreamResult",
-    //        new Object[] {
-    //          "f=", fileName,
-    //          "n=", size,
-    //          "t=", style,
-    //          "d=", fileNameOnDisposition
-    //        });
+
     try {
       response.setStatus(200);
       response.setContentLength((int) size);
@@ -718,14 +704,12 @@ public abstract class BaseController {
       outputStream.write(b);
       outputStream.flush();
     } catch (IOException ex) {
-      ex.printStackTrace();
+      // ex.printStackTrace();
       outputStream = closeOutputStream(outputStream);
       CommonUtil.ForbiddenException(accessDeniedMessages);
       /*NOTREACH*/
     } finally {
       closeOutputStream(outputStream);
     }
-
-    return size;
   }
 }

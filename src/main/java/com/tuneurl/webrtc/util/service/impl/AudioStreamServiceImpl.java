@@ -156,33 +156,14 @@ public class AudioStreamServiceImpl implements AudioStreamService {
 
     FingerprintExternals fingerprintExternals = FingerprintExternals.getFingerprintInstance();
 
-    LinkedList<FingerprintThreadCollector> fingerprintThreadList =
-        new LinkedList<FingerprintThreadCollector>();
-    List<Thread> threadList = new LinkedList<Thread>();
-    for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
-      FingerprintThreadCollector fingerprintThread =
-          new FingerprintThreadCollector(
-              rootDir,
-              data,
-              elapse,
-              random,
-              fingerprintRate,
-              dataFingerprintBuffer,
-              dataFingerprintBufferSize);
-      fingerprintThreadList.add(fingerprintThread);
-
-      Thread t = new Thread(fingerprintThread);
-      t.start();
-      threadList.add(t);
-    }
-
-    for (Thread thread : threadList) {
-      try {
-        thread.join();
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-    }
+    LinkedList<FingerprintThreadCollector> fingerprintThreadList = parallelFingerprintCollect(data,
+            fingerprintRate,
+            dataFingerprintBuffer,
+            dataFingerprintBufferSize,
+            maxDuration,
+            counts,
+            rootDir,
+            random);
 
     for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
       FingerprintCollection result =
@@ -616,5 +597,47 @@ public class AudioStreamServiceImpl implements AudioStreamService {
 
     logger.logExit(signature, new Object[] {response.toString()});
     return response;
+  }
+
+  public LinkedList<FingerprintThreadCollector> parallelFingerprintCollect(
+          short[] data,
+          Long fingerprintRate,
+          StringBuffer dataFingerprintBuffer,
+          int dataFingerprintBufferSize,
+          long maxDuration,
+          long counts,
+          String rootDir,
+          Random random) {
+    long count;
+    long elapse;
+    LinkedList<FingerprintThreadCollector> fingerprintThreadList =
+            new LinkedList<FingerprintThreadCollector>();
+    List<Thread> threadList = new LinkedList<Thread>();
+    for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
+      FingerprintThreadCollector fingerprintThread =
+              new FingerprintThreadCollector(
+                      rootDir,
+                      data,
+                      elapse,
+                      random,
+                      fingerprintRate,
+                      dataFingerprintBuffer,
+                      dataFingerprintBufferSize);
+      fingerprintThreadList.add(fingerprintThread);
+
+      Thread t = new Thread(fingerprintThread);
+      t.start();
+      threadList.add(t);
+    }
+
+    for (Thread thread : threadList) {
+      try {
+        thread.join();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    return fingerprintThreadList;
   }
 }

@@ -239,33 +239,14 @@ public class OneSecondAudioStreamController extends BaseController {
     Random random = new Random();
     random.setSeed(new Date().getTime());
 
-    LinkedList<FingerprintThreadCollector> fingerprintThreadList =
-        new LinkedList<FingerprintThreadCollector>();
-    List<Thread> threadList = new LinkedList<Thread>();
-    for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
-      FingerprintThreadCollector fingerprintThread =
-          new FingerprintThreadCollector(
-              rootDir,
-              data,
-              elapse,
-              random,
-              fingerprintRate,
-              dataFingerprintBuffer,
-              dataFingerprintBufferSize);
-      fingerprintThreadList.add(fingerprintThread);
-
-      Thread t = new Thread(fingerprintThread);
-      t.start();
-      threadList.add(t);
-    }
-
-    for (Thread thread : threadList) {
-      try {
-        thread.join();
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-    }
+    LinkedList<FingerprintThreadCollector> fingerprintThreadList = audioStreamBaseService.parallelFingerprintCollect(data,
+            fingerprintRate,
+            dataFingerprintBuffer,
+            dataFingerprintBufferSize,
+            maxDuration,
+            counts,
+            rootDir,
+            random);
 
     for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
       FingerprintCollection result =

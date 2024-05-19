@@ -4,7 +4,6 @@ import com.tuneurl.webrtc.util.controller.dto.*;
 import com.tuneurl.webrtc.util.exception.BaseServiceException;
 import com.tuneurl.webrtc.util.model.AudioStreamDatabase;
 import com.tuneurl.webrtc.util.util.fingerprint.FingerprintThreadCollector;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -35,13 +34,21 @@ public interface AudioStreamService {
       AudioStreamDatabase pDB)
       throws BaseServiceException;
 
+  public EvaluateAudioStreamResponse evaluateOneSecondAudioStream(
+      long duration,
+      Long dataOffset,
+      short[] data,
+      Long fingerprintRate,
+      StringBuffer dataFingerprintBuffer,
+      int dataFingerprintBufferSize);
+
   public LinkedList<FingerprintThreadCollector> parallelFingerprintCollect(
-          short[] data,
-          Long fingerprintRate,
-          StringBuffer dataFingerprintBuffer,
-          int dataFingerprintBufferSize,
-          long maxDuration,
-          long counts,
-          String rootDir,
-          Random random);
+      short[] data,
+      Long fingerprintRate,
+      StringBuffer dataFingerprintBuffer,
+      int dataFingerprintBufferSize,
+      long maxDuration,
+      long counts,
+      String rootDir,
+      Random random);
 }

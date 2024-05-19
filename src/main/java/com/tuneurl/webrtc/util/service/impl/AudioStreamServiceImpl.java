@@ -77,6 +77,9 @@ public class AudioStreamServiceImpl implements AudioStreamService {
     }
   }
 
+  protected FingerprintExternals fingerprintExternals =
+      FingerprintUtility.getFingerprintInstance().getFingerprintExternals();
+
   public AudioStreamServiceImpl(AudioStreamDatabaseService audioStreamDatabaseService) {
     setupMessageLogger();
     this.audioStreamDatabaseService = audioStreamDatabaseService;
@@ -156,7 +159,9 @@ public class AudioStreamServiceImpl implements AudioStreamService {
 
     FingerprintExternals fingerprintExternals = FingerprintExternals.getFingerprintInstance();
 
-    LinkedList<FingerprintThreadCollector> fingerprintThreadList = parallelFingerprintCollect(data,
+    LinkedList<FingerprintThreadCollector> fingerprintThreadList =
+        parallelFingerprintCollect(
+            data,
             fingerprintRate,
             dataFingerprintBuffer,
             dataFingerprintBufferSize,
@@ -599,30 +604,190 @@ public class AudioStreamServiceImpl implements AudioStreamService {
     return response;
   }
 
+  /**
+   * Helper to update the audio segment after the trigger sound location.
+   *
+   * @param dataOffset long
+   * @param random Random
+   * @param rootDir String
+   * @param fingerprintRate Long
+   * @param tag TunerUrlTag
+   * @param data Array of short
+   * @param maxDuration Long
+   * @return TuneUrlTag or null
+   */
+  private TuneUrlTag updatePayload(
+      long dataOffset,
+      Random random,
+      final String rootDir,
+      long fingerprintRate,
+      TuneUrlTag tag,
+      final short[] data,
+      long maxDuration) {
+    long tagOffset = tag.getDataPosition() + 1000L; // 2880 + 1000 := 3880
+    long endOffset = tagOffset + 5000L; // 3880 + 5000 := 8880
+    long duration = dataOffset + maxDuration; //    0 + 10000
+    long iStart, iEnd;
+    short[] dData;
+    int dSize;
+    FingerprintResponse fr;
+    if (endOffset < duration) {
+      tagOffset = tagOffset - dataOffset; // 3880 - 0
+      endOffset = endOffset - dataOffset; // 8880 - 0
+      iStart =
+          Converter.muldiv(tagOffset, fingerprintRate, 1000L); // 3380 x 11025 / 1000 := 37264.5
+      iEnd = Converter.muldiv(endOffset, fingerprintRate, 1000L); // 8880 x 11025 / 1000 := 97902
+      dSize = (int) (iEnd - iStart);
+      if (dSize < data.length) { // 10 seconds x 11025 := 110250
+        dData = Converter.convertListShortEx(data, (int) iStart, dSize);
+        if (dData != null) {
+          fr = fingerprintExternals.runExternalFingerprinting(random, rootDir, dData, dData.length);
+
+          final String payload = FingerprintUtility.convertFingerprintToString(fr.getData());
+          tag.setDescription(payload);
+          return tag;
+        }
+      }
+    }
+    return null;
+  }
+
+  public EvaluateAudioStreamResponse evaluateOneSecondAudioStream(
+      long duration,
+      Long dataOffset,
+      short[] data,
+      Long fingerprintRate,
+      StringBuffer dataFingerprintBuffer,
+      int dataFingerprintBufferSize) {
+    final String signature = "evaluateOneSecondAudioStream";
+    final String signature2 = "evaluateOneSecondAudioStream:Pruning";
+    EvaluateAudioStreamResponse response = new EvaluateAudioStreamResponse();
+    List<TuneUrlTag> liveTags = new ArrayList<TuneUrlTag>();
+    List<TuneUrlTag> tags;
+    long elapse;
+    long maxDuration = Converter.muldiv(1000, duration, 1L);
+    long count, counts = Converter.muldiv(1000, duration, 100);
+    long durationLimit = dataOffset + Converter.muldiv(1000, duration - 5L, 1L);
+    FingerprintCompareResponse fcr;
+    FingerprintResponse fr;
+    boolean isDebugOn = Constants.DEBUG_FINGERPRINTING;
+    String rootDir = getSaveAudioFilesFolder(null);
+    String debugDir = String.format("%s/%s", rootDir, "debug");
+    if (isDebugOn) {
+      ProcessHelper.makeDir(debugDir);
+    }
+    Random random = new Random();
+    random.setSeed(new Date().getTime());
+
+    LinkedList<FingerprintThreadCollector> fingerprintThreadList =
+        parallelFingerprintCollect(
+            data,
+            fingerprintRate,
+            dataFingerprintBuffer,
+            dataFingerprintBufferSize,
+            maxDuration,
+            counts,
+            rootDir,
+            random);
+
+    for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
+      FingerprintCollection result =
+          fingerprintThreadList.removeFirst().getFingerprintCollectionResult();
+
+      List<FingerprintResponse> frSelection = result.getFrCollection();
+      List<FingerprintCompareResponse> selection = result.getFcrCollection();
+      fcr = null;
+      fr = null;
+      if (selection.size() == 5) {
+        Object[] fingerprintComparisonsResponse =
+            fingerprintComparisons(selection, frSelection, fcr, fr);
+        fcr = (FingerprintCompareResponse) fingerprintComparisonsResponse[0];
+        fr = (FingerprintResponse) fingerprintComparisonsResponse[1];
+
+        if (null != fcr) {
+          TuneUrlTag tag = FingerprintUtility.newTag(true, dataOffset, fr, fcr);
+          /*
+          if (isDebugOn) {
+            FingerprintUtility.displayLiveTagsEx(signature, logger, tag);
+          }
+           */
+          if (tag.getDataPosition() > durationLimit) break;
+          liveTags.add(tag);
+        }
+      } // if (selection.size() == 5)
+    } // for (count = 0L, ...)
+    if (!liveTags.isEmpty()) {
+      tags = FingerprintUtility.pruneTagsEx(isDebugOn, logger, liveTags);
+      if (isDebugOn) {
+        logger.logExit(signature2, "before=", liveTags.size(), "after=", tags.size());
+      }
+      liveTags = new ArrayList<TuneUrlTag>();
+      for (TuneUrlTag tag : tags) {
+        if (isDebugOn) {
+          logger.logExit(
+              signature,
+              new Object[] {
+                "dataPosition=",
+                tag.getDataPosition(),
+                "durationLimit=",
+                durationLimit,
+                "maxDuration=",
+                dataOffset + maxDuration,
+                "Frame=",
+                tag.getMostSimilarFramePosition(),
+              });
+        }
+        tag = updatePayload(dataOffset, random, rootDir, fingerprintRate, tag, data, maxDuration);
+        if (tag != null) {
+          liveTags.add(tag);
+          if (isDebugOn) {
+            FingerprintUtility.displayLiveTagsEx(signature2, logger, tag);
+          }
+        }
+      }
+    }
+    counts = (long) liveTags.size();
+    response.setTagCounts(counts);
+    response.setLiveTags(liveTags);
+    response.setTuneUrlCounts((long) liveTags.size());
+    /*
+    if (isDebugOn) {
+      FingerprintUtility.displayLiveTags(signature, logger, liveTags);
+    }
+     */
+    logger.logExit(
+        signature,
+        new Object[] {
+          "counts=", counts, "liveTags.size", liveTags.size(), "durationLimit=", durationLimit
+        });
+
+    return response;
+  }
+
   public LinkedList<FingerprintThreadCollector> parallelFingerprintCollect(
-          short[] data,
-          Long fingerprintRate,
-          StringBuffer dataFingerprintBuffer,
-          int dataFingerprintBufferSize,
-          long maxDuration,
-          long counts,
-          String rootDir,
-          Random random) {
+      short[] data,
+      Long fingerprintRate,
+      StringBuffer dataFingerprintBuffer,
+      int dataFingerprintBufferSize,
+      long maxDuration,
+      long counts,
+      String rootDir,
+      Random random) {
     long count;
     long elapse;
     LinkedList<FingerprintThreadCollector> fingerprintThreadList =
-            new LinkedList<FingerprintThreadCollector>();
+        new LinkedList<FingerprintThreadCollector>();
     List<Thread> threadList = new LinkedList<Thread>();
     for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
       FingerprintThreadCollector fingerprintThread =
-              new FingerprintThreadCollector(
-                      rootDir,
-                      data,
-                      elapse,
-                      random,
-                      fingerprintRate,
-                      dataFingerprintBuffer,
-                      dataFingerprintBufferSize);
+          new FingerprintThreadCollector(
+              rootDir,
+              data,
+              elapse,
+              random,
+              fingerprintRate,
+              dataFingerprintBuffer,
+              dataFingerprintBufferSize);
       fingerprintThreadList.add(fingerprintThread);
 
       Thread t = new Thread(fingerprintThread);

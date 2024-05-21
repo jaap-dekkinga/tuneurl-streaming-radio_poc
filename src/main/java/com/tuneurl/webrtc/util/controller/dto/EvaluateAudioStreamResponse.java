@@ -145,7 +145,7 @@ public class EvaluateAudioStreamResponse {
    * @return String
    */
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    StringBuffer sb = new StringBuffer();
     sb.append("class EvaluateAudioStreamResponse {\n");
     sb.append("    \"tuneUrlCounts\": ").append(getTuneUrlCounts()).append(",\n");
     sb.append("    \"tagCounts\": ").append(getTagCounts()).append(",\n");

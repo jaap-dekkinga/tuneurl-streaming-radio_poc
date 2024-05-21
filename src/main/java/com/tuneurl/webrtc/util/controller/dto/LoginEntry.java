@@ -114,7 +114,7 @@ public class LoginEntry {
    * @return String
    */
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    StringBuffer sb = new StringBuffer();
     sb.append("class LoginEntry {\n");
     sb.append("    \"username\": ").append('"').append(getUsername()).append("\",\n");
     sb.append("    \"password\": ").append('"').append("***").append("\"\n");

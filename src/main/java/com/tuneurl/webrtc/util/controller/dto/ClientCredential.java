@@ -233,7 +233,7 @@ public class ClientCredential {
    * @return String
    */
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    StringBuffer sb = new StringBuffer();
     sb.append("class ClientCredential {\n");
     sb.append("    \"sdk_uuid\": ").append('"').append(getSdkUuid()).append("\",\n");
     sb.append("    \"jwt_tool\": ").append('"').append(getJwtTool()).append("\",\n");

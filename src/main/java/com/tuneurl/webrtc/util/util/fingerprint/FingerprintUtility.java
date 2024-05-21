@@ -145,7 +145,7 @@ public class FingerprintUtility {
   public static final String convertFingerprintToString(final byte[] data) {
     int offset;
     final String Comma = ",";
-    StringBuilder sb = new StringBuilder();
+    StringBuffer sb = new StringBuffer();
     sb.append(fingerprint_prefix).append("[");
     if (data.length > 0) {
       sb.append(ProcessHelper.byte2short(data[0]));

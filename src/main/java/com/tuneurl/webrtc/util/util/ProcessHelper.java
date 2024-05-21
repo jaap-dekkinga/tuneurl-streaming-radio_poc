@@ -344,7 +344,7 @@ public final class ProcessHelper {
    */
   public static String readTextFile(final String filename) throws BaseServiceException {
     BufferedReader reader = null;
-    StringBuilder content = new StringBuilder();
+    StringBuffer content = new StringBuffer();
     String line;
     String lineSeparator = System.lineSeparator();
     int counter = 0;

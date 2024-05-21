@@ -74,7 +74,7 @@ public class MessageLogger extends LogMessage {
     if (super.getLogger() == null) return;
     final String sk = "{\"";
     final String bk = "\"";
-    StringBuilder sb = new StringBuilder(sk + prefix + bk);
+    StringBuffer sb = new StringBuffer(sk + prefix + bk);
     int counts = 0;
     sb.append(":").append(sk).append(signature).append(bk);
     if (parameters != null) {

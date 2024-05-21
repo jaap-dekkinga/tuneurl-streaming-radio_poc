@@ -178,16 +178,16 @@ public class FingerprintExternals {
     // 9. Fingerprint extraction is successful.
     response.setSize(result.getSize());
     response.setData(result.getData());
-    StringBuilder sb = getStringBuilder(response);
+    StringBuffer sb = getStringBuilder(response);
     response.setDataEx(sb.toString());
     return response;
   }
 
-  private static StringBuilder getStringBuilder(FingerprintResponse response) {
+  private static StringBuffer getStringBuilder(FingerprintResponse response) {
     int index, limit = response.getSize().intValue();
     byte[] fingerprintData = response.getData();
     // 10. Convert the fingerprint for JavaScript consumption.
-    StringBuilder sb = new StringBuilder();
+    StringBuffer sb = new StringBuffer();
     sb.append("[");
     if (limit > 0) {
       sb.append(ProcessHelper.byte2short(fingerprintData[0]));

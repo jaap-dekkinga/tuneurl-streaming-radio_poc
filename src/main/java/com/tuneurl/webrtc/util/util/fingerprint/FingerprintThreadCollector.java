@@ -4,7 +4,6 @@ import com.tuneurl.webrtc.util.controller.dto.FingerprintCollection;
 import com.tuneurl.webrtc.util.controller.dto.FingerprintCompareResponse;
 import com.tuneurl.webrtc.util.controller.dto.FingerprintResponse;
 import com.tuneurl.webrtc.util.util.Converter;
-import com.tuneurl.webrtc.util.util.MessageLogger;
 import com.tuneurl.webrtc.util.value.Constants;
 import java.util.ArrayList;
 import java.util.Random;

@@ -173,6 +173,9 @@ public class AudioStreamServiceImpl implements AudioStreamService {
             random);
 
     for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
+      if (fingerprintThreadList.isEmpty()) {
+        break;
+      }
       FingerprintCollection result =
           fingerprintThreadList.removeFirst().getFingerprintCollectionResult();
 
@@ -248,7 +251,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
     long elapse;
     long maxDuration = Converter.muldiv(1000, duration, 1L);
     long count, counts = Converter.muldiv(1000, duration, 100);
-    long durationLimit = dataOffset + Converter.muldiv(1000, duration - 5L, 1L);
+    long durationLimit = dataOffset + Converter.muldiv(1000, duration , 1L);
     FingerprintCompareResponse fcr;
     FingerprintResponse fr;
 
@@ -272,6 +275,9 @@ public class AudioStreamServiceImpl implements AudioStreamService {
             random);
 
     for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
+      if (fingerprintThreadList.isEmpty()) {
+        break;
+      }
       FingerprintCollection result =
           fingerprintThreadList.removeFirst().getFingerprintCollectionResult();
 
@@ -728,6 +734,9 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         new LinkedList<FingerprintThreadCollector>();
     List<Thread> threadList = new LinkedList<Thread>();
     for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
+      if (count == 50L) {
+        break;
+      }
       FingerprintThreadCollector fingerprintThread =
           new FingerprintThreadCollector(
               rootDir,

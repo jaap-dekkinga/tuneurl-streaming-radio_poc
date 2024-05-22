@@ -251,7 +251,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
     long elapse;
     long maxDuration = Converter.muldiv(1000, duration, 1L);
     long count, counts = Converter.muldiv(1000, duration, 100);
-    long durationLimit = dataOffset + Converter.muldiv(1000, duration , 1L);
+    long durationLimit = dataOffset + Converter.muldiv(1000, duration, 1L);
     FingerprintCompareResponse fcr;
     FingerprintResponse fr;
 

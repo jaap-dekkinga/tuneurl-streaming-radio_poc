@@ -37,6 +37,7 @@ import com.albon.auth.jwt.JwtTool;
 import com.albon.auth.util.Helper;
 import com.albon.auth.util.LogMessage;
 import com.albon.auth.value.Constant;
+import com.tuneurl.webrtc.util.config.RedisInstance;
 import com.tuneurl.webrtc.util.controller.dto.*;
 import com.tuneurl.webrtc.util.exception.BaseServiceException;
 import com.tuneurl.webrtc.util.model.*;
@@ -146,6 +147,7 @@ public abstract class BaseController {
   private byte[] jwtSalt = null;
 
   protected MessageLogger logger;
+  protected RedisInstance redis;
 
   /**
    * Get Salt.
@@ -166,6 +168,7 @@ public abstract class BaseController {
   /** Default constructor. */
   public BaseController() {
     this.logger = MessageLogger.getMessageLoggerInstance();
+    this.redis = RedisInstance.getInstance();
   }
 
   /**

@@ -32,6 +32,8 @@
 package com.tuneurl.webrtc.util.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -151,6 +153,21 @@ public class EvaluateAudioStreamResponse {
     sb.append("    \"tagCounts\": ").append(getTagCounts()).append(",\n");
     sb.append("    \"liveTags\": ").append('"').append(getLiveTags()).append("\"\n");
     sb.append("}\n");
+    return sb.toString();
+  }
+
+  /**
+   * To String.
+   *
+   * @return String
+   */
+  public String toJSON() {
+    StringBuffer sb = new StringBuffer();
+    sb.append("{");
+    sb.append("\"tuneUrlCounts\": ").append(getTuneUrlCounts()).append(",");
+    sb.append("\"tagCounts\": ").append(getTagCounts()).append(",");
+    sb.append("\"liveTags\": ").append('"').append(getLiveTags()).append("\"");
+    sb.append("}");
     return sb.toString();
   }
 }

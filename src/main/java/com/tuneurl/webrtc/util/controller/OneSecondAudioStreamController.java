@@ -31,6 +31,7 @@
 
 package com.tuneurl.webrtc.util.controller;
 
+import com.tuneurl.webrtc.util.config.RedisInstance;
 import com.tuneurl.webrtc.util.controller.dto.AudioDataEntry;
 import com.tuneurl.webrtc.util.controller.dto.EvaluateAudioStreamEntry;
 import com.tuneurl.webrtc.util.controller.dto.EvaluateAudioStreamResponse;
@@ -115,6 +116,14 @@ public class OneSecondAudioStreamController extends BaseController {
       HttpServletResponse httpResponse) {
     final String signature = "evaluateOneSecondAudioStream";
 
+    EvaluateAudioStreamResponse cachedResult = this.redis.getOneSecondAudioStreamCache(
+            httpRequest.getParameter("offset"),
+            evaluateAudioStreamEntry.getAudioData().getUrl(),
+            evaluateAudioStreamEntry.getDataFingerprint());
+    if (cachedResult != null) {
+      return ResponseEntity.ok().body(cachedResult);
+    }
+
     String sOffset = httpRequest.getParameter("offset");
     Long dataOffset = CommonUtil.parseLong(sOffset, 0L);
     super.saveAnalytics(signature, httpRequest);
@@ -175,6 +184,14 @@ public class OneSecondAudioStreamController extends BaseController {
             fingerprintRate,
             dataFingerprintBuffer,
             dataFingerprintBufferSize);
+
+
+
+    this.redis.setOneSecondAudioStreamCache(
+            httpRequest.getParameter("offset"),
+            evaluateAudioStreamEntry.getAudioData().getUrl(),
+            evaluateAudioStreamEntry.getDataFingerprint(),
+            response);
 
     return ResponseEntity.ok().body(response);
   }

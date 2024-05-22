@@ -15,16 +15,17 @@ import redis.clients.jedis.JedisPoolConfig;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+@Getter
 public class RedisInstance {
 
-  @Getter
   Jedis jedis;
 
   static RedisInstance redisConfig;
 
   public RedisInstance() {
-    JedisPool jedisPool = new JedisPool(new JedisPoolConfig(), "localhost", 6379);
-    jedis = jedisPool.getResource();
+      try (JedisPool jedisPool = new JedisPool(new JedisPoolConfig(), "localhost", 6379)) {
+          jedis = jedisPool.getResource();
+      }
   }
 
   public static RedisInstance getInstance() {
@@ -40,6 +41,10 @@ public class RedisInstance {
   }
 
   public EvaluateAudioStreamResponse getOneSecondAudioStreamCache(String offset, String url, byte[] dataFingerprint) {
+    if (jedis == null) {
+      return null;
+    }
+
     String key = formatKey(offset, url, dataFingerprint);
 
     EvaluateAudioStreamResponse result = null;
@@ -50,29 +55,26 @@ public class RedisInstance {
 
       result = new EvaluateAudioStreamResponse();
       if (!count.equals("0")) {
-        return null;
-        /*
         result.setTuneUrlCounts(1L);
         result.setTagCounts(1L);
 
         try {
           String cached = jedis.get(key+"+liveTags");
 
-          cached = cached.replaceAll("class TuneUrlTag ", "");
           cached = cached.replaceAll("\"", "\\\"");
-          cached = cached.replaceAll("\n", "");
           System.out.println(cached);
 
-          ArrayList tags = new ArrayList<>();
+          ArrayList<TuneUrlTag> tags = new ArrayList<>();
           ObjectMapper mapper = new ObjectMapper();
 
-          tags.add(mapper.readValue(cached, Object.class));
+          TuneUrlTag tag = mapper.readValue(cached, TuneUrlTag.class);
+          tag.setDescription(jedis.get(key+"+liveTagsDescription"));
 
+          tags.add(tag);
           result.setLiveTags(tags);
         } catch (JsonProcessingException e) {
           throw new RuntimeException(e);
         }
-         */
       } else {
         result = new EvaluateAudioStreamResponse();
         result.setTuneUrlCounts(0L);
@@ -85,31 +87,25 @@ public class RedisInstance {
   }
 
   public void setOneSecondAudioStreamCache(String offset, String url, byte[] dataFingerprint, EvaluateAudioStreamResponse audioStreamResponse) {
+    if (jedis == null) {
+      return;
+    }
+
     String key = formatKey(offset, url, dataFingerprint);
 
-    String toCache;
-    if (!audioStreamResponse.getLiveTags().isEmpty()) {
-      toCache = audioStreamResponse.getLiveTags().get(0).toString();
-      jedis.set(key+"+liveTags", toCache);
-    }
     jedis.set(key+"+count", ""+audioStreamResponse.getLiveTags().size());
+    if (!audioStreamResponse.getLiveTags().isEmpty()) {
+      String toCache = audioStreamResponse.getLiveTags().get(0).toJsonWithoutDescription();
+      jedis.set(key+"+liveTags", toCache);
+
+      String description = audioStreamResponse.getLiveTags().get(0).getDescription();
+      jedis.set(key+"+liveTagsDescription", description);
+    }
+
 
     // Expires in 24 hours = 24 * 60 * 60 = 86400
     jedis.expire(key+"+liveTags", 86400);
+    jedis.expire(key+"+liveTagsDescription", 86400);
     jedis.expire(key+"+count", 86400);
   }
-
-  private String bytesToHex(byte[] hash) {
-    StringBuilder hexString = new StringBuilder(2 * hash.length);
-      for (byte b : hash) {
-          String hex = Integer.toHexString(0xff & b);
-          if (hex.length() == 1) {
-              hexString.append('0');
-          }
-          hexString.append(hex);
-      }
-    return hexString.toString();
-  }
-
-
 }

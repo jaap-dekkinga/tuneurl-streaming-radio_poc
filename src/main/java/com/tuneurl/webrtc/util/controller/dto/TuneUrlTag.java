@@ -459,4 +459,25 @@ public class TuneUrlTag {
     sb.append("}\n");
     return sb.toString();
   }
+
+  /**
+   * To String.
+   *
+   * @return String
+   */
+  public String toJsonWithoutDescription() {
+    java.lang.StringBuffer sb = new java.lang.StringBuffer();
+    sb.append("{");
+    sb.append("    \"id\": ").append(getId()).append(",");
+    sb.append("    \"name\": ").append('"').append(getName()).append("\",");
+    sb.append("    \"type\": ").append('"').append(getType()).append("\",");
+    sb.append("    \"info\": ").append('"').append(getInfo()).append("\",");
+    sb.append("    \"matchPercentage\": ").append(getMatchPercentage()).append(",");
+    sb.append("    \"score\": ").append('"').append(getScore()).append("\",");
+    sb.append("    \"similarity\": ").append('"').append(getSimilarity()).append("\",");
+    sb.append("    \"index\": ").append(getIndex()).append(",");
+    sb.append("    \"dataPosition\": ").append(getDataPosition());
+    sb.append("}");
+    return sb.toString();
+  }
 }

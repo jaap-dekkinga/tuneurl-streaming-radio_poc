@@ -31,18 +31,18 @@ public class RedisInstance {
     return redisConfig;
   }
 
-  private String formatKey(String offset, String url, byte[] dataFingerprint) {
+  private String formatKey(String offset, String url, Long dataSize, byte[] dataFingerprint) {
     String sha256hex = org.apache.commons.codec.digest.DigestUtils.sha256Hex(dataFingerprint);
-    return url + "--" + offset + "--" + sha256hex;
+    return url + "--" + dataSize + "--" + offset + "--" + sha256hex;
   }
 
   public EvaluateAudioStreamResponse getOneSecondAudioStreamCache(
-      String offset, String url, byte[] dataFingerprint) {
+      String offset, String url, Long dataSize, byte[] dataFingerprint) {
     if (jedis == null) {
       return null;
     }
 
-    String key = formatKey(offset, url, dataFingerprint);
+    String key = formatKey(offset, url, dataSize, dataFingerprint);
 
     EvaluateAudioStreamResponse result = null;
 
@@ -86,13 +86,14 @@ public class RedisInstance {
   public void setOneSecondAudioStreamCache(
       String offset,
       String url,
+      Long dataSize,
       byte[] dataFingerprint,
       EvaluateAudioStreamResponse audioStreamResponse) {
     if (jedis == null) {
       return;
     }
 
-    String key = formatKey(offset, url, dataFingerprint);
+    String key = formatKey(offset, url, dataSize, dataFingerprint);
 
     jedis.set(key + "+count", "" + audioStreamResponse.getLiveTags().size());
     if (!audioStreamResponse.getLiveTags().isEmpty()) {

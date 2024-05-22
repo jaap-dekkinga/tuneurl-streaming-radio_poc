@@ -74,10 +74,12 @@ public class FingerprintExternals {
     String uniqueName = ProcessHelper.createUniqueFilenameEx(random);
     String outputFilename = String.format("/tmp/%s.data.txt", uniqueName);
     // 3. Make sure it is a unique file name.
+    /*
     if (ProcessHelper.isFileExist(outputFilename)) {
       uniqueName = ProcessHelper.createUniqueFilenameEx(random);
       outputFilename = String.format("/tmp/%s.data.txt", uniqueName);
     }
+     */
     // 4. Create an input file for ./jni/fingerprintexec
     // one size
     // two size
@@ -94,7 +96,6 @@ public class FingerprintExternals {
     if (json == null) {
       return response;
     }
-    ObjectMapper mapper = new ObjectMapper();
 
     CompareStringResult result = null;
     if (json.isEmpty() || json.charAt(0) != '{') {
@@ -102,6 +103,7 @@ public class FingerprintExternals {
     }
     // 8. JSON string should be in CompareStringResult structure
     try {
+      ObjectMapper mapper = new ObjectMapper();
       result = mapper.readValue(json, CompareStringResult.class);
     } catch (Exception ex) {
       logger.logExit(
@@ -143,10 +145,12 @@ public class FingerprintExternals {
     String uniqueName = ProcessHelper.createUniqueFilenameEx(random);
     String outputFilename = String.format("/tmp/%s.data.txt", uniqueName);
     // 3. Make sure it is a unique file name.
+    /*
     if (ProcessHelper.isFileExist(outputFilename)) {
       uniqueName = ProcessHelper.createUniqueFilenameEx(random);
       outputFilename = String.format("/tmp/%s.data.txt", uniqueName);
     }
+     */
     // 4. Create an input file for ./jni/fingerprintexec
     // one size
     // [0, ..., one size-1]
@@ -161,7 +165,6 @@ public class FingerprintExternals {
     if (json == null) {
       return response;
     }
-    ObjectMapper mapper = new ObjectMapper();
 
     FingerprintEntry result = null;
     if (json.isEmpty() || json.charAt(0) != '{') {
@@ -169,6 +172,7 @@ public class FingerprintExternals {
     }
     // 8. JSON string should be in FingerprintEntry structure
     try {
+      ObjectMapper mapper = new ObjectMapper();
       result = mapper.readValue(json, FingerprintEntry.class);
     } catch (Exception ex) {
       logger.logExit(
@@ -243,17 +247,8 @@ public class FingerprintExternals {
   public void writeStringBuffer(final String fileName, final StringBuffer sb) {
     FileOutputStream fib = null;
     File file = null;
-    ProcessHelper.deleteFile(fileName);
     try {
       file = new File(fileName);
-      if (!file.createNewFile()) {
-        throw new IOException();
-      }
-    } catch (Exception ex) {
-      CommonUtil.BadRequestException(ex.getMessage());
-      /*NOTREACH*/
-    }
-    try {
       fib = new FileOutputStream(file);
     } catch (FileNotFoundException ex) {
       closeFileOutputStream(fib);

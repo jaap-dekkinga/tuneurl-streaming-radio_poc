@@ -280,9 +280,6 @@ public class FingerprintUtility {
     sb.append(CRLF);
 
     fingerprintExternals.writeStringBuffer(fileName, sb);
-    if (!ProcessHelper.isFileExist(fileName)) {
-      CommonUtil.InternalServerException("File not created '" + fileName + "'");
-    }
   }
 
   /**

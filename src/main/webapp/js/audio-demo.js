@@ -81,6 +81,7 @@ var triggerAudioFile = null;
 var isJWTloaded = false;
 var userToken = null;
 var triggerFingerprintData = [];
+var triggerFingerprintZipped = {};
 var triggerFingerprintSize = 0;
 var isPlayAgain = false;
 var firstTime = true;
@@ -698,6 +699,20 @@ async function initAudio(audioWaveFile) {
     var end = getLocalTimeInMillis();
     showMethodRunTime("initAudio", start, end)
 }
+
+function zipArray(arrayData) {
+    var zipped = {}
+    for (var i = 0; i < arrayData.length; i++) {
+        const key = ""+arrayData[i];
+        if (zipped[key]) {
+            zipped[key].push(i);
+        } else {
+            zipped[key] = [i];
+        }
+    }
+
+    return zipped;
+}
 async function initTriggerAudio(triggerWaveFile) {
     console.log("initTriggerAudio");
     var start = getLocalTimeInMillis();
@@ -722,11 +737,14 @@ async function initTriggerAudio(triggerWaveFile) {
         },
         body: sData
     });
+
     try {
         const text = await getTextData(resCalculateFingerprint);
         data = parseResponseTextDataAsJSON(text, "{", "Missing fingerprint");
         try {
             triggerFingerprintData = JSON.parse(data.dataEx)
+            // triggerFingerprintZipped = zipArray(triggerFingerprintData);
+            console.log("TRIGGER: ", triggerFingerprintZipped);
         } catch (e) {
             throw Error(e.message)
         }
@@ -925,9 +943,7 @@ async function loadTuneUrl(timeOffset) {
         size: limit
     }));
     var data = new Array(limit);
-    for (index = 0, offset = iStart; index < limit && offset < iEnd; index++, offset++) {
-        data[index] = audioData.Data[offset]
-    }
+    data = audioData.Data.slice(iStart, iEnd);
     var audioDataEx = {
         Url: audioData.Url,
         Data: data,
@@ -1027,7 +1043,7 @@ async function saveAudio() {
             enablePlayButtonAfterTwoSeconds(true)
             await loadTuneUrl(QUEUEING_NEXT_DURATION);
             convertFileTimerPosition = QUEUEING_NEXT_DURATION;
-            convertFileTimer = setInterval(convertFile, QUEUEING_TIMER_RUNTIME);
+            convertFileTimer = setInterval(convertFile, 2000);
             convertFile()
         }
     }

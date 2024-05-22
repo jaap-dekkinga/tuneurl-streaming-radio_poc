@@ -1,19 +1,15 @@
 package com.tuneurl.webrtc.util.config;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tuneurl.webrtc.util.controller.dto.AudioDataEntry;
 import com.tuneurl.webrtc.util.controller.dto.EvaluateAudioStreamResponse;
-import com.tuneurl.webrtc.util.controller.dto.FingerprintEntry;
 import com.tuneurl.webrtc.util.controller.dto.TuneUrlTag;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import lombok.Getter;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
 
 @Getter
 public class RedisInstance {
@@ -23,9 +19,9 @@ public class RedisInstance {
   static RedisInstance redisConfig;
 
   public RedisInstance() {
-      try (JedisPool jedisPool = new JedisPool(new JedisPoolConfig(), "localhost", 6379)) {
-          jedis = jedisPool.getResource();
-      }
+    try (JedisPool jedisPool = new JedisPool(new JedisPoolConfig(), "localhost", 6379)) {
+      jedis = jedisPool.getResource();
+    }
   }
 
   public static RedisInstance getInstance() {
@@ -40,7 +36,8 @@ public class RedisInstance {
     return url + "--" + offset + "--" + sha256hex;
   }
 
-  public EvaluateAudioStreamResponse getOneSecondAudioStreamCache(String offset, String url, byte[] dataFingerprint) {
+  public EvaluateAudioStreamResponse getOneSecondAudioStreamCache(
+      String offset, String url, byte[] dataFingerprint) {
     if (jedis == null) {
       return null;
     }
@@ -49,9 +46,9 @@ public class RedisInstance {
 
     EvaluateAudioStreamResponse result = null;
 
-    boolean exists = jedis.exists(key+"+count");
+    boolean exists = jedis.exists(key + "+count");
     if (exists) {
-      String count = jedis.get(key+"+count");
+      String count = jedis.get(key + "+count");
 
       result = new EvaluateAudioStreamResponse();
       if (!count.equals("0")) {
@@ -59,7 +56,7 @@ public class RedisInstance {
         result.setTagCounts(1L);
 
         try {
-          String cached = jedis.get(key+"+liveTags");
+          String cached = jedis.get(key + "+liveTags");
 
           cached = cached.replaceAll("\"", "\\\"");
           System.out.println(cached);
@@ -68,7 +65,7 @@ public class RedisInstance {
           ObjectMapper mapper = new ObjectMapper();
 
           TuneUrlTag tag = mapper.readValue(cached, TuneUrlTag.class);
-          tag.setDescription(jedis.get(key+"+liveTagsDescription"));
+          tag.setDescription(jedis.get(key + "+liveTagsDescription"));
 
           tags.add(tag);
           result.setLiveTags(tags);
@@ -86,26 +83,29 @@ public class RedisInstance {
     return result;
   }
 
-  public void setOneSecondAudioStreamCache(String offset, String url, byte[] dataFingerprint, EvaluateAudioStreamResponse audioStreamResponse) {
+  public void setOneSecondAudioStreamCache(
+      String offset,
+      String url,
+      byte[] dataFingerprint,
+      EvaluateAudioStreamResponse audioStreamResponse) {
     if (jedis == null) {
       return;
     }
 
     String key = formatKey(offset, url, dataFingerprint);
 
-    jedis.set(key+"+count", ""+audioStreamResponse.getLiveTags().size());
+    jedis.set(key + "+count", "" + audioStreamResponse.getLiveTags().size());
     if (!audioStreamResponse.getLiveTags().isEmpty()) {
       String toCache = audioStreamResponse.getLiveTags().get(0).toJsonWithoutDescription();
-      jedis.set(key+"+liveTags", toCache);
+      jedis.set(key + "+liveTags", toCache);
 
       String description = audioStreamResponse.getLiveTags().get(0).getDescription();
-      jedis.set(key+"+liveTagsDescription", description);
+      jedis.set(key + "+liveTagsDescription", description);
     }
 
-
     // Expires in 24 hours = 24 * 60 * 60 = 86400
-    jedis.expire(key+"+liveTags", 86400);
-    jedis.expire(key+"+liveTagsDescription", 86400);
-    jedis.expire(key+"+count", 86400);
+    jedis.expire(key + "+liveTags", 86400);
+    jedis.expire(key + "+liveTagsDescription", 86400);
+    jedis.expire(key + "+count", 86400);
   }
 }

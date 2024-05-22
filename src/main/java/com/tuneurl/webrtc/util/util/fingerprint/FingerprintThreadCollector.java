@@ -13,11 +13,7 @@ import lombok.Setter;
 
 public class FingerprintThreadCollector extends FingerprintUtility implements Runnable {
 
-  private final MessageLogger logger;
-
-  public FingerprintThreadCollector() {
-    this.logger = MessageLogger.getMessageLoggerInstance();
-  }
+  public FingerprintThreadCollector() {}
 
   @Getter @Setter private FingerprintCollection fingerprintCollectionResult;
 
@@ -37,8 +33,6 @@ public class FingerprintThreadCollector extends FingerprintUtility implements Ru
       final Long fingerprintRate,
       StringBuffer dataFingerprintBuffer,
       int dataFingerprintBufferSize) {
-    this.logger = MessageLogger.getMessageLoggerInstance();
-
     this.rootDir = rootDir;
     this.data = data;
     this.elapse = elapse;
@@ -103,19 +97,6 @@ public class FingerprintThreadCollector extends FingerprintUtility implements Ru
       if (fcr != null) {
         selection.add(fcr);
         frSelection.add(fr);
-        /*
-        if (isDebugOn) {
-          this.logger.logEntry(
-              signature,
-              new Object[] {
-                "pos=", fcr.getOffset(),
-                "score=", fcr.getScore(),
-                "similarity=", fcr.getSimilarity(),
-                "Frame=", fcr.getMostSimilarFramePosition(),
-                "StartTime=", fcr.getMostSimilarStartTime()
-              });
-        }
-         */
       }
     }
     FingerprintCollection result = new FingerprintCollection();

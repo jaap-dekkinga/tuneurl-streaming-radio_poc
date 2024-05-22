@@ -204,6 +204,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
           tag = tagsHelper.newTag(false, 0L, audioFr, fcr);
           liveTags.add(tag);
 
+          /*
           if (isDebugOn) {
             saveFingerprintsDebug(
                 evaluateAudioStreamEntry,
@@ -214,6 +215,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
                 rootDebugDir,
                 debugUniqueName);
           } // if (isDebugOn)
+           */
         } // if (fcr != null)
       } // if (selection.size() == 5)
     } // for (...)

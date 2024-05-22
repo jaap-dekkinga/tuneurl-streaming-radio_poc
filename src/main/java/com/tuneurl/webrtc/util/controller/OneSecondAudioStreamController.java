@@ -163,7 +163,7 @@ public class OneSecondAudioStreamController extends BaseController {
 
     final String fileName = Converter.validateUrlOrGencrc32(url);
     ProcessHelper.checkNullOrEmptyString(fileName, "AudioDataEntry.Url");
-    if (duration < 6L || duration > 17L) {
+    if (duration < 2L || duration > 17L) {
       CommonUtil.BadRequestException("Duration must be 6 to 17 seconds only");
     }
 

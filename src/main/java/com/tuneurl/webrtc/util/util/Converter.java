@@ -36,6 +36,7 @@ import com.tuneurl.webrtc.util.exception.BaseServiceException;
 import com.tuneurl.webrtc.util.model.AudioStreamTrainingChannel;
 import com.tuneurl.webrtc.util.value.Constants;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -90,40 +91,6 @@ public final class Converter {
   }
 
   /**
-   * Helper method to convert List&lt;Byte> to byte[].
-   *
-   * @param data List&lt;Byte>
-   * @return array of byte
-   */
-  public static byte[] convertListByte(List<Byte> data) {
-    byte[] datus = new byte[data.size()];
-
-    int index = 0;
-    for (Byte item : data) {
-      datus[index] = item;
-      index++;
-    }
-    return datus;
-  }
-
-  /**
-   * Helper method to convert List&lt;Short> to short[].
-   *
-   * @param data List&lt;Short>
-   * @return array of short
-   */
-  public static short[] convertListShort(List<Short> data) {
-    short[] datus = new short[data.size()];
-
-    int index = 0;
-    for (short item : data) {
-      datus[index] = item;
-      index++;
-    }
-    return datus;
-  }
-
-  /**
    * Helper method to convert List&lt;Byte> to byte[] starting at offset with size.
    *
    * @param data List&lt;Byte>
@@ -153,16 +120,7 @@ public final class Converter {
    * @return array of byte or null
    */
   public static short[] convertListShortEx(final short[] data, int pOffset, int size) {
-    int dsize = data.length - pOffset;
-    if (dsize < size) return null;
-    int index, offset;
-    short[] datus = new short[size];
-    for (index = 0, offset = pOffset, dsize = pOffset + size;
-        index < size && offset < dsize;
-        offset++, index++) {
-      datus[index] = data[offset];
-    }
-    return datus;
+    return Arrays.copyOfRange(data, pOffset, pOffset + size);
   }
 
   /**

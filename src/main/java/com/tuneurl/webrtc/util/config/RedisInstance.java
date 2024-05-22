@@ -33,7 +33,7 @@ public class RedisInstance {
 
   private String formatKey(String offset, String url, Long dataSize, byte[] dataFingerprint) {
     String sha256hex = org.apache.commons.codec.digest.DigestUtils.sha256Hex(dataFingerprint);
-    return url + "--" + dataSize + "--" + offset + "--" + sha256hex;
+    return url + "--" + dataSize.toString() + "--" + offset + "--" + sha256hex;
   }
 
   public EvaluateAudioStreamResponse getOneSecondAudioStreamCache(

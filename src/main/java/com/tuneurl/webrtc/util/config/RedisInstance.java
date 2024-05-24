@@ -3,6 +3,7 @@ package com.tuneurl.webrtc.util.config;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tuneurl.webrtc.util.controller.dto.EvaluateAudioStreamResponse;
+import com.tuneurl.webrtc.util.controller.dto.FingerprintResponse;
 import com.tuneurl.webrtc.util.controller.dto.TuneUrlTag;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -19,8 +20,11 @@ public class RedisInstance {
   static RedisInstance redisConfig;
 
   public RedisInstance() {
-    try (JedisPool jedisPool = new JedisPool(new JedisPoolConfig(), "localhost", 6379)) {
+    try {
+      JedisPool jedisPool = new JedisPool(new JedisPoolConfig(), "localhost", 6379);
       jedis = jedisPool.getResource();
+    } catch (Exception e) {
+      jedis = null;
     }
   }
 
@@ -108,5 +112,34 @@ public class RedisInstance {
     jedis.expire(key + "+liveTags", 86400);
     jedis.expire(key + "+liveTagsDescription", 86400);
     jedis.expire(key + "+count", 86400);
+  }
+
+  public FingerprintResponse getFingerprintCache(String url) {
+    if (jedis == null) {
+      return null;
+    }
+
+    FingerprintResponse result = null;
+    String cached = jedis.get("fingerprint--" + url);
+    if (cached != null) {
+      try {
+        cached = cached.replaceAll("\"", "\\\"");
+        System.out.println(cached);
+
+        ObjectMapper mapper = new ObjectMapper();
+        result = mapper.readValue(cached, FingerprintResponse.class);
+      } catch (JsonProcessingException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    return result;
+  }
+
+  public void setFingerprintCache(String url, FingerprintResponse fingerprintResponse) {
+    if (jedis == null) {
+      return;
+    }
+    jedis.set("fingerprint--" + url, fingerprintResponse.toJson());
   }
 }

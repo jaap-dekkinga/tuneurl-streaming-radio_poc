@@ -34,99 +34,78 @@ package com.tuneurl.webrtc.util.controller.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Class FingerprintResponse DTO to hold Fingerprint response.
+ * Class AudioDataEntry DTO to hold AudioDataEntry.
  *
  * <p><strong>Thread Safety: </strong>This class is mutable and not thread safe.
  *
  * @author albonteddy@gmail.com
  * @version 1.0
  */
-public class FingerprintResponse {
+public class AudioURLEntry {
 
   /**
-   * The size.
+   * The Audio Stream URL.
    *
    * <p>It can be any value.
    *
    * <p>It has both getter and setter.
    *
-   * <p>It is used in setSize(), getSize().
+   * <p>It is used in setUrl(), getUrl().
    */
-  @JsonProperty("size")
-  private Long size;
+  @JsonProperty("audioUrl")
+  private String url;
 
   /**
-   * The data.
+   * The Fingerprint rate.
    *
    * <p>It can be any value.
    *
    * <p>It has both getter and setter.
    *
-   * <p>It is used in setData(), getData().
+   * <p>It is used in setFingerprintRate(), getFingerprintRate().
    */
-  @JsonProperty("dataEx")
-  private String dataEx;
+  @JsonProperty("fingerprintRate")
+  private Long fingerprintRate;
 
-  @JsonProperty("data")
-  private byte[] data;
-
-  /** Default constructor for FingerprintResponse class. */
-  public FingerprintResponse() {
+  /** Default constructor for AudioDataEntry class. */
+  public AudioURLEntry() {
     // does nothing.
   }
 
   /**
-   * Retrieves the size.
+   * Retrieves the Audio Stream URL.
    *
-   * @return the size
+   * @return the Audio Stream URL
    */
-  public Long getSize() {
-    return size;
+  public String getUrl() {
+    return url;
   }
 
   /**
-   * Sets the size.
+   * Sets the Audio Stream URL.
    *
-   * @param size the size to set
+   * @param url the Audio Stream URL to set
    */
-  public void setSize(Long size) {
-    this.size = size;
+  public void setUrl(String url) {
+    this.url = url;
   }
 
   /**
-   * Retrieves the data.
+   * Retrieves the Fingerprint rate.
    *
-   * @return the data
+   * @return the Fingerprint rate
    */
-  public String getDataEx() {
-    return dataEx;
+  public Long getFingerprintRate() {
+    return fingerprintRate;
   }
 
   /**
-   * Sets the data.
+   * Sets the Fingerprint rate.
    *
-   * @param dataEx the data to set
+   * @param fingerprintRate the Fingerprint rate to set
    */
-  public void setDataEx(String dataEx) {
-    this.dataEx = dataEx;
-  }
-
-  /**
-   * Sets the data.
-   *
-   * @param data the data to set
-   */
-  public void setData(byte[] data) {
-    this.data = data;
-  }
-
-  /**
-   * Retrieves the data.
-   *
-   * @return the data
-   */
-  public byte[] getData() {
-    return data;
+  public void setFingerprintRate(Long fingerprintRate) {
+    this.fingerprintRate = fingerprintRate;
   }
 
   /**
@@ -135,25 +114,11 @@ public class FingerprintResponse {
    * @return String
    */
   public String toString() {
-    java.lang.StringBuffer sb = new java.lang.StringBuffer();
-    sb.append("class FingerprintResponse {\n");
-    sb.append("    \"size\": ").append(getSize()).append(",\n");
-    sb.append("    \"data\": ").append('"').append(getData()).append("\"\n");
+    StringBuffer sb = new StringBuffer();
+    sb.append("class AudioDataEntry {\n");
+    sb.append("    \"Url\": ").append('"').append(getUrl()).append("\",\n");
+    sb.append("    \"fingerprintRate\": ").append(getFingerprintRate()).append("\n");
     sb.append("}\n");
-    return sb.toString();
-  }
-
-  /**
-   * To String.
-   *
-   * @return String
-   */
-  public String toJson() {
-    java.lang.StringBuffer sb = new java.lang.StringBuffer();
-    sb.append("{");
-    sb.append("\"size\": ").append(getSize()).append(",");
-    sb.append("\"dataEx\": ").append('"').append(getDataEx()).append("\"");
-    sb.append("}");
     return sb.toString();
   }
 }

@@ -591,6 +591,11 @@ public class AudioStreamController extends BaseController {
       @Valid @RequestBody AudioDataEntry audioDataEntry,
       HttpServletRequest httpRequest,
       HttpServletResponse httpResponse) {
+    FingerprintResponse cachedResponse = redis.getFingerprintCache(audioDataEntry.getUrl());
+    if (cachedResponse != null) {
+      return ResponseEntity.ok().body(cachedResponse);
+    }
+
     final String signature = "Controller:calculateFingerprint";
     super.saveAnalytics(signature, httpRequest);
     // The Audio Stream URL.
@@ -626,12 +631,14 @@ public class AudioStreamController extends BaseController {
     Converter.validateDuration(duration);
     final String fileName = Converter.validateUrlOrGencrc32(url);
     ProcessHelper.checkNullOrEmptyString(fileName, "AudioDataEntry.Url");
-    // FingerprintResponse response = ExternalCppModules.calculateFingerprint(logger, data,
-    // data.length);
+
     Random random = new Random();
     random.setSeed(new Date().getTime());
     FingerprintResponse response =
         fingerprintExternals.runExternalFingerprinting(random, rootDir, data, data.length);
+
+    redis.setFingerprintCache(audioDataEntry.getUrl(), response);
+
     return ResponseEntity.ok().body(response);
   }
 

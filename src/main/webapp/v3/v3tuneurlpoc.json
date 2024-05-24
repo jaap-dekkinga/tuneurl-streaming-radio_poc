@@ -15,7 +15,7 @@
   },
   "servers": [
     {
-      "url": "https://ec2-18-117-196-219.us-east-2.compute.amazonaws.com",
+      "url": "https://streaming.tuneurl-demo.com",
       "description": "Stream Radio POC - Java TuneUrl API server URI"
     }
   ],

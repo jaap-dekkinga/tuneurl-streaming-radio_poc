@@ -108,9 +108,9 @@ public class RedisInstance {
     }
 
     // Expires in 10 days = 10 * 24 * 60 * 60 = 864000
-    jedis.expire(key + "+liveTags", 864000);
-    jedis.expire(key + "+liveTagsDescription", 864000);
-    jedis.expire(key + "+count", 864000);
+    jedis.expire(key + "+liveTags", 86400000);
+    jedis.expire(key + "+liveTagsDescription", 8640000);
+    jedis.expire(key + "+count", 8640000);
   }
 
   public FingerprintResponse getFingerprintCache(String url) {

@@ -35,18 +35,18 @@ public class RedisInstance {
     return redisConfig;
   }
 
-  private String formatKey(String offset, String url, Long dataSize, byte[] dataFingerprint) {
+  private String formatKey(String offset, String url, byte[] dataFingerprint) {
     String sha256hex = org.apache.commons.codec.digest.DigestUtils.sha256Hex(dataFingerprint);
-    return url + "--" + dataSize.toString() + "--" + offset + "--" + sha256hex;
+    return url + "--" + offset + "--" + sha256hex;
   }
 
   public EvaluateAudioStreamResponse getOneSecondAudioStreamCache(
-      String offset, String url, Long dataSize, byte[] dataFingerprint) {
+      String offset, String url, byte[] dataFingerprint) {
     if (jedis == null) {
       return null;
     }
 
-    String key = formatKey(offset, url, dataSize, dataFingerprint);
+    String key = formatKey(offset, url, dataFingerprint);
 
     EvaluateAudioStreamResponse result = null;
 
@@ -90,14 +90,13 @@ public class RedisInstance {
   public void setOneSecondAudioStreamCache(
       String offset,
       String url,
-      Long dataSize,
       byte[] dataFingerprint,
       EvaluateAudioStreamResponse audioStreamResponse) {
     if (jedis == null) {
       return;
     }
 
-    String key = formatKey(offset, url, dataSize, dataFingerprint);
+    String key = formatKey(offset, url, dataFingerprint);
 
     jedis.set(key + "+count", "" + audioStreamResponse.getLiveTags().size());
     if (!audioStreamResponse.getLiveTags().isEmpty()) {
@@ -108,10 +107,10 @@ public class RedisInstance {
       jedis.set(key + "+liveTagsDescription", description);
     }
 
-    // Expires in 24 hours = 24 * 60 * 60 = 86400
-    jedis.expire(key + "+liveTags", 86400);
-    jedis.expire(key + "+liveTagsDescription", 86400);
-    jedis.expire(key + "+count", 86400);
+    // Expires in 10 days = 10 * 24 * 60 * 60 = 864000
+    jedis.expire(key + "+liveTags", 864000);
+    jedis.expire(key + "+liveTagsDescription", 864000);
+    jedis.expire(key + "+count", 864000);
   }
 
   public FingerprintResponse getFingerprintCache(String url) {

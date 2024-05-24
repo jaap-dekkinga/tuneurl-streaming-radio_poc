@@ -119,7 +119,6 @@ public class OneSecondAudioStreamController extends BaseController {
         this.redis.getOneSecondAudioStreamCache(
             httpRequest.getParameter("offset"),
             evaluateAudioStreamEntry.getAudioData().getUrl(),
-            evaluateAudioStreamEntry.getAudioData().getSize(),
             evaluateAudioStreamEntry.getDataFingerprint());
     if (cachedResult != null) {
       return ResponseEntity.ok().body(cachedResult);
@@ -189,7 +188,6 @@ public class OneSecondAudioStreamController extends BaseController {
     this.redis.setOneSecondAudioStreamCache(
         httpRequest.getParameter("offset"),
         evaluateAudioStreamEntry.getAudioData().getUrl(),
-        evaluateAudioStreamEntry.getAudioData().getSize(),
         evaluateAudioStreamEntry.getDataFingerprint(),
         response);
 

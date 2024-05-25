@@ -34,10 +34,8 @@ package com.tuneurl.webrtc.util.controller;
 import com.albon.auth.dto.UserEntry;
 import com.albon.auth.jwt.JwtTool;
 import com.albon.auth.util.Helper;
-import com.tuneurl.webrtc.util.controller.dto.*;
 import com.tuneurl.webrtc.util.controller.dto.Error;
 import com.tuneurl.webrtc.util.model.*;
-import com.tuneurl.webrtc.util.util.MessageLogger;
 import com.tuneurl.webrtc.util.value.Constants;
 import java.util.HashMap;
 import java.util.Map;
@@ -135,7 +133,6 @@ public class SwaggerController extends BaseController {
       HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
     SdkUser sdk = userService.getSdkUserByName("user@example.com");
     UserEntry userEntry = super.convertSdkUser(sdk);
-    MessageLogger logger = super.getMessageLogger();
     JwtTool jwtTool = super.setupJwtTool(Constants.LOGIN_AUTHORIZATION_BEARER);
     String token = jwtTool.generateToken(logger, userEntry);
     Map<String, Object> maps = new HashMap<String, Object>();
@@ -160,7 +157,7 @@ public class SwaggerController extends BaseController {
   public ModelAndView handleAnyError(HttpServletRequest httpRequest) {
     String path = httpRequest.getRequestURI();
     if (Helper.isStringNullOrEmpty(path)) path = "/";
-    if (path.indexOf("/v1") < 0 && path.indexOf("/dev") < 0) {
+    if (!path.contains("/v1") && !path.contains("/dev")) {
       return super.getModelViewErrorPage("404", path, "error-404");
     }
     return super.getModelViewErrorPage("500", path, "error-500");

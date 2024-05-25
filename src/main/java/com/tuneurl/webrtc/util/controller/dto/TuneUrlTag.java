@@ -409,6 +409,35 @@ public class TuneUrlTag {
     this.mostSimilarStartTime = mostSimilarStartTime;
   }
 
+  public void setFingerprintCompareResponseData(
+      FingerprintCompareResponse fcr, boolean shouldSetOffset) {
+    if (shouldSetOffset) {
+      this.setDataPosition(fcr.getOffset());
+    }
+    this.setScore(fcr.getScore());
+    this.setSimilarity(fcr.getSimilarity());
+    this.setMostSimilarFramePosition(fcr.getMostSimilarFramePosition());
+    this.setMostSimilarStartTime(fcr.getMostSimilarStartTime());
+  }
+
+  public void setTuneUrlEntryData(TuneUrlEntry entry) {
+    this.setId(entry.getId());
+    this.setName(entry.getName());
+    this.setDescription(entry.getDescription());
+    this.setType(entry.getType());
+    this.setInfo(entry.getInfo());
+    this.setMatchPercentage(entry.getMatchPercentage());
+  }
+
+  public void setTuneUrlEmptyEntryData(String payload) {
+    this.setId(0L);
+    this.setName("");
+    this.setDescription(payload);
+    this.setType("open_page");
+    this.setInfo("");
+    this.setMatchPercentage(1);
+  }
+
   /**
    * To String.
    *
@@ -428,6 +457,27 @@ public class TuneUrlTag {
     sb.append("    \"index\": ").append(getIndex()).append(",\n");
     sb.append("    \"dataPosition\": ").append(getDataPosition()).append("\n");
     sb.append("}\n");
+    return sb.toString();
+  }
+
+  /**
+   * To String.
+   *
+   * @return String
+   */
+  public String toJsonWithoutDescription() {
+    java.lang.StringBuffer sb = new java.lang.StringBuffer();
+    sb.append("{");
+    sb.append("    \"id\": ").append(getId()).append(",");
+    sb.append("    \"name\": ").append('"').append(getName()).append("\",");
+    sb.append("    \"type\": ").append('"').append(getType()).append("\",");
+    sb.append("    \"info\": ").append('"').append(getInfo()).append("\",");
+    sb.append("    \"matchPercentage\": ").append(getMatchPercentage()).append(",");
+    sb.append("    \"score\": ").append('"').append(getScore()).append("\",");
+    sb.append("    \"similarity\": ").append('"').append(getSimilarity()).append("\",");
+    sb.append("    \"index\": ").append(getIndex()).append(",");
+    sb.append("    \"dataPosition\": ").append(getDataPosition());
+    sb.append("}");
     return sb.toString();
   }
 }

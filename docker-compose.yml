@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    environment:
+      DATABASE_ENDPOINT: "172.17.0.1:3306"
+    networks:
+      - loopback
+    ports:
+      - 7000:8281
+    restart: on-failure
+    volumes:
+      - ./tuneurl/.m2:/root/.m2
+    stdin_open: true
+    tty: true
+
+
+networks:
+  loopback:
+    driver: bridge

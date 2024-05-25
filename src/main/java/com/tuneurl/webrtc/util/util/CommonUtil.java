@@ -136,7 +136,7 @@ public final class CommonUtil {
   public static void checkNullOrEmptyParameter(final String param, final String name)
       throws BaseServiceException {
     checkNullParameter(param, name);
-    if (0 == param.trim().length()) {
+    if (param.trim().isEmpty()) {
       throw new BaseServiceException("'" + name + "' cannot be empty.", HttpStatus.BAD_REQUEST);
     }
   }
@@ -225,7 +225,6 @@ public final class CommonUtil {
    *
    * @param date java.util.Date
    * @return LocalDateTime
-   * @see {@link com.albon.auth.util.Helper#asLocalDateTime(java.time.LocalDateTime)}.
    */
   public static LocalDateTime asLocalDateTime(java.util.Date date) {
     return Helper.asLocalDateTime(date);
@@ -335,7 +334,7 @@ public final class CommonUtil {
       // NOTREACH
     } else {
       data = value.trim();
-      if (data.length() == 0) {
+      if (data.isEmpty()) {
         CommonUtil.BadRequestException("The '" + name + "' cannot be empty.");
         // NOTREACH
       } else if (data.length() > size) {
@@ -501,7 +500,6 @@ public final class CommonUtil {
    *
    * @param email String
    * @return BaseServiceException
-   * @see {@link com.tuneurl.webrtc.util.service.impl.SdkUserServiceImpl#find(java.lang.String)}.
    */
   public static BaseServiceException generateSdkUserNotFound(final String email) {
     return new BaseServiceException("Email '" + email + "' not found.", HttpStatus.NOT_FOUND);
@@ -512,7 +510,6 @@ public final class CommonUtil {
    *
    * @param id long
    * @return BaseServiceException
-   * @see {@link com.tuneurl.webrtc.util.service.impl.SdkUserServiceImpl#find(java.lang.long)}.
    */
   public static BaseServiceException generateSdkUserNotFound(final long id) {
     return new BaseServiceException("User ID '" + id + "' not found.", HttpStatus.NOT_FOUND);
@@ -535,8 +532,6 @@ public final class CommonUtil {
    *
    * @param ipaddr String
    * @return BaseServiceException
-   * @see {@link
-   *     com.tuneurl.webrtc.util.service.impl.SessionDataServiceImpl#find(java.lang.String)}.
    */
   public static BaseServiceException generateSessionDataNotFound(final String ipaddr) {
     return new BaseServiceException("IP Address '" + ipaddr + "' not found.", HttpStatus.NOT_FOUND);
@@ -547,7 +542,6 @@ public final class CommonUtil {
    *
    * @param ldap long
    * @return BaseServiceException
-   * @see {@link com.tuneurl.webrtc.util.service.impl.SessionDataServiceImpl#find(java.lang.long)}.
    */
   public static BaseServiceException generateSessionDataNotFound(final long ldap) {
     return new BaseServiceException("LDAP ID '" + ldap + "' not found.", HttpStatus.NOT_FOUND);
@@ -558,7 +552,6 @@ public final class CommonUtil {
    *
    * @param uuid String
    * @return BaseServiceException
-   * @see {@link com.tuneurl.webrtc.util.service.impl.LdapInfoServiceImpl#find(java.lang.String)}.
    */
   public static BaseServiceException generateLdapInfoNotFound(final String uuid) {
     return new BaseServiceException("LDAP UUID '" + uuid + "' not found.", HttpStatus.NOT_FOUND);
@@ -569,7 +562,6 @@ public final class CommonUtil {
    *
    * @param id long
    * @return BaseServiceException
-   * @see {@link com.tuneurl.webrtc.util.service.impl.LdapInfoServiceImpl#find(java.lang.long)}.
    */
   public static BaseServiceException generateLdapInfoNotFound(final long id) {
     return new BaseServiceException("LDAP ID '" + id + "' not found.", HttpStatus.NOT_FOUND);
@@ -580,8 +572,6 @@ public final class CommonUtil {
    *
    * @param uuid String Customer access UUID
    * @return BaseServiceException
-   * @see {@link
-   *     com.tuneurl.webrtc.util.service.impl.CustomerAccessDatabaseServiceImpl#find(java.lang.String)}.
    */
   public static BaseServiceException generateCustomerAccessDatabaseNotFound(final String uuid) {
     return new BaseServiceException(
@@ -593,8 +583,6 @@ public final class CommonUtil {
    *
    * @param tuneUrlID long TuneURL ID
    * @return BaseServiceException
-   * @see {@link
-   *     com.tuneurl.webrtc.util.service.impl.CustomerAccessDatabaseServiceImpl#find(java.lang.long)}.
    */
   public static BaseServiceException generateCustomerAccessDatabaseNotFound(final long tuneUrlID) {
     return new BaseServiceException(
@@ -606,8 +594,6 @@ public final class CommonUtil {
    *
    * @param type String TuneURL type
    * @return BaseServiceException
-   * @see {@link
-   *     com.tuneurl.webrtc.util.service.impl.RecordsTypeDatabaseServiceImpl#find(java.lang.String)}.
    */
   public static BaseServiceException generateRecordsTypeDatabaseNotFound(final String type) {
     return new BaseServiceException("TuneURL type '" + type + "' not found.", HttpStatus.NOT_FOUND);
@@ -618,8 +604,6 @@ public final class CommonUtil {
    *
    * @param typeID long Type ID
    * @return BaseServiceException
-   * @see {@link
-   *     com.tuneurl.webrtc.util.service.impl.RecordsTypeDatabaseServiceImpl#find(java.lang.long)}.
    */
   public static BaseServiceException generateRecordsTypeDatabaseNotFound(final long typeID) {
     return new BaseServiceException("Type ID '" + typeID + "' not found.", HttpStatus.NOT_FOUND);
@@ -630,8 +614,6 @@ public final class CommonUtil {
    *
    * @param userId String TuneURL type
    * @return BaseServiceException
-   * @see {@link
-   *     com.tuneurl.webrtc.util.service.impl.InterestsDatabaseServiceImpl#find(java.lang.String)}.
    */
   public static BaseServiceException generateInterestsDatabaseNotFound(final String userId) {
     return new BaseServiceException("UserID '" + userId + "' not found.", HttpStatus.NOT_FOUND);
@@ -642,8 +624,6 @@ public final class CommonUtil {
    *
    * @param tuneUrlID long Type ID
    * @return BaseServiceException
-   * @see {@link
-   *     com.tuneurl.webrtc.util.service.impl.InterestsDatabaseServiceImpl#find(java.lang.long)}.
    */
   public static BaseServiceException generateInterestsDatabaseNotFound(final long tuneUrlID) {
     return new BaseServiceException(
@@ -656,9 +636,6 @@ public final class CommonUtil {
    * @param userID String UserID
    * @param tuneUrlID long TuneURL ID
    * @return BaseServiceException
-   * @see {@link
-   *     com.tuneurl.webrtc.util.service.impl.InterestsDatabaseServiceImpl#findByUserIDByTuneUrlID(
-   *     com.tuneurl.webrtc.util.model.SdkUser, java.lang.String, java.lang.long)}.
    */
   public static BaseServiceException generatefindByUserIDByTuneUrlIDNotFound(
       final String userID, final Long tuneUrlID) {
@@ -672,8 +649,6 @@ public final class CommonUtil {
    *
    * @param conversionId long Conversion ID
    * @return BaseServiceException
-   * @see {@link
-   *     com.tuneurl.webrtc.util.service.impl.AudioStreamDatabaseServiceImpl#find(java.lang.long)}
    */
   public static BaseServiceException generateAudioStreamDatabaseNotFound(final long conversionId) {
     return new BaseServiceException(
@@ -685,8 +660,6 @@ public final class CommonUtil {
    *
    * @param fileName String File name
    * @return BaseServiceException
-   * @see {@link
-   *     com.tuneurl.webrtc.util.service.impl.AudioStreamDatabaseServiceImpl#find(java.lang.String)}
    */
   public static BaseServiceException generateAudioStreamDatabaseNotFound(final String fileName) {
     return new BaseServiceException(
@@ -698,8 +671,6 @@ public final class CommonUtil {
    *
    * @param asId long Audio Stream ID
    * @return BaseServiceException
-   * @see {@link
-   *     com.tuneurl.webrtc.util.service.impl.AudioStreamTrainingChannelServiceImpl#find(java.lang.long)}
    */
   public static BaseServiceException generateAudioStreamTrainingChannelNotFound(final long asId) {
     return new BaseServiceException(
@@ -711,8 +682,6 @@ public final class CommonUtil {
    *
    * @param fileName String File name
    * @return BaseServiceException
-   * @see {@link
-   *     com.tuneurl.webrtc.util.service.impl.AudioStreamTrainingChannelServiceImpl#find(java.lang.String)}
    */
   public static BaseServiceException generateAudioStreamTrainingChannelNotFound(
       final String fileName) {
@@ -725,8 +694,6 @@ public final class CommonUtil {
    *
    * @param channel long Channel ID
    * @return BaseServiceException
-   * @see {@link
-   *     com.tuneurl.webrtc.util.service.impl.AudioStreamTrainingChannelServiceImpl#findChannelById(java.lang.long)}
    */
   public static BaseServiceException generateAudioStreamTrainingChannelChannelNotFound(
       final long channel) {

@@ -34,11 +34,7 @@ package com.tuneurl.webrtc.util.util;
 import com.albon.auth.util.Helper;
 import com.tuneurl.webrtc.util.exception.BaseServiceException;
 import com.tuneurl.webrtc.util.value.Constants;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Date;
@@ -90,8 +86,8 @@ public final class ProcessHelper {
    *
    * @param param Object to check
    * @param name String the name of the object
-   * @throws
-   *     BaseServiceExceptioneclipse-javadoc:%E2%98%82=webrtc.util/%5C/opt%5C/java%5C/jdk1.8.0_231%5C/jre%5C/lib%5C/rt.jar=/javadoc_location=/https:%5C/%5C/docs.oracle.com%5C/javase%5C/8%5C/docs%5C/api%5C/=/=/maven.pomderived=/true=/%3Cjava.lang(Double.class%E2%98%83Double~parseDouble~Ljava.lang.String;%E2%98%82NumberFormatException
+   * @throws BaseServiceException
+   *     eclipse-javadoc:%E2%98%82=webrtc.util/%5C/opt%5C/java%5C/jdk1.8.0_231%5C/jre%5C/lib%5C/rt.jar=/javadoc_location=/https:%5C/%5C/docs.oracle.com%5C/javase%5C/8%5C/docs%5C/api%5C/=/=/maven.pomderived=/true=/%3Cjava.lang(Double.class%E2%98%83Double~parseDouble~Ljava.lang.String;%E2%98%82NumberFormatException
    *     If param is <code>null</code>
    */
   public static void checkNull(Object param, String name) throws BaseServiceException {
@@ -109,7 +105,7 @@ public final class ProcessHelper {
    */
   public static void checkNullOrEmptyString(String param, String name) throws BaseServiceException {
     checkNull(param, name);
-    if (param.trim().length() == 0) {
+    if (param.trim().isEmpty()) {
       throw new IllegalArgumentException("The '" + name + "' cannot be empty!");
     }
   }
@@ -199,7 +195,8 @@ public final class ProcessHelper {
    */
   public static String genCrc32(final String data) {
     CRC32 crc32 = new CRC32();
-    crc32.update(data.getBytes());
+    byte[] dataBytes = data.getBytes();
+    crc32.update(dataBytes, 0, dataBytes.length);
     long value = crc32.getValue();
     return String.format("%x", value);
   }
@@ -347,14 +344,15 @@ public final class ProcessHelper {
    */
   public static String readTextFile(final String filename) throws BaseServiceException {
     BufferedReader reader = null;
-    StringBuilder content = new StringBuilder();
+    StringBuffer content = new StringBuffer();
     String line;
-    Long counter = 0L;
+    String lineSeparator = System.lineSeparator();
+    int counter = 0;
     try {
       reader = new BufferedReader(new FileReader(filename));
       while ((line = reader.readLine()) != null) {
         content.append(line);
-        content.append(System.lineSeparator());
+        content.append(lineSeparator);
         counter++;
       }
     } catch (IOException ex) {
@@ -368,7 +366,7 @@ public final class ProcessHelper {
         }
       }
     }
-    if (counter == 0L) return "";
+    if (counter == 0) return "";
     return content.toString();
   }
 

@@ -59,6 +59,7 @@ public final class Constants {
    * @see
    *     https://www.rfc-editor.org/errata/eid1690#:~:text=It%20should%20say%3A-,In%20addition%20to%20restrictions%20on%20syntax%2C%20there%20is%20a%20length,total%20length%20of%20320%20characters.
    */
+  @SuppressWarnings("JavadocReference")
   public static final int EMAIL_LENGTH = 254;
 
   /** User login name length. see EMAIL_LENGTH. */

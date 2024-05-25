@@ -32,6 +32,7 @@
 package com.tuneurl.webrtc.util.config;
 
 import org.apache.catalina.connector.Connector;
+import org.apache.coyote.ajp.AjpNioProtocol;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
@@ -68,8 +69,7 @@ public class TomcatAjpConfig {
       ajpConnector.setSecure(false);
       ajpConnector.setAllowTrace(false);
       ajpConnector.setScheme("http");
-      ((org.apache.coyote.ajp.AjpNioProtocol) ajpConnector.getProtocolHandler())
-          .setSecretRequired(false);
+      ((AjpNioProtocol) ajpConnector.getProtocolHandler()).setSecretRequired(false);
       tomcat.addAdditionalTomcatConnectors(ajpConnector);
     }
 

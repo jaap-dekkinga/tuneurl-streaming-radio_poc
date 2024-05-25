@@ -41,7 +41,6 @@ import com.tuneurl.webrtc.util.controller.dto.Error;
 import com.tuneurl.webrtc.util.exception.BaseServiceException;
 import com.tuneurl.webrtc.util.model.*;
 import com.tuneurl.webrtc.util.util.CommonUtil;
-import com.tuneurl.webrtc.util.util.MessageLogger;
 import com.tuneurl.webrtc.util.util.ProcessHelper;
 import com.tuneurl.webrtc.util.value.Constants;
 import io.swagger.annotations.ApiOperation;
@@ -178,7 +177,6 @@ public class UserController extends BaseController {
 
     final String signature = "userLogin";
     super.saveAnalytics(signature, httpRequest);
-    MessageLogger logger = super.getMessageLogger();
     String ipAddress = super.getCallersIPAddress(httpRequest);
 
     logger.logEntry(
@@ -267,7 +265,6 @@ public class UserController extends BaseController {
       HttpServletResponse httpResponse) {
     final String signature = "refreshToken";
     super.saveAnalytics(signature, httpRequest);
-    MessageLogger logger = super.getMessageLogger();
     // logger.logEntry(signature, new Object[] {"token=", oauthTokenEntry.toString()});
 
     // always refresh_token

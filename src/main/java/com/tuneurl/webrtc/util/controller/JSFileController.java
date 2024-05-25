@@ -83,8 +83,8 @@ public class JSFileController extends BaseController {
   private static final String contentTypeJs = "text/javascript";
 
   private boolean isFileToMonitor(final String fileName) {
-    for (int index = 0; index < JS_WASM_FILES.length; index++) {
-      if (fileName.endsWith(JS_WASM_FILES[index])) {
+    for (String jsWasmFile : JS_WASM_FILES) {
+      if (fileName.endsWith(jsWasmFile)) {
         return true;
       }
     }
@@ -122,7 +122,7 @@ public class JSFileController extends BaseController {
     }
     // Set the appropriate content type
     super.writeResponseStreamResult(
-        endPoint, outputStream, contentType, httpResponse, theFile, true, fileNameOnDisposition);
+        endPoint, outputStream, contentType, httpResponse, theFile, fileNameOnDisposition);
   }
 
   // access the mp3 or wav file

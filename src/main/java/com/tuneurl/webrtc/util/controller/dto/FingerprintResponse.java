@@ -105,7 +105,7 @@ public class FingerprintResponse {
   /**
    * Sets the data.
    *
-   * @param data the data to set
+   * @param dataEx the data to set
    */
   public void setDataEx(String dataEx) {
     this.dataEx = dataEx;
@@ -140,6 +140,20 @@ public class FingerprintResponse {
     sb.append("    \"size\": ").append(getSize()).append(",\n");
     sb.append("    \"data\": ").append('"').append(getData()).append("\"\n");
     sb.append("}\n");
+    return sb.toString();
+  }
+
+  /**
+   * To String.
+   *
+   * @return String
+   */
+  public String toJson() {
+    java.lang.StringBuffer sb = new java.lang.StringBuffer();
+    sb.append("{");
+    sb.append("\"size\": ").append(getSize()).append(",");
+    sb.append("\"dataEx\": ").append('"').append(getDataEx()).append("\"");
+    sb.append("}");
     return sb.toString();
   }
 }

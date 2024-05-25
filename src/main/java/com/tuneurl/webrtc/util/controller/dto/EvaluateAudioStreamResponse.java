@@ -124,7 +124,7 @@ public class EvaluateAudioStreamResponse {
   /**
    * Retrieves the array of TuneUrlTag.
    *
-   * @return the array of TuneUrlTag
+   * @return the list of TuneUrlTag
    */
   public List<TuneUrlTag> getLiveTags() {
     return liveTags;
@@ -145,12 +145,27 @@ public class EvaluateAudioStreamResponse {
    * @return String
    */
   public String toString() {
-    java.lang.StringBuffer sb = new java.lang.StringBuffer();
+    StringBuffer sb = new StringBuffer();
     sb.append("class EvaluateAudioStreamResponse {\n");
     sb.append("    \"tuneUrlCounts\": ").append(getTuneUrlCounts()).append(",\n");
     sb.append("    \"tagCounts\": ").append(getTagCounts()).append(",\n");
     sb.append("    \"liveTags\": ").append('"').append(getLiveTags()).append("\"\n");
     sb.append("}\n");
+    return sb.toString();
+  }
+
+  /**
+   * To String.
+   *
+   * @return String
+   */
+  public String toJSON() {
+    StringBuffer sb = new StringBuffer();
+    sb.append("{");
+    sb.append("\"tuneUrlCounts\": ").append(getTuneUrlCounts()).append(",");
+    sb.append("\"tagCounts\": ").append(getTagCounts()).append(",");
+    sb.append("\"liveTags\": ").append('"').append(getLiveTags()).append("\"");
+    sb.append("}");
     return sb.toString();
   }
 }

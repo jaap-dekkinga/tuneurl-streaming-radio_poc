@@ -37,14 +37,18 @@ import com.albon.auth.jwt.JwtTool;
 import com.albon.auth.util.Helper;
 import com.albon.auth.util.LogMessage;
 import com.albon.auth.value.Constant;
+import com.tuneurl.webrtc.util.config.RedisInstance;
 import com.tuneurl.webrtc.util.controller.dto.*;
 import com.tuneurl.webrtc.util.exception.BaseServiceException;
 import com.tuneurl.webrtc.util.model.*;
+import com.tuneurl.webrtc.util.service.AudioStreamService;
 import com.tuneurl.webrtc.util.service.LdapInfoService;
 import com.tuneurl.webrtc.util.service.SdkUserService;
 import com.tuneurl.webrtc.util.service.SessionDataService;
 import com.tuneurl.webrtc.util.util.CommonUtil;
 import com.tuneurl.webrtc.util.util.MessageLogger;
+import com.tuneurl.webrtc.util.util.fingerprint.FingerprintExternals;
+import com.tuneurl.webrtc.util.util.fingerprint.FingerprintUtility;
 import com.tuneurl.webrtc.util.value.Constants;
 import com.tuneurl.webrtc.util.value.UserType;
 import java.io.File;
@@ -59,7 +63,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.logging.log4j.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -78,6 +81,8 @@ import org.springframework.web.servlet.ModelAndView;
  */
 public abstract class BaseController {
 
+  @Autowired protected AudioStreamService audioStreamBaseService;
+
   @Autowired protected SessionDataService sessionService;
   @Autowired protected LdapInfoService ldapService;
   @Autowired protected SdkUserService userService;
@@ -85,13 +90,7 @@ public abstract class BaseController {
   @Value("${audio.access.without.login:false}")
   protected boolean isAllowAccessToWaveWithoutLogin;
 
-  @Value("${save.audio.files:/home/ubuntu/audio}")
-  private String saveAudioFiles;
-
-  @Value("${audio.stream.url.prefix}")
-  private String streamAudioUrlPrefix;
-
-  @Value("${gather.sdk.analytics:false}")
+  @Value("false")
   private boolean isSaveAnalytic;
 
   @Value("${jwt.signing.key.secret:6bZrVzB4@5hYt370S12f15Tc}")
@@ -134,28 +133,6 @@ public abstract class BaseController {
     return userEntry;
   }
 
-  /**
-   * Append filename with Audio Stream URL.
-   *
-   * @param fileName
-   * @return String
-   */
-  public String getStreamAudioUrlPrefix(final String fileName) {
-    if (Helper.isStringNullOrEmpty(fileName)) return saveAudioFiles;
-    return String.format("%s/%s", streamAudioUrlPrefix, fileName);
-  }
-
-  /**
-   * Append filename with Audio Stream folder.
-   *
-   * @param subDir String filename
-   * @return String
-   */
-  public String getSaveAudioFilesFolder(final String subDir) {
-    if (Helper.isStringNullOrEmpty(subDir)) return saveAudioFiles;
-    return String.format("%s/%s", saveAudioFiles, subDir);
-  }
-
   /** URL for redirection. */
   public String getServerDomainUrl() {
     return serverDomainUrl;
@@ -169,6 +146,9 @@ public abstract class BaseController {
   /** Salt ptr. */
   private byte[] jwtSalt = null;
 
+  protected MessageLogger logger;
+  protected RedisInstance redis;
+
   /**
    * Get Salt.
    *
@@ -181,28 +161,14 @@ public abstract class BaseController {
     return jwtSalt;
   }
 
-  /** MessageLogger instance. */
-  private static MessageLogger MESSAGE_LOGGER = null;
-
-  /**
-   * Get MessageLogger.
-   *
-   * @return MessageLogger
-   */
-  protected MessageLogger getMessageLogger() {
-    if (null == MESSAGE_LOGGER) {
-      MESSAGE_LOGGER = new MessageLogger();
-      MESSAGE_LOGGER.setLogger(
-          LogManager.getLogger(com.tuneurl.webrtc.util.util.MessageLogger.class));
-    }
-    return MESSAGE_LOGGER;
-  }
-
   protected ClientCredential clientCredential = null;
+  protected FingerprintExternals fingerprintExternals =
+      FingerprintUtility.getFingerprintInstance().getFingerprintExternals();
 
   /** Default constructor. */
   public BaseController() {
-    // Does nothing.
+    this.logger = MessageLogger.getMessageLoggerInstance();
+    this.redis = RedisInstance.getInstance();
   }
 
   /**
@@ -247,7 +213,7 @@ public abstract class BaseController {
       sb.append(",").append(bk + name + bk).append(":").append(bk + value + bk);
     }
     value = sb.toString();
-    getMessageLogger().logEntry(signature, new Object[] {"{" + value + "}"});
+    this.logger.logEntry(signature, new Object[] {"{" + value + "}"});
   }
 
   /**
@@ -475,7 +441,7 @@ public abstract class BaseController {
       final String sessionExpirationMessage)
       throws BaseServiceException {
     JwtTool jwt = setupJwtTool(useAuthBearer);
-    MessageLogger logger = getMessageLogger();
+    MessageLogger logger = this.logger;
 
     // Is Auth / x-jwt-token exist?
     String token = getToken(logger, httpRequest, Constant.HEADER_AUTHORIZATION_LOWERCASE);
@@ -558,7 +524,7 @@ public abstract class BaseController {
 
     this.clientCredential = new ClientCredential();
 
-    MessageLogger logger = getMessageLogger();
+    MessageLogger logger = this.logger;
 
     // 1.1 Gather callers information for SDK analytic usage.
     String clientId = httpRequest.getHeader(Constants.X_SDK_CLIENT_ID_HEADER_NAME);
@@ -697,18 +663,15 @@ public abstract class BaseController {
    * @param style String
    * @param response HttpServletResponse
    * @param fileName String
-   * @param isClose Boolean
    * @param fileNameOnDisposition String
-   * @return long the size
    * @throws BaseServiceException If any file operation fails
    */
-  protected long writeResponseStreamResult(
+  protected void writeResponseStreamResult(
       final String endPoint,
       OutputStream pOutputStream,
       final String style,
       HttpServletResponse response,
       final String fileName,
-      final boolean isClose,
       final String fileNameOnDisposition)
       throws BaseServiceException {
     OutputStream outputStream = pOutputStream;
@@ -717,15 +680,10 @@ public abstract class BaseController {
     try {
       file = new File(fileName);
     } catch (NullPointerException npe) {
-      npe.printStackTrace();
+      // npe.printStackTrace();
       CommonUtil.ForbiddenException(accessDeniedMessages);
       /*NOTREACH*/
     }
-    //    final long fileSize = file.length();
-    //    if (fileSize < 1L || !file.canRead()) {
-    //      CommonUtil.ForbiddenException(accessDeniedMessages);
-    //      /*NOTREACH*/
-    //    }
     byte[] b = readFileToStream(file, accessDeniedMessages);
     if (b == null) {
       CommonUtil.ForbiddenException(accessDeniedMessages);
@@ -734,18 +692,8 @@ public abstract class BaseController {
     long size = b.length < 1 ? file.length() : b.length;
     final String sSize = "" + size;
     final String contentLength = "Content-Length";
-    //    MessageLogger logger = getMessageLogger();
-    //    logger.logEntry(
-    //        "writeResponseStreamResult",
-    //        new Object[] {
-    //          "f=", fileName,
-    //          "n=", size,
-    //          "t=", style,
-    //          "d=", fileNameOnDisposition
-    //        });
+
     try {
-      outputStream.write(b);
-      outputStream.flush();
       response.setStatus(200);
       response.setContentLength((int) size);
       response.addHeader(contentLength, sSize);
@@ -756,15 +704,15 @@ public abstract class BaseController {
       if (fileNameOnDisposition != null) {
         response.setHeader("Content-Disposition", "attachment; filename=" + fileNameOnDisposition);
       }
+      outputStream.write(b);
+      outputStream.flush();
     } catch (IOException ex) {
-      ex.printStackTrace();
+      // ex.printStackTrace();
       outputStream = closeOutputStream(outputStream);
       CommonUtil.ForbiddenException(accessDeniedMessages);
       /*NOTREACH*/
     } finally {
       closeOutputStream(outputStream);
     }
-
-    return size;
   }
 }

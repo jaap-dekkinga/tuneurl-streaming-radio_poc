@@ -30,7 +30,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 "use strict";
-const base_host = "https://streaming.tuneurl-demo.com";
+// const base_host = "https://streaming.tuneurl-demo.com";
+const base_host = "http://localhost:8281";
 const PLAY_MODAL_START_TIME = 10;
 const LIVE_INIT = 0;
 const LIVE_WAIT_MODAL_STATE = 1;
@@ -295,7 +296,7 @@ class AudioFileLoader {
         this.MAXIMUM_AUDIO_BITS_TO_CONVERT = 44982e3;
         this.FINGERPRINT_SAMPLE_RATE = 10240;
         this.document = document;
-        this.window = window;
+        this.window = window;``
         this.audioContext = new AudioContext;
         this.source = {
             buffer: null

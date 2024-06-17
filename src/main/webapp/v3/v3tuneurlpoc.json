@@ -15,7 +15,7 @@
   },
   "servers": [
     {
-      "url": "https://streaming.tuneurl-demo.com",
+      "url": "http://localhost",
       "description": "Stream Radio POC - Java TuneUrl API server URI"
     }
   ],

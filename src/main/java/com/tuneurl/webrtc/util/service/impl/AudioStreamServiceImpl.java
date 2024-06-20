@@ -350,6 +350,117 @@ public class AudioStreamServiceImpl implements AudioStreamService {
 
     return response;
   }
+  
+  public FindFingerPrintResponse findFingerPrintsAudioStream(
+    AudioDataEntry audioDataEntry,
+    EvaluateAudioStreamEntry evaluateAudioStreamEntry,
+    String signature) {
+    // The Audio Stream URL.
+    String url = CommonUtil.getString(audioDataEntry.getUrl(), Constants.AUDIOSTREAM_URL_SIZE);
+    // The Data.
+    short[] data = audioDataEntry.getData();
+    // The Size of data.
+    int size = audioDataEntry.getSize().intValue();
+    // The Sample rate.
+    Long sampleRate = audioDataEntry.getSampleRate();
+    // The Duration.
+    Long duration = audioDataEntry.getDuration();
+    // The Fingerprint rate.
+    Long fingerprintRate = audioDataEntry.getFingerprintRate();
+    // The Triggersound Fingerprint Data.
+    byte[] dataFingerprint = evaluateAudioStreamEntry.getDataFingerprint();
+    // The size of Fingerprint Data.
+    Long sizeFingerprint = evaluateAudioStreamEntry.getSizeFingerprint();
+    this.logger.logEntry(
+          signature,
+          new Object[] {
+              "url=", url,
+              "data=", data.length == size,
+              "size=", size,
+              "SRate=", sampleRate,
+              "duration=", duration,
+              "FRate=", fingerprintRate,
+              "fingerprintData=", dataFingerprint.length == sizeFingerprint,
+              "sizeFingerprint=", sizeFingerprint
+            });
+          
+    Converter.checkAudioDataEntryDataSize(audioDataEntry);
+    Converter.validateShortDataSize(data, size);
+    Converter.validateDataSizeEx(dataFingerprint, sizeFingerprint.intValue());
+    Converter.validateDurationEx(duration);
+    StringBuffer dataFingerprintBuffer =
+        FingerprintUtility.getFingerprintBufferedPart(dataFingerprint, dataFingerprint.length);
+    int dataFingerprintBufferSize = dataFingerprint.length;
+
+    final String fileName = Converter.validateUrlOrGencrc32(url);
+    ProcessHelper.checkNullOrEmptyString(fileName, "AudioDataEntry.Url");
+
+    FindFingerPrintResponse response = new FindFingerPrintResponse();
+    List<FingerprintCompareResponse> fingerPrints = new ArrayList<FingerprintCompareResponse>();
+    long elapse;
+    long timeOffset, baseOffset;
+    long iStart, iEnd;
+    long maxDuration = Converter.muldiv(1000, duration, 1L);
+    long count, counts = Converter.muldiv(1000, duration, 100);
+    int dSize;
+    short[] dData;
+
+    String rootDir = this.getSaveAudioFilesFolder(null);
+    String debugUniqueName = ProcessHelper.createUniqueFilename();
+    String debugDir = String.format("%s/%s", rootDir, "debug");
+    String rootDebugDir = String.format("%s/%s", debugDir, debugUniqueName);
+
+    FingerprintCompareResponse fcr = null;
+    FingerprintResponse fr = null;
+    FingerprintResponse audioFr;
+    if (isDebugOn) {
+      ProcessHelper.makeDir(debugDir);
+    }
+    Random random = new Random();
+    random.setSeed(new Date().getTime());
+
+    LinkedList<FingerprintThreadCollector> fingerprintThreadList =
+                parallelFingerprintCollect(
+                    data,
+                    fingerprintRate,
+                    dataFingerprintBuffer,
+                    dataFingerprintBufferSize,
+                    maxDuration,
+                    counts,
+                    rootDir,
+                    random);
+      
+      // return new FindFingerPrintResponse();
+    for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
+      if (fingerprintThreadList.isEmpty()) {
+        break;
+      }
+      FingerprintCollection result =
+          fingerprintThreadList.removeFirst().getFingerprintCollectionResult();
+
+      List<FingerprintResponse> frSelection = result.getFrCollection();
+      List<FingerprintCompareResponse> selection = result.getFcrCollection();
+
+      // timeOffset = elapse; // possible legacy code
+      if (selection.size() == 5) {
+        Object[] fingerprintComparisonsResponse =
+            FingerprintUtility.fingerprintComparisons(selection, frSelection, fcr, fr);
+        fcr = (FingerprintCompareResponse) fingerprintComparisonsResponse[0];
+        fr = (FingerprintResponse) fingerprintComparisonsResponse[1];
+
+        if (fcr != null) {
+          fingerPrints.add(fcr);
+        } // if (fcr != null)
+      } // if (selection.size() == 5)
+    } // for (...)
+    response.setFingerPrintCounts((long) fingerPrints.size());
+    response.setFingerPrints(fingerPrints);
+
+    this.logger.logExit(
+        signature, new Object[] {"counts=", counts, "fingerPrints.size", fingerPrints.size()});
+
+    return response;
+}
 
   private void saveFingerprintsDebug(
       EvaluateAudioStreamEntry evaluateAudioStreamEntry,

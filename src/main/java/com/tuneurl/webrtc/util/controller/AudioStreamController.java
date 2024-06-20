@@ -708,4 +708,73 @@ public class AudioStreamController extends BaseController {
 
     return ResponseEntity.ok().body(response);
   }
+
+  /**
+   * Find all triggersound positions from the given audio stream. <br>
+   * <br>
+   * <b>Implementation Notes</b>: <br>
+   * <b>A. Input is <code>EvaluateAudioStreamEntry</code>.</b>
+   *
+   * <ul>
+   *   <li><code>EvaluateAudioStreamEntry.audioData</code>: The AudioDataEntry.
+   *   <li><code>EvaluateAudioStreamEntry.sizeFingerprint</code>: Size of dataFingerprint.
+   *   <li><code>EvaluateAudioStreamEntry.dataFingerprint</code>: Triggersound fingerprint. Array of
+   *       Byte.
+   * </ul>
+   *
+   * <br>
+   * <b>B. Output is FindFingerPrintResponse</b>
+   *
+   * <ul>
+   *   <li><code>FindFingerPrintResponse.fingerPrintCounts</code>: total number of FingerprintCompareResponse.
+   *   <li><code>FindFingerPrintResponse.fingerPrints</code>: array of FingerprintCompareResponse.
+   * </ul>
+   *
+   * @param evaluateAudioStreamEntry EvaluateAudioStreamEntry,
+   * @param httpRequest HttpServletRequest HTTP Request
+   * @param httpResponse HttpServletResponse HTTP Response
+   * @return ResponseEntity &lt;FindFingerPrintResponse>
+   */
+  @PostMapping(
+      path = "/dev/v3/findFingerPrintsAudioStream",
+      produces = {MediaType.APPLICATION_JSON_VALUE})
+  @ApiOperation(
+      value = "Find all triggersound postions from the given audio stream",
+      response = FindFingerPrintResponse.class)
+  @ApiResponses(
+      value = {
+        @ApiResponse(code = 200, message = "FindFingerPrintResponse"),
+        @ApiResponse(code = 400, message = "BadRequest"),
+        @ApiResponse(code = 401, message = "Unauthorized"),
+        @ApiResponse(code = 403, message = "Forbidden"),
+        @ApiResponse(code = 404, message = "NotFound"),
+        @ApiResponse(code = 500, message = "InternalServerError"),
+      })
+  @CrossOrigin("*")
+  public ResponseEntity<FindFingerPrintResponse> findFingerPrintsAudioStream(
+      @Valid @RequestBody EvaluateAudioStreamEntry evaluateAudioStreamEntry,
+      HttpServletRequest httpRequest,
+      HttpServletResponse httpResponse) {
+
+    final String signature = "findFingerPrintsAudioStream";
+    // final String signature2 = "findFingerPrintsAudioStream:inner";
+    super.saveAnalytics(signature, httpRequest);
+
+    AudioDataEntry audioDataEntry = evaluateAudioStreamEntry.getAudioData();
+    
+    // 1. Check for ADMIN or USER role.
+    if (!super.canAccessAudioWithoutLogin()) {
+      super.getSdkClientCredentials(signature, UserType.LOGIN_FOR_USER, httpRequest, httpResponse);
+    }
+
+    // FindFingerPrintResponse response1 = new FindFingerPrintResponse();
+    // return ResponseEntity.ok().body(response1);
+    
+    FindFingerPrintResponse response =
+        audioStreamBaseService.findFingerPrintsAudioStream(
+            audioDataEntry, evaluateAudioStreamEntry, signature);
+
+    return ResponseEntity.ok().body(response);
+  }
+
 }

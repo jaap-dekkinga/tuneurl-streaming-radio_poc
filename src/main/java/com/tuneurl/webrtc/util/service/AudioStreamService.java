@@ -18,6 +18,12 @@ public interface AudioStreamService {
       EvaluateAudioStreamEntry evaluateAudioStreamEntry,
       String signature);
 
+public FindFingerPrintResponse findFingerPrintsAudioStream(
+    AudioDataEntry audioDataEntry,
+    EvaluateAudioStreamEntry evaluateAudioStreamEntry,
+    String signature);
+  
+
   public AudioStreamDataResponse runWebRtcScript(
       final String signature,
       boolean isExecute,

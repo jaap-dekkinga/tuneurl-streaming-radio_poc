@@ -407,7 +407,46 @@
           }
         }
       }
-    }
+    },
+    "/dev/v3/findFingerPrintsAudioStream": {
+      "post": {
+        "tags": [
+          "fingerprint"
+        ],
+        "operationId": "findFingerPrintsAudioStream",
+        "summary": "Find all triggersound postions from the given audio stream",
+        "description": "<br /><b>Implementation Notes</b>:\n<br /><b>A. Input is <code>EvaluateAudioStreamEntry</code>.</b>\n  <ul>\n    <li><code>EvaluateAudioStreamEntry.audioData</code>: The AudioDataEntry.</li>\n    <li><code>EvaluateAudioStreamEntry.sizeFingerprint</code>: Size of dataFingerprint.</li>\n    <li><code>EvaluateAudioStreamEntry.dataFingerprint</code>: Triggersound fingerprint. Array of Byte.</li>\n  </ul>\n<br /><b>B. Output is EvaluateAudioStreamEntry</b>\n  <ul>\n    <li><code>EvaluateAudioStreamResponse.tuneUrlCounts</code>: 0 to 64 total number TuneUrlTag found.</li>\n    <li><code>EvaluateAudioStreamResponse.tagCounts</code>: total number of TuneUrlTag.</li>\n    <li><code>EvaluateAudioStreamResponse.liveTags</code>: array of TuneUrlTag.</li>\n  </ul>\n",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateAudioStreamEntry"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/FindFingerPrintResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    }   
   },
   "components": {
     "securitySchemes": {

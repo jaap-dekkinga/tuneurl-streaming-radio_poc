@@ -41,7 +41,7 @@ const LIVE_WAIT_NEXT_TRIGGER = 4;
 const LIVE_WAIT_FOR_CONTENT = 5;
 const LIVE_END = 6;
 const APP_TITLE = "Audio Demo Test";
-const IF_LOAD_FROM_URL = true;
+const IF_LOAD_FROM_URL = false;
 const LOAD_FROM_THIS_URL = "http://stream.radiojar.com/vzv0nkgsw7uvv";
 const TEST_MP3_FILE = base_host + "/audio/10240-audio-streams-0230000.mp3";
 const TRIGGERSOUND_AUDIO_URL = base_host + "/audio/10240-triggersound.wav";
@@ -101,12 +101,6 @@ var convertFileTimer = null;
 var convertFileTimerPosition = 0;
 var isInsideConvertFile = false;
 
-
-let audioContext = null;
-let audioQueue = [];
-let isPlayingFromUrl = false;
-let isPlayingInit = false;
-
 function initVariables() {
     activeAudioTags = {
         liveTags: [],
@@ -126,8 +120,7 @@ function initVariables() {
     convertFileTimerPosition = 0;
     isInsideConvertFile = false;
     spinnerGif = document.getElementById("spinner");
-    playButtonObject = document.getElementById("play");
-
+    playButtonObject = document.getElementById("play")
 }
 
 function collectDuration(isCollect, start, end) {}
@@ -304,7 +297,7 @@ class AudioFileLoader {
         this.FINGERPRINT_SAMPLE_RATE = 10240;
         this.document = document;
         this.window = window;
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.audioContext = new AudioContext;
         this.source = {
             buffer: null
         };
@@ -653,204 +646,29 @@ async function initTriggerAudioContent(pUrl) {
     return true
 }
 
-async function fetchAudio(url) {
-    const response = await fetch(url);
-    const arrayBuffer = await response.arrayBuffer();
-    const audioData = await audioContext.decodeAudioData(arrayBuffer);
-    return audioData;
-}
-async function fetchAudioStream(url) {
-    const response = await fetch(url);
-    const reader = response.body.getReader();
-
-    let chunks = [];
-    let bytesRead = 0;
-    const sampleRate = 11025; // Assuming the sample rate is 10240 Hz
-   
-    // Calculate the number of bytes to read for the desired duration
-    const bytesToRead = sampleRate * 1.5 * 2; // 4 bytes per sample (32-bit float, stereo)
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done) continue;
-
-        if (bytesRead < bytesToRead){
-            chunks.push(value);
-            bytesRead += value.byteLength;
-        }
-        else {
-            const audioBuffer = new Uint8Array(bytesRead);
-            let offset = 0;
-            for (const chunk of chunks) {
-                audioBuffer.set(chunk, offset);
-                offset += chunk.byteLength;
-            }
-            // Decode audio data
-            const audioData = await audioContext.decodeAudioData(audioBuffer.buffer);
-            console.log('fetchAudioStream: audioData', audioData);
-
-            // Add new audio Segment.
-            const newSegment = await createNewAudioSegment(audioData);
-            if (newSegment) {
-                audioQueue.push(newSegment);
-                playAudioQueue();
-            }
-
-            chunks = [];
-            bytesRead = 0;
-        }
+function playonclick() {
+    if (isPlayAgain) {
+        console.clear();
+        window.location.href = base_host + "/";
+        return true
     }
-
-}
-// async function fetchAudioStream(url, durationInSeconds) {
-//     console.log('fetchAudioStream');
-//     const response = await fetch(url);
-//     const reader = response.body.getReader();
-
-//     const chunks = [];
-//     let bytesRead = 0;
-//     const sampleRate = 44100; // Assuming the sample rate is 44100 Hz
-   
-//     // Calculate the number of bytes to read for the desired duration
-//     const bytesToRead = sampleRate * durationInSeconds; // 4 bytes per sample (32-bit float, stereo)
-//     while (bytesRead < bytesToRead) {
-//         const { done, value } = await reader.read();
-//         if (done) break;
-//         chunks.push(value);
-//         bytesRead += value.byteLength;
-//     }
-
-//     // Combine chunks into a single buffer
-//     const audioBuffer = new Uint8Array(bytesRead);
-//     let offset = 0;
-//     for (const chunk of chunks) {
-//         audioBuffer.set(chunk, offset);
-//         offset += chunk.byteLength;
-//     }
- 
-//     // Decode audio data
-//     const audioData = await audioContext.decodeAudioData(audioBuffer.buffer);    
-//     console.log('fetchAudioStream: audioData', audioData);
-//     return audioData;
-// }
-
-async function createNewAudioSegment(audioData) {
-    if (audioData.length <= 0) {
-        return null;
-    }
-
-    const newSegment = audioContext.createBuffer(
-        audioData.numberOfChannels,
-        audioData.length,
-        audioData.sampleRate
-    );
-
-    for (let channel = 0; channel < audioData.numberOfChannels; channel++) {
-        const newData = audioData.getChannelData(channel);
-        newSegment.copyToChannel(newData, channel);
-    }
-    console.log('createNewAudioSegment', audioData.length);
-    return newSegment;
-}
-
-async function playAudioQueue() {
-    if (audioContext.state === 'suspended') {
-        try {
-            await audioContext.resume();
-        } catch (err) {
-            alert('Press OK and then click anywhere on the page to start the audio.');
-            await new Promise(resolve => document.addEventListener('click', resolve, {once: true}));
-            await audioContext.resume();
-        }
-    }
-    const totalDuration = audioQueue.reduce((acc, buffer) => acc + buffer.duration, 0);
-    console.log('playAudioQueue: totalDuration', totalDuration);
-
-    if (totalDuration < 10 && !isPlayingInit) {
-        return;
-    }
-    console.log('playAudioQueue: isPlayingFromUrl', isPlayingFromUrl);
-
-    if (isPlayingFromUrl || audioQueue.length === 0) {
-        return;
-    }
-
-    isPlayingFromUrl = true;
-    isPlayingInit = true;
-    console.log('playAudioQueue: isPlayingFromUrl', isPlayingFromUrl);
-
-    const audioBuffer = audioQueue.shift();
-    const audioSource = audioContext.createBufferSource();
-    audioSource.buffer = audioBuffer;
-    audioSource.connect(audioContext.destination);
-    audioSource.start(0);
-    // audioSource.start(audioContext.currentTime);
-    console.log('playAudioQueue: audioBuffer', audioBuffer);
-
-    audioSource.onended = () => {
-        console.log('playAudioQueue: onended');
-        isPlayingFromUrl = false;
-        playAudioQueue();
-    };
-}
-
-let fetchInterval;
-async function playonclick() {
-    if (IF_LOAD_FROM_URL) {
-        if (!isPlayingFromUrl) {
-            try {
-                // const initialAudioData = await fetchAudioStream(LOAD_FROM_THIS_URL, 1.5);
-                // const initialAudioData = await fetchAudio(LOAD_FROM_THIS_URL);
-                // const initialSegment = await createNewAudioSegment(initialAudioData);
-                // if (initialSegment) {
-                //     audioQueue.push(initialSegment);
-                //     playAudioQueue();
-                // }
-        
-                // fetchInterval = setInterval(async () => {
-                //     // const newAudioData = await fetchAudioStream(LOAD_FROM_THIS_URL, 1.5);
-                //     const newAudioData = await fetchAudio(LOAD_FROM_THIS_URL);
-                //     const newSegment = await createNewAudioSegment(newAudioData);
-        
-                //     if (newSegment) {
-                //         audioQueue.push(newSegment);
-                //         playAudioQueue();
-                //     }
-                // }, 5000);
-                fetchAudioStream(LOAD_FROM_THIS_URL);
-                setButtonPlayOrPause(false);
-            } catch (error) {
-                console.error(`Error streaming audio: ${error}`);
-            }        
-        }
-        else {
-            clearInterval(fetchInterval);
-            setButtonPlayOrPause(true);
-        }   
-    }
-    else {
-        if (isPlayAgain) {
-            console.clear();
-            window.location.href = base_host + "/";
-            return true
-        }
-        if (!isPlayButtonClicked) clearTuneUrlInstruction();
-        isPlayButtonClicked = true;
-        let isPlaying = audioFile.isPlaying();
-        if (isPlaying) {
-            adjustAnimationTimer();
-            setOrClearPlayTimer(true, null)
+    if (!isPlayButtonClicked) clearTuneUrlInstruction();
+    isPlayButtonClicked = true;
+    let isPlaying = audioFile.isPlaying();
+    if (isPlaying) {
+        adjustAnimationTimer();
+        setOrClearPlayTimer(true, null)
+    } else {
+        if (firstTime) {
+            firstTime = false;
+            initTimerAccumulatedTimer()
         } else {
-            if (firstTime) {
-                firstTime = false;
-                initTimerAccumulatedTimer()
-            } else {
-                liveTimerStart = getLocalTimeInMillis()
-            }
-            liveState = LIVE_WAIT_NEXT_TRIGGER;
-            setOrClearPlayTimer(false, monitorLiveAudioFeed)
+            liveTimerStart = getLocalTimeInMillis()
         }
-        audioFile.doPlayOrPause(setButtonPlayOrPause);
+        liveState = LIVE_WAIT_NEXT_TRIGGER;
+        setOrClearPlayTimer(false, monitorLiveAudioFeed)
     }
+    audioFile.doPlayOrPause(setButtonPlayOrPause);
     return true
 }
 
@@ -1344,17 +1162,48 @@ async function getAudioStreamData(AudioStreamDataResponse) {
     })).catch((error => AudioStreamDataResponse.finalAudioStreamUrl));
     return res
 }
-
-function initLoadFromUrl() {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();//({sampleRate:10240});
-    audioQueue = [];
-    isPlayingFromUrl = false;
-    isPlayingInit = false;
-    console.log('isPlayingFromUrl', isPlayingFromUrl);
-
-    showHidePlayButton(true);
+async function initLoadFromUrl(url) {
+    var AudioStreamEntry = {
+        Url: url,
+        duration: 60,
+        sampleRate: 10240
+    };
+    let start, end, sleepTime, data, sData;
+    if (IF_LOAD_FROM_URL) {
+        start = getLocalTimeInMillis();
+        sData = JSON.stringify(AudioStreamEntry);
+        const res = await fetch(base_host + "/dev/v3/saveAudioStream", {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-type": "application/json; charset=UTF-8",
+                Accept: "application/json",
+                "Access-Control-Allow-Origin": "*",
+                Authorization: "Bearer " + userToken
+            },
+            body: sData
+        }).then((response => getTextData(response))).then((text => {
+            data = parseResponseTextDataAsJSON(text, "{", "Expected an AudioStreamDataResponse");
+            end = getLocalTimeInMillis();
+            showMethodRunTime("initLoadFromUrl:Okay", start, end);
+            console.log(data);
+            if (data.conversionId === undefined || data.finalAudioStreamUrl === undefined || data.duration === undefined || data.status === undefined) {
+                throw Error("Not valid AudioStreamDataResponse")
+            }
+            if (data.status !== 1) {
+                end = end - start;
+                sleepTime = parseInt(data.duration * 1e3) - end;
+                if (sleepTime > 100) localSleep(sleepTime);
+                return getAudioStreamData(data)
+            } else {
+                return data.finalAudioStreamUrl
+            }
+        })).catch((error => TEST_MP3_FILE));
+        await initAudio(res)
+    } else {
+        await initAudio(TEST_MP3_FILE)
+    }
 }
-
 async function startCanvas() {
     console.log("startCanvas");
     initVariables();
@@ -1365,11 +1214,12 @@ async function startCanvas() {
     if (hasJWT()) {
         await initTriggerAudio(TRIGGERSOUND_AUDIO_URL);
         if (triggerFingerprintSize > 0) {
-            if (IF_LOAD_FROM_URL) {
-                initLoadFromUrl();
+            await initLoadFromUrl(LOAD_FROM_THIS_URL);
+            if (IF_LOAD_ALL_AUDIO_STREAM) {
+                emitTuneUrlInstruction(true, 0);
+                await saveAudioEx(initAllTagsEx)
             } else {
-                await initAudio(TEST_MP3_FILE);
-                saveAudio();
+                saveAudio()
             }
         }
     }

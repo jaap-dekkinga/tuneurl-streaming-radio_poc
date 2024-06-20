@@ -133,9 +133,9 @@ public final class Converter {
    */
   public static String validateUrlOrGencrc32(final String url) throws BaseServiceException {
     ProcessHelper.checkNullOrEmptyString(url, "AudioDataEntry.Url");
-    if (!url.startsWith("http://localhost") && (url.length() < 13 || !url.startsWith("https://"))) {
-      CommonUtil.BadRequestException("Specify valid AudioDataEntry.Url");
-    }
+    // if (!url.startsWith("http://localhost") && (url.length() < 13 || !url.startsWith("https://"))) {
+    //   CommonUtil.BadRequestException("Specify valid AudioDataEntry.Url");
+    // }
     return ProcessHelper.genCrc32(url);
   }
 

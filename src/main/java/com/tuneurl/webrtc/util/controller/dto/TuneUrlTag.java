@@ -103,31 +103,7 @@ public class TuneUrlTag {
    */
   @JsonProperty("info")
   private String info;
-
-  /**
-   * The Percentage match score.
-   *
-   * <p>It can be any value.
-   *
-   * <p>It has both getter and setter.
-   *
-   * <p>It is used in setMatchPercentage(), getMatchPercentage().
-   */
-  @JsonProperty("matchPercentage")
-  private Integer matchPercentage;
-
-  /**
-   * The Trigger score.
-   *
-   * <p>It can be any value.
-   *
-   * <p>It has both getter and setter.
-   *
-   * <p>It is used in setScore(), getScore().
-   */
-  @JsonProperty("score")
-  private Double score;
-
+  
   /**
    * The Trigger similarity.
    *
@@ -138,7 +114,7 @@ public class TuneUrlTag {
    * <p>It is used in setSimilarity(), getSimilarity().
    */
   @JsonProperty("similarity")
-  private Double similarity;
+  private Long similarity;
 
   /**
    * The Index.
@@ -260,47 +236,11 @@ public class TuneUrlTag {
   }
 
   /**
-   * Retrieves the Percentage match score.
-   *
-   * @return the Percentage match score
-   */
-  public Integer getMatchPercentage() {
-    return matchPercentage;
-  }
-
-  /**
-   * Sets the Percentage match score.
-   *
-   * @param matchPercentage the Percentage match score to set
-   */
-  public void setMatchPercentage(Integer matchPercentage) {
-    this.matchPercentage = matchPercentage;
-  }
-
-  /**
-   * Retrieves the Trigger score.
-   *
-   * @return the Trigger score
-   */
-  public Double getScore() {
-    return score;
-  }
-
-  /**
-   * Sets the Trigger score.
-   *
-   * @param score the Trigger score to set
-   */
-  public void setScore(Double score) {
-    this.score = score;
-  }
-
-  /**
    * Retrieves the Trigger similarity.
    *
    * @return the Trigger similarity
    */
-  public Double getSimilarity() {
+  public Long getSimilarity() {
     return similarity;
   }
 
@@ -309,7 +249,7 @@ public class TuneUrlTag {
    *
    * @param similarity the Trigger similarity to set
    */
-  public void setSimilarity(Double similarity) {
+  public void setSimilarity(Long similarity) {
     this.similarity = similarity;
   }
 
@@ -349,75 +289,13 @@ public class TuneUrlTag {
     this.dataPosition = dataPosition;
   }
 
-  /**
-   * The Similarity position.
-   *
-   * <p>It can be any value.
-   *
-   * <p>It has both getter and setter.
-   *
-   * <p>It is used in setMostSimilarFramePosition(), getMostSimilarFramePosition().
-   */
-  @JsonProperty("mostSimilarFramePosition")
-  private Integer mostSimilarFramePosition;
-
-  /**
-   * The Start time.
-   *
-   * <p>It can be any value.
-   *
-   * <p>It has both getter and setter.
-   *
-   * <p>It is used in setMostSimilarStartTime(), getMostSimilarStartTime().
-   */
-  @JsonProperty("mostSimilarStartTime")
-  private Double mostSimilarStartTime;
-
-  /**
-   * Retrieves the Similarity position.
-   *
-   * @return the Similarity position
-   */
-  public Integer getMostSimilarFramePosition() {
-    return mostSimilarFramePosition;
-  }
-
-  /**
-   * Sets the Similarity position.
-   *
-   * @param mostSimilarFramePosition the Similarity position to set
-   */
-  public void setMostSimilarFramePosition(Integer mostSimilarFramePosition) {
-    this.mostSimilarFramePosition = mostSimilarFramePosition;
-  }
-
-  /**
-   * Retrieves the Start time.
-   *
-   * @return the Start time
-   */
-  public Double getMostSimilarStartTime() {
-    return mostSimilarStartTime;
-  }
-
-  /**
-   * Sets the Start time.
-   *
-   * @param mostSimilarStartTime the Start time to set
-   */
-  public void setMostSimilarStartTime(Double mostSimilarStartTime) {
-    this.mostSimilarStartTime = mostSimilarStartTime;
-  }
 
   public void setFingerprintCompareResponseData(
       FingerprintCompareResponse fcr, boolean shouldSetOffset) {
     if (shouldSetOffset) {
       this.setDataPosition(fcr.getOffset());
     }
-    this.setScore(fcr.getScore());
     this.setSimilarity(fcr.getSimilarity());
-    this.setMostSimilarFramePosition(fcr.getMostSimilarFramePosition());
-    this.setMostSimilarStartTime(fcr.getMostSimilarStartTime());
   }
 
   public void setTuneUrlEntryData(TuneUrlEntry entry) {
@@ -426,7 +304,6 @@ public class TuneUrlTag {
     this.setDescription(entry.getDescription());
     this.setType(entry.getType());
     this.setInfo(entry.getInfo());
-    this.setMatchPercentage(entry.getMatchPercentage());
   }
 
   public void setTuneUrlEmptyEntryData(String payload) {
@@ -435,7 +312,6 @@ public class TuneUrlTag {
     this.setDescription(payload);
     this.setType("open_page");
     this.setInfo("");
-    this.setMatchPercentage(1);
   }
 
   /**
@@ -451,8 +327,6 @@ public class TuneUrlTag {
     sb.append("    \"description\": ").append('"').append(getDescription()).append("\",\n");
     sb.append("    \"type\": ").append('"').append(getType()).append("\",\n");
     sb.append("    \"info\": ").append('"').append(getInfo()).append("\",\n");
-    sb.append("    \"matchPercentage\": ").append(getMatchPercentage()).append(",\n");
-    sb.append("    \"score\": ").append('"').append(getScore()).append("\",\n");
     sb.append("    \"similarity\": ").append('"').append(getSimilarity()).append("\",\n");
     sb.append("    \"index\": ").append(getIndex()).append(",\n");
     sb.append("    \"dataPosition\": ").append(getDataPosition()).append("\n");
@@ -472,8 +346,6 @@ public class TuneUrlTag {
     sb.append("    \"name\": ").append('"').append(getName()).append("\",");
     sb.append("    \"type\": ").append('"').append(getType()).append("\",");
     sb.append("    \"info\": ").append('"').append(getInfo()).append("\",");
-    sb.append("    \"matchPercentage\": ").append(getMatchPercentage()).append(",");
-    sb.append("    \"score\": ").append('"').append(getScore()).append("\",");
     sb.append("    \"similarity\": ").append('"').append(getSimilarity()).append("\",");
     sb.append("    \"index\": ").append(getIndex()).append(",");
     sb.append("    \"dataPosition\": ").append(getDataPosition());

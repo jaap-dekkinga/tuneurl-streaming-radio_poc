@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tuneurl.webrtc.util.controller.dto.EvaluateAudioStreamResponse;
 import com.tuneurl.webrtc.util.controller.dto.FingerprintResponse;
+import com.tuneurl.webrtc.util.controller.dto.FingerprintResponseNew;
 import com.tuneurl.webrtc.util.controller.dto.TuneUrlTag;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -41,10 +42,12 @@ public class RedisInstance {
   }
 
   public EvaluateAudioStreamResponse getOneSecondAudioStreamCache(
-      String offset, String url, byte[] dataFingerprint) {
+      String offset, String url, String dataFingerprintString) {
     if (jedis == null) {
       return null;
     }
+
+    byte[] dataFingerprint = dataFingerprintString.getBytes();
 
     String key = formatKey(offset, url, dataFingerprint);
 
@@ -90,11 +93,13 @@ public class RedisInstance {
   public void setOneSecondAudioStreamCache(
       String offset,
       String url,
-      byte[] dataFingerprint,
+      String dataFingerprintString,
       EvaluateAudioStreamResponse audioStreamResponse) {
     if (jedis == null) {
       return;
     }
+
+    byte[] dataFingerprint = dataFingerprintString.getBytes();
 
     String key = formatKey(offset, url, dataFingerprint);
 
@@ -134,8 +139,35 @@ public class RedisInstance {
 
     return result;
   }
+  public FingerprintResponseNew getFingerprintCacheNew(String url) {
+    if (jedis == null) {
+      return null;
+    }
+
+    FingerprintResponseNew result = null;
+    String cached = jedis.get("fingerprint--" + url);
+    if (cached != null) {
+      try {
+        cached = cached.replaceAll("\"", "\\\"");
+        System.out.println(cached);
+
+        ObjectMapper mapper = new ObjectMapper();
+        result = mapper.readValue(cached, FingerprintResponseNew.class);
+      } catch (JsonProcessingException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    return result;
+  }
 
   public void setFingerprintCache(String url, FingerprintResponse fingerprintResponse) {
+    if (jedis == null) {
+      return;
+    }
+    jedis.set("fingerprint--" + url, fingerprintResponse.toJson());
+  }
+  public void setFingerprintCacheNew(String url, FingerprintResponseNew fingerprintResponse) {
     if (jedis == null) {
       return;
     }

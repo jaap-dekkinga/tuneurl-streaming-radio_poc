@@ -33,6 +33,9 @@ package com.tuneurl.webrtc.util.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import com.tuneurl.webrtc.util.controller.dto.FingerprintEntryItem;
+
+import java.util.List;
 /**
  * Class FingerprintResponse DTO to hold Fingerprint response.
  *
@@ -68,7 +71,7 @@ public class FingerprintResponse {
   private String dataEx;
 
   @JsonProperty("data")
-  private byte[] data;
+  private short[] data;
 
   /** Default constructor for FingerprintResponse class. */
   public FingerprintResponse() {
@@ -116,7 +119,7 @@ public class FingerprintResponse {
    *
    * @param data the data to set
    */
-  public void setData(byte[] data) {
+  public void setData(short[] data) {
     this.data = data;
   }
 
@@ -125,7 +128,7 @@ public class FingerprintResponse {
    *
    * @return the data
    */
-  public byte[] getData() {
+  public short[] getData() {
     return data;
   }
 

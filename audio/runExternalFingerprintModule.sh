@@ -49,16 +49,16 @@ function if_exists(){
 
 if_exists "$outputFilename" ;
 
-if_exists /home/ubuntu/audio/fingerprintexec ;
+if_exists /home/justin/audio/fingerprintexec ;
 
 rm -f "$resultFilename"
 
 if [ "x$method" = "xfingerprint" ]; then
 
-    /home/ubuntu/audio/fingerprintexec fingerprint < "$outputFilename" 1> "$resultFilename" 2>&1 ;
+    /home/justin/audio/fingerprintexec fingerprint < "$outputFilename" 1> "$resultFilename" 2>&1 ;
 
 else
 
-    /home/ubuntu/audio/fingerprintexec < "$outputFilename" 1> "$resultFilename" 2>&1 ;
+    /home/justin/audio/fingerprintexec < "$outputFilename" 1> "$resultFilename" 2>&1 ;
 
 fi

@@ -65,19 +65,9 @@ public class EvaluateAudioStreamEntry {
    * <p>It is used in setDataFingerprint(), getDataFingerprint().
    */
   @JsonProperty("dataFingerprint")
-  private byte[] dataFingerprint;
+  private String dataFingerprint;
 
-  /**
-   * The Triggersound Fingerprint size.
-   *
-   * <p>It can be any value.
-   *
-   * <p>It has both getter and setter.
-   *
-   * <p>It is used in setSizeFingerprint(), getSizeFingerprint().
-   */
-  @JsonProperty("sizeFingerprint")
-  private Long sizeFingerprint;
+
 
   /** Default constructor for EvaluateAudioStreamEntry class. */
   public EvaluateAudioStreamEntry() {
@@ -107,7 +97,7 @@ public class EvaluateAudioStreamEntry {
    *
    * @return the Triggersound Fingerprint Data
    */
-  public byte[] getDataFingerprint() {
+  public String getDataFingerprint() {
     return dataFingerprint;
   }
 
@@ -116,26 +106,8 @@ public class EvaluateAudioStreamEntry {
    *
    * @param dataFingerprint the Triggersound Fingerprint Data to set
    */
-  public void setDataFingerprint(byte[] dataFingerprint) {
+  public void setDataFingerprint(String dataFingerprint) {
     this.dataFingerprint = dataFingerprint;
-  }
-
-  /**
-   * Retrieves the Triggersound Fingerprint size.
-   *
-   * @return the Triggersound Fingerprint size
-   */
-  public Long getSizeFingerprint() {
-    return sizeFingerprint;
-  }
-
-  /**
-   * Sets the Triggersound Fingerprint size.
-   *
-   * @param sizeFingerprint the Triggersound Fingerprint size to set
-   */
-  public void setSizeFingerprint(Long sizeFingerprint) {
-    this.sizeFingerprint = sizeFingerprint;
   }
 
   /**
@@ -148,7 +120,6 @@ public class EvaluateAudioStreamEntry {
     sb.append("class EvaluateAudioStreamEntry {\n");
     sb.append("    \"audioData\": ").append('"').append(getAudioData()).append("\",\n");
     sb.append("    \"dataFingerprint\": ").append('"').append(getDataFingerprint()).append("\",\n");
-    sb.append("    \"sizeFingerprint\": ").append(getSizeFingerprint()).append("\n");
     sb.append("}\n");
     return sb.toString();
   }

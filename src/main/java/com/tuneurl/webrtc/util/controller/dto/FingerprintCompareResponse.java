@@ -44,42 +44,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class FingerprintCompareResponse {
 
   /**
-   * The Similarity position.
-   *
-   * <p>It can be any value.
-   *
-   * <p>It has both getter and setter.
-   *
-   * <p>It is used in setMostSimilarFramePosition(), getMostSimilarFramePosition().
-   */
-  @JsonProperty("mostSimilarFramePosition")
-  private Integer mostSimilarFramePosition;
-
-  /**
-   * The Start time.
-   *
-   * <p>It can be any value.
-   *
-   * <p>It has both getter and setter.
-   *
-   * <p>It is used in setMostSimilarStartTime(), getMostSimilarStartTime().
-   */
-  @JsonProperty("mostSimilarStartTime")
-  private Double mostSimilarStartTime;
-
-  /**
-   * The Score.
-   *
-   * <p>It can be any value.
-   *
-   * <p>It has both getter and setter.
-   *
-   * <p>It is used in setScore(), getScore().
-   */
-  @JsonProperty("score")
-  private Double score;
-
-  /**
    * The Similarity.
    *
    * <p>It can be any value.
@@ -89,7 +53,7 @@ public class FingerprintCompareResponse {
    * <p>It is used in setSimilarity(), getSimilarity().
    */
   @JsonProperty("similarity")
-  private Double similarity;
+  private Long similarity;
 
   /**
    * The Offset milli-seconds.
@@ -109,65 +73,11 @@ public class FingerprintCompareResponse {
   }
 
   /**
-   * Retrieves the Similarity position.
-   *
-   * @return the Similarity position
-   */
-  public Integer getMostSimilarFramePosition() {
-    return mostSimilarFramePosition;
-  }
-
-  /**
-   * Sets the Similarity position.
-   *
-   * @param mostSimilarFramePosition the Similarity position to set
-   */
-  public void setMostSimilarFramePosition(Integer mostSimilarFramePosition) {
-    this.mostSimilarFramePosition = mostSimilarFramePosition;
-  }
-
-  /**
-   * Retrieves the Start time.
-   *
-   * @return the Start time
-   */
-  public Double getMostSimilarStartTime() {
-    return mostSimilarStartTime;
-  }
-
-  /**
-   * Sets the Start time.
-   *
-   * @param mostSimilarStartTime the Start time to set
-   */
-  public void setMostSimilarStartTime(Double mostSimilarStartTime) {
-    this.mostSimilarStartTime = mostSimilarStartTime;
-  }
-
-  /**
-   * Retrieves the Score.
-   *
-   * @return the Score
-   */
-  public Double getScore() {
-    return score;
-  }
-
-  /**
-   * Sets the Score.
-   *
-   * @param score the Score to set
-   */
-  public void setScore(Double score) {
-    this.score = score;
-  }
-
-  /**
    * Retrieves the Similarity.
    *
    * @return the Similarity
    */
-  public Double getSimilarity() {
+  public Long getSimilarity() {
     return similarity;
   }
 
@@ -176,7 +86,7 @@ public class FingerprintCompareResponse {
    *
    * @param similarity the Similarity to set
    */
-  public void setSimilarity(Double similarity) {
+  public void setSimilarity(Long similarity) {
     this.similarity = similarity;
   }
 
@@ -206,14 +116,6 @@ public class FingerprintCompareResponse {
   public String toString() {
     java.lang.StringBuffer sb = new java.lang.StringBuffer();
     sb.append("class FingerprintCompareResponse {\n");
-    sb.append("    \"mostSimilarFramePosition\": ")
-        .append(getMostSimilarFramePosition())
-        .append(",\n");
-    sb.append("    \"mostSimilarStartTime\": ")
-        .append('"')
-        .append(getMostSimilarStartTime())
-        .append("\",\n");
-    sb.append("    \"score\": ").append('"').append(getScore()).append("\",\n");
     sb.append("    \"similarity\": ").append('"').append(getSimilarity()).append("\",\n");
     sb.append("    \"offset\": ").append(getOffset()).append("\n");
     sb.append("}\n");

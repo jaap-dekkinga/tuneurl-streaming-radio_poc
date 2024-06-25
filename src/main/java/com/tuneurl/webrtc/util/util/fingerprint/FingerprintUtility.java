@@ -34,9 +34,14 @@ package com.tuneurl.webrtc.util.util.fingerprint;
 import com.tuneurl.webrtc.util.controller.dto.*;
 import com.tuneurl.webrtc.util.util.*;
 import com.tuneurl.webrtc.util.value.Constants;
+
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 import lombok.Getter;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Fingerprint utility.
@@ -120,38 +125,16 @@ public class FingerprintUtility {
         dataFingerprintBufferSize);
   }
 
-  /**
-   * Helper method to selection the best FingerprintCompareResponse.
-   *
-   * @param selection Array of FingerprintCompareResponse
-   * @return FingerprintCompareResponse or null.
-   */
-  public static final FingerprintCompareResponse findBestFingerprint(
-      List<FingerprintCompareResponse> selection) {
-    if (selection == null || selection.isEmpty()) {
-      return null;
-    }
-    FingerprintCompareResponse fcr = selection.get(0);
-    for (FingerprintCompareResponse fcx : selection) {
-      if (CommonUtil.compareDouble(fcx.getScore(), fcr.getScore()) >= 0) {
-        if (CommonUtil.compareDouble(fcx.getSimilarity(), fcr.getSimilarity()) >= 0) {
-          fcr = fcx;
-        }
-      }
-    }
-    return fcr;
-  }
-
-  public static final String convertFingerprintToString(final byte[] data) {
+  public static final String convertFingerprintToString(final short[] data) {
     int offset;
     final String Comma = ",";
     StringBuffer sb = new StringBuffer();
     sb.append(fingerprint_prefix).append("[");
     if (data.length > 0) {
-      sb.append(ProcessHelper.byte2short(data[0]));
+      sb.append(data[0]);
       for (offset = 1; offset < data.length; offset++) {
         sb.append(Comma);
-        sb.append(ProcessHelper.byte2short(data[offset]));
+        sb.append(data[offset]);
       }
     }
     sb.append("]").append(fingerprint_suffix);
@@ -169,7 +152,7 @@ public class FingerprintUtility {
    */
   public static final boolean updateTuneUrlTag(
       MessageLogger logger,
-      final byte[] data,
+      final short[] data,
       TuneUrlTag tag,
       long index,
       FingerprintCompareResponse fcr) {
@@ -194,12 +177,8 @@ public class FingerprintUtility {
    */
   public static final FingerprintCompareResponse resetResponseValue(
       FingerprintCompareResponse fcr, final long timeOffset) {
-    double zero = 0.0;
     fcr.setOffset(timeOffset);
-    fcr.setMostSimilarFramePosition(0);
-    fcr.setMostSimilarStartTime(zero);
-    fcr.setScore(zero);
-    fcr.setSimilarity(zero);
+    fcr.setSimilarity(0L);
     return fcr;
   }
 
@@ -234,24 +213,22 @@ public class FingerprintUtility {
    */
   public void writeFingerprintDataWithBuffer(
       final String fileName,
-      final StringBuffer bufferedOne,
-      final byte[] two,
-      final int onesize,
+      final String dataFingerprint,
+      final short[] two,
       final int twosize) {
+
     final String SPC = " ";
     final String CRLF = "\n";
     StringBuffer sb = new StringBuffer();
-    sb.append(onesize).append(CRLF).append(twosize).append(CRLF);
-    sb.append(bufferedOne);
 
+    sb.append(dataFingerprint).append(CRLF).append(twosize).append(CRLF);
     if (twosize > 0) {
-      sb.append(ProcessHelper.byte2short(two[0]));
+      sb.append(two[0]);
       for (int index = 1; index < twosize; index++) {
         sb.append(SPC);
-        sb.append(ProcessHelper.byte2short(two[index]));
+        sb.append(two[index]);
       }
     }
-
     sb.append(CRLF);
 
     fingerprintExternals.writeStringBuffer(fileName, sb);
@@ -300,11 +277,12 @@ public class FingerprintUtility {
       Long timeOffset,
       final String rootDir,
       Random random,
-      StringBuffer dataFingerprintBuffer,
-      int dataFingerprintSize) {
-    byte[] cData;
+      String dataFingerprint) {
+   
+    short[] cData;
     FingerprintCompareResponse fcr = null;
-    if ((null != fr) && fr.getSize() > 1L) {
+    if ((null != fr) && fr.getSize() > 1L) 
+    {
       cData = fr.getData();
       try {
         fcr =
@@ -312,8 +290,7 @@ public class FingerprintUtility {
                 random,
                 rootDir,
                 timeOffset,
-                dataFingerprintBuffer,
-                dataFingerprintSize,
+                dataFingerprint,
                 cData,
                 cData.length);
         if (null == fcr.getOffset()) {
@@ -332,157 +309,16 @@ public class FingerprintUtility {
       List<FingerprintResponse> frSelection,
       FingerprintCompareResponse fcr,
       FingerprintResponse fr) {
-    FingerprintCompareResponse fca;
-    FingerprintCompareResponse fcb;
-    FingerprintCompareResponse fcc;
-    FingerprintCompareResponse fcd;
-    FingerprintCompareResponse fce;
 
-    fca = selection.get(0);
-    fcb = selection.get(1);
-    fcc = selection.get(2);
-    fcd = selection.get(3);
-    fce = selection.get(4);
-
-    //  8: N P N N N => P is the valid TuneUrl trigger sound
-    // 15: N P P P P => N is the valid TuneUrl trigger sound
-    // 30: P P P P N => N is the valid TuneUrl trigger sound
-    if (FingerprintUtility.hasNegativeFrameStartTimeEx(fca)
-        && FingerprintUtility.hasPositiveFrameStartTimeEx(fcb)) {
-      if (FingerprintUtility.hasNegativeFrameStartTimeEx(fcc)) {
-        // N P N
-        if (FingerprintUtility.isFrameStartTimeEqual(fca, fcc)
-            && FingerprintUtility.isFrameStartTimeEqual(fcc, fcd)
-            && FingerprintUtility.isFrameStartTimeEqual(fcd, fce)) {
-          // N P N N N => P is the valid TuneUrl trigger sound
-          fcr = selection.get(1);
-          fr = frSelection.get(1);
-        }
-      } else if (FingerprintUtility.hasPositiveFrameStartTimeEx(fcc)
-          && FingerprintUtility.isFrameStartTimeEqual(fcc, fcb)
-          && FingerprintUtility.isFrameStartTimeEqual(fcc, fcd)
-          && FingerprintUtility.isFrameStartTimeEqual(fcd, fce)) {
-        // N P P P P => N is the valid TuneUrl trigger sound
-        fcr = selection.get(0);
-        fr = frSelection.get(0);
+    for (int i = 0; i < selection.size(); i++) {
+      FingerprintCompareResponse f = selection.get(i);
+      if (f.getSimilarity() > 0) {
+          fcr = f;
+          fr = frSelection.get(i); // Assuming frSelection is another list corresponding to selection
+          break; // Exit loop once a valid selection is made
       }
-    } else if (FingerprintUtility.hasPositiveFrameStartTimeEx(fca)
-        && FingerprintUtility.hasNegativeFrameStartTimeEx(fce)) {
-      // P . . . N
-      if (FingerprintUtility.isFrameStartTimeEqual(fca, fcb)
-          && FingerprintUtility.isFrameStartTimeEqual(fcb, fcc)
-          && FingerprintUtility.isFrameStartTimeEqual(fcc, fcd)) {
-        // P P P P N => N is the valid TuneUrl trigger sound
-        fcr = selection.get(4);
-        fr = frSelection.get(4);
-      }
-    }
-
+    }      
     return new Object[] {fcr, fr};
   }
 
-  /**
-   * Helper method to check if FingerprintCompareResponse Frame and StartTime have negative values.
-   *
-   * @param fcr FingerprintCompareResponse
-   * @return boolean true if both Frame and StartTime have negative values, otherwise false.
-   */
-  public static final boolean hasNegativeFrameStartTimeEx(FingerprintCompareResponse fcr) {
-    return (fcr.getMostSimilarFramePosition() < 0)
-        && (CommonUtil.compareDouble(fcr.getMostSimilarStartTime(), Converter.ZERO) < 0);
-  }
-
-  /**
-   * Helper method to check if FingerprintCompareResponse Frame and StartTime have positive values.
-   *
-   * @param fcr FingerprintCompareResponse
-   * @return boolean true if both Frame and StartTime have positive values, otherwise false.
-   */
-  public static final boolean hasPositiveFrameStartTimeEx(FingerprintCompareResponse fcr) {
-    return (fcr.getMostSimilarFramePosition() > 0)
-        && (CommonUtil.compareDouble(fcr.getMostSimilarStartTime(), Converter.ZERO) > 0);
-  }
-
-  /**
-   * Helper to comapare two FingerprintCompareResponse were equal.
-   *
-   * @param fca FingerprintCompareResponse
-   * @param fcb FingerprintCompareResponse
-   * @return boolean true if equal, otherwise false
-   */
-  public static final boolean isFrameStartTimeEqual(
-      FingerprintCompareResponse fca, FingerprintCompareResponse fcb) {
-    if (fca.getMostSimilarFramePosition().intValue()
-        == fcb.getMostSimilarFramePosition().intValue()) {
-
-      return CommonUtil.compareDouble(fca.getMostSimilarStartTime(), fcb.getMostSimilarStartTime())
-          == 0;
-    }
-    return false;
-  }
-
-  /**
-   * Helper method to check if two given tag have similar Frame and StartTime values.
-   *
-   * @param a TuneUrlTag
-   * @param b TuneUrlTag
-   * @return boolean true if tags have similar Frame and StartTime values, otherwise false.
-   */
-  public static final boolean hasSimilarFrameStartTime(TuneUrlTag a, TuneUrlTag b) {
-    return a.getMostSimilarFramePosition().intValue() == b.getMostSimilarFramePosition().intValue()
-        && CommonUtil.compareDouble(a.getMostSimilarStartTime(), b.getMostSimilarStartTime()) == 0;
-  }
-
-  /**
-   * Helper method to check if two given tag have similar and negative values for Frame and
-   * StartTime.
-   *
-   * @param a TuneUrlTag
-   * @param b TuneUrlTag
-   * @return boolean true if tags have similar and negative values for Frame and StartTime,
-   *     otherwise false.
-   */
-  public static final boolean hasNegativeSimilarFrameStartTime(TuneUrlTag a, TuneUrlTag b) {
-    if (a.getMostSimilarFramePosition() < 0) {
-
-      if (a.getMostSimilarFramePosition().intValue()
-          == b.getMostSimilarFramePosition().intValue()) {
-
-        if (CommonUtil.compareDouble(a.getMostSimilarStartTime(), 0.0) < 0) {
-
-          return CommonUtil.compareDouble(a.getMostSimilarStartTime(), b.getMostSimilarStartTime())
-              == 0;
-        }
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Helper method to check the given tag have negative Frame and StartTime values.
-   *
-   * @param a TuneUrlTag
-   * @return boolean true if tag have negative Frame and StartTime values, otherwise false.
-   */
-  public static final boolean hasNegativeSimilarFrameStartTimeEx(TuneUrlTag a) {
-    if (a.getMostSimilarFramePosition() < 0) {
-
-      return CommonUtil.compareDouble(a.getMostSimilarStartTime(), 0.0) < 0;
-    }
-    return false;
-  }
-
-  /**
-   * Helper method to check the given tag have positive Frame and StartTime values.
-   *
-   * @param a TuneUrlTag
-   * @return boolean true if tag have positive Frame and StartTime values, otherwise false.
-   */
-  public static final boolean hasPositiveSimilarFrameStartTime(TuneUrlTag a) {
-    if (a.getMostSimilarFramePosition() > 0) {
-
-      return CommonUtil.compareDouble(a.getMostSimilarStartTime(), 0.0) > 0;
-    }
-    return false;
-  }
 }

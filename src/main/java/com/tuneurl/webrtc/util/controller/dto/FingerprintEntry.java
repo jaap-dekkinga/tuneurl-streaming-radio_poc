@@ -64,7 +64,7 @@ public class FingerprintEntry {
    * <p>It is used in setData(), getData().
    */
   @JsonProperty("data")
-  private byte[] data;
+  private short[] data;
 
   /**
    * Retrieves the size.
@@ -89,7 +89,7 @@ public class FingerprintEntry {
    *
    * @param data the data to set
    */
-  public void setData(byte[] data) {
+  public void setData(short[] data) {
     this.data = data;
   }
 
@@ -98,7 +98,7 @@ public class FingerprintEntry {
    *
    * @return the data
    */
-  public byte[] getData() {
+  public short[] getData() {
     return data;
   }
 

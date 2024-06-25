@@ -252,7 +252,7 @@ public final class Converter {
    * @return TuneUrlTag instance
    */
   public static final TuneUrlTag convertToTuneUrlTag(
-      final TuneUrlEntry entry, Double score, Double similarity) {
+      final TuneUrlEntry entry, Long similarity) {
     TuneUrlTag instance = new TuneUrlTag();
     instance.setId(entry.getId());
     instance.setName(CommonUtil.getString(entry.getName(), Constants.AUDIOSTREAM_TITLE_SIZE));
@@ -260,9 +260,7 @@ public final class Converter {
         CommonUtil.getString(entry.getDescription(), Constants.AUDIOSTREAM_TITLE_SIZE));
     instance.setType(entry.getType());
     instance.setInfo(CommonUtil.getString(entry.getInfo(), Constants.AUDIOSTREAM_URL_SIZE));
-    instance.setMatchPercentage(entry.getMatchPercentage());
-    instance.setScore(score != null ? score : Converter.ZERO);
-    instance.setSimilarity(similarity != null ? similarity : Converter.ZERO);
+    instance.setSimilarity(similarity != null ? similarity : 0L);
     return instance;
   }
 

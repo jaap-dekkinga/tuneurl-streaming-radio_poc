@@ -141,9 +141,8 @@ public class OneSecondAudioStreamController extends BaseController {
     // The Fingerprint rate.
     Long fingerprintRate = audioDataEntry.getFingerprintRate();
     // The Triggersound Fingerprint Data.
-    byte[] dataFingerprint = evaluateAudioStreamEntry.getDataFingerprint();
-    // The size of Fingerprint Data.
-    Long sizeFingerprint = evaluateAudioStreamEntry.getSizeFingerprint();
+    // byte[] dataFingerprint = evaluateAudioStreamEntry.getDataFingerprint();\
+    String dataFingerprint = evaluateAudioStreamEntry.getDataFingerprint();
     logger.logEntry(
         signature,
         new Object[] {
@@ -154,8 +153,7 @@ public class OneSecondAudioStreamController extends BaseController {
           "SRate=", sampleRate,
           "duration=", duration,
           "FRate=", fingerprintRate,
-          "fingerprintData=", dataFingerprint.length == sizeFingerprint,
-          "sizeFingerprint=", sizeFingerprint
+          "fingerprintData=", dataFingerprint,
         });
 
     // 1. Check for ADMIN or USER role.
@@ -165,10 +163,6 @@ public class OneSecondAudioStreamController extends BaseController {
 
     Converter.checkAudioDataEntryDataSize(audioDataEntry);
     Converter.validateShortDataSize(data, size);
-    Converter.validateDataSizeEx(dataFingerprint, sizeFingerprint.intValue());
-    StringBuffer dataFingerprintBuffer =
-        FingerprintUtility.getFingerprintBufferedPart(dataFingerprint, dataFingerprint.length);
-    int dataFingerprintBufferSize = dataFingerprint.length;
 
     final String fileName = Converter.validateUrlOrGencrc32(url);
     ProcessHelper.checkNullOrEmptyString(fileName, "AudioDataEntry.Url");
@@ -182,8 +176,7 @@ public class OneSecondAudioStreamController extends BaseController {
             dataOffset,
             data,
             fingerprintRate,
-            dataFingerprintBuffer,
-            dataFingerprintBufferSize);
+            dataFingerprint);
 
     this.redis.setOneSecondAudioStreamCache(
         httpRequest.getParameter("offset"),

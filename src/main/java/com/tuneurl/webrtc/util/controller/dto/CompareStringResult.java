@@ -44,31 +44,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class CompareStringResult {
 
   /**
-   * The Frame position.
-   *
-   * <p>It can be any value.
-   *
-   * <p>It has both getter and setter.
-   *
-   * <p>It is used in setMostSimilarFramePosition(), getMostSimilarFramePosition().
-   */
-  @JsonProperty("mostSimilarFramePosition")
-  private String mostSimilarFramePosition;
-
-  /**
-   * The Start time.
-   *
-   * <p>It can be any value.
-   *
-   * <p>It has both getter and setter.
-   *
-   * <p>It is used in setMostSimilarStartTime(), getMostSimilarStartTime().
-   */
-  @JsonProperty("mostSimilarStartTime")
-  private String mostSimilarStartTime;
-
-  /**
-   * The Score.
+   * The offset.
    *
    * <p>It can be any value.
    *
@@ -76,8 +52,8 @@ public class CompareStringResult {
    *
    * <p>It is used in setScore(), getScore().
    */
-  @JsonProperty("score")
-  private String score;
+  @JsonProperty("offset")
+  private String offset;
 
   /**
    * The Similarity.
@@ -96,58 +72,23 @@ public class CompareStringResult {
     // does nothing.
   }
 
+  
   /**
-   * Retrieves the Frame position.
+   * Retrieves the offset.
    *
-   * @return the Frame position
+   * @return the offset
    */
-  public String getMostSimilarFramePosition() {
-    return mostSimilarFramePosition;
+  public String getOffset() {
+    return offset;
   }
 
   /**
-   * Sets the Frame position.
+   * Sets the offset.
    *
-   * @param mostSimilarFramePosition the Frame position to set
+   * @param offset the offset to set
    */
-  public void setMostSimilarFramePosition(String mostSimilarFramePosition) {
-    this.mostSimilarFramePosition = mostSimilarFramePosition;
-  }
-
-  /**
-   * Retrieves the Start time.
-   *
-   * @return the Start time
-   */
-  public String getMostSimilarStartTime() {
-    return mostSimilarStartTime;
-  }
-
-  /**
-   * Sets the Start time.
-   *
-   * @param mostSimilarStartTime the Start time to set
-   */
-  public void setMostSimilarStartTime(String mostSimilarStartTime) {
-    this.mostSimilarStartTime = mostSimilarStartTime;
-  }
-
-  /**
-   * Retrieves the Score.
-   *
-   * @return the Score
-   */
-  public String getScore() {
-    return score;
-  }
-
-  /**
-   * Sets the Score.
-   *
-   * @param score the Score to set
-   */
-  public void setScore(String score) {
-    this.score = score;
+  public void setOffset(String offset) {
+    this.offset = offset;
   }
 
   /**
@@ -175,16 +116,7 @@ public class CompareStringResult {
    */
   public String toString() {
     java.lang.StringBuffer sb = new java.lang.StringBuffer();
-    sb.append("class CompareStringResult {\n");
-    sb.append("    \"mostSimilarFramePosition\": ")
-        .append('"')
-        .append(getMostSimilarFramePosition())
-        .append("\",\n");
-    sb.append("    \"mostSimilarStartTime\": ")
-        .append('"')
-        .append(getMostSimilarStartTime())
-        .append("\",\n");
-    sb.append("    \"score\": ").append('"').append(getScore()).append("\",\n");
+     sb.append("    \"offset\": ").append('"').append(getOffset()).append("\",\n");
     sb.append("    \"similarity\": ").append('"').append(getSimilarity()).append("\"\n");
     sb.append("}\n");
     return sb.toString();

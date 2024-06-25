@@ -587,11 +587,11 @@ public class AudioStreamController extends BaseController {
         @ApiResponse(code = 500, message = "InternalServerError"),
       })
   @CrossOrigin("*")
-  public ResponseEntity<FingerprintResponse> calculateFingerprint(
+  public ResponseEntity<FingerprintResponseNew> calculateFingerprint(
       @Valid @RequestBody AudioDataEntry audioDataEntry,
       HttpServletRequest httpRequest,
       HttpServletResponse httpResponse) {
-    FingerprintResponse cachedResponse = redis.getFingerprintCache(audioDataEntry.getUrl());
+      FingerprintResponseNew cachedResponse = redis.getFingerprintCacheNew(audioDataEntry.getUrl());
     if (cachedResponse != null) {
       return ResponseEntity.ok().body(cachedResponse);
     }
@@ -634,10 +634,10 @@ public class AudioStreamController extends BaseController {
 
     Random random = new Random();
     random.setSeed(new Date().getTime());
-    FingerprintResponse response =
+    FingerprintResponseNew response =
         fingerprintExternals.runExternalFingerprinting(random, rootDir, data, data.length);
 
-    redis.setFingerprintCache(audioDataEntry.getUrl(), response);
+    redis.setFingerprintCacheNew(audioDataEntry.getUrl(), response);
 
     return ResponseEntity.ok().body(response);
   }

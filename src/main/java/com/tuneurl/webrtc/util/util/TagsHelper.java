@@ -51,10 +51,7 @@ public class TagsHelper {
         signature,
         new Object[] {
           "pos=", tag.getDataPosition(),
-          "score=", tag.getScore(),
           "similarity=", tag.getSimilarity(),
-          "Frame=", tag.getMostSimilarFramePosition(),
-          "StartTime=", tag.getMostSimilarStartTime(),
           "index=", tag.getIndex()
         });
   }
@@ -110,14 +107,14 @@ public class TagsHelper {
     } else if (limit > 1) {
       fx = frSelection.get(0);
       fcx = fcrSelection.get(0);
-      for (index = 1; index < limit; index++) {
-        fr = frSelection.get(index);
-        fcr = fcrSelection.get(index);
-        if (CommonUtil.compareDouble(fcr.getScore(), fcx.getScore()) > 0) {
-          fcx = fcr;
-          fx = fr;
-        }
-      }
+      // for (index = 1; index < limit; index++) {
+      //   fr = frSelection.get(index);
+      //   fcr = fcrSelection.get(index);
+      //   if (CommonUtil.compareDouble(fcr.getScore(), fcx.getScore()) > 0) {
+      //     fcx = fcr;
+      //     fx = fr;
+      //   }
+      // }
       tag = newTag(true, dataOffset, fx, fcx);
       tags.add(tag);
     }
@@ -131,63 +128,7 @@ public class TagsHelper {
    * @return List&lt;TuneUrlTag>
    */
   public final List<TuneUrlTag> pruneTags(List<TuneUrlTag> tags) {
-    ArrayList<TuneUrlTag> newTags = new ArrayList<>();
-    int index, limit = tags.size() - 4;
-    long distance;
-    TuneUrlTag a;
-    TuneUrlTag b;
-    TuneUrlTag c;
-    TuneUrlTag d;
-
-    for (index = 0; index <= limit; index++) {
-      a = tags.get(index);
-      b = tags.get(index + 1);
-      c = tags.get(index + 2);
-      d = tags.get(index + 3);
-      distance = b.getDataPosition() - a.getDataPosition();
-      if (distance > 800L) continue;
-      distance = c.getDataPosition() - b.getDataPosition();
-      if (distance > 800L) continue;
-      distance = d.getDataPosition() - c.getDataPosition();
-      if (distance > 800L) continue;
-      // 509 509 -214748364 -50
-      if (c.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
-        if (FingerprintUtility.hasPositiveSimilarFrameStartTime(a)
-            && FingerprintUtility.hasSimilarFrameStartTime(a, b)
-            && FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(d)) {
-          newTags.add(c);
-          index += 3;
-          continue;
-        }
-      }
-      // 509 -214748364 -50 -50
-      if (b.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
-        if (FingerprintUtility.hasPositiveSimilarFrameStartTime(a)
-            && FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(c)
-            && FingerprintUtility.hasSimilarFrameStartTime(c, d)) {
-          newTags.add(d);
-          index += 3;
-          continue;
-        }
-      }
-      // -214748364 -50 -50 -50
-      if (a.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
-        if (FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(b)
-            && FingerprintUtility.hasSimilarFrameStartTime(b, c)
-            && FingerprintUtility.hasSimilarFrameStartTime(c, d)) {
-
-          distance = d.getDataPosition() - a.getDataPosition();
-          if (distance < 1100L) continue;
-          if (distance > 1100L) {
-            newTags.add(b);
-          } else {
-            newTags.add(d);
-          }
-          index += 3;
-        }
-      }
-    }
-    return newTags;
+    return tags;
   }
 
   /**
@@ -200,82 +141,6 @@ public class TagsHelper {
    */
   public final List<TuneUrlTag> pruneTagsEx(
       boolean isDebugOn, MessageLogger logger, List<TuneUrlTag> tags) {
-
-    ArrayList<TuneUrlTag> newTags = new ArrayList<>();
-    int index, limit = tags.size() - 4;
-    long d1, d2, d3, distance;
-    TuneUrlTag a;
-    TuneUrlTag b;
-    TuneUrlTag c;
-    TuneUrlTag d;
-
-    for (index = 0; index <= limit; index++) {
-      a = tags.get(index);
-      b = tags.get(index + 1);
-      c = tags.get(index + 2);
-      d = tags.get(index + 3);
-      d1 = b.getDataPosition() - a.getDataPosition();
-      if (d1 > 800L) continue;
-      d2 = c.getDataPosition() - b.getDataPosition();
-      if (d2 > 800L) continue;
-      d3 = d.getDataPosition() - c.getDataPosition();
-      if (d3 > 800L) continue;
-      distance = d.getDataPosition() - a.getDataPosition();
-      if (isDebugOn) {
-        logger.debug(
-            "{\"Leaving\":{pruneTagsEx(%d %d %d %d %d, diff=%d %d %d %d)}}",
-            a.getDataPosition(),
-            a.getMostSimilarFramePosition(),
-            b.getMostSimilarFramePosition(),
-            c.getMostSimilarFramePosition(),
-            d.getMostSimilarFramePosition(),
-            d1,
-            d2,
-            d3,
-            distance);
-      }
-      // 509 509 -214748364 -50
-      // 509 509          N -50 SELECT C 2880
-      if (c.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
-        if (FingerprintUtility.hasPositiveSimilarFrameStartTime(a)
-            && FingerprintUtility.hasSimilarFrameStartTime(a, b)
-            && FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(d)) {
-
-          if (distance > 1840L) {
-            newTags.add(c);
-            index += 3;
-          }
-          continue;
-        }
-      }
-      // 509 -214748364 -50 -50
-      // 509          N -50 -50 SELECT C 13200
-      if (b.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
-        if (FingerprintUtility.hasPositiveSimilarFrameStartTime(a)
-            && FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(c)
-            && FingerprintUtility.hasSimilarFrameStartTime(c, d)) {
-
-          if (distance > 1280L) {
-            newTags.add(c);
-            index += 3;
-          }
-          continue;
-        }
-      }
-      // -214748364 -50 -50 -50
-      //          N -50 -50 -50 SELECT B 33900
-      if (a.getMostSimilarFramePosition() == Constants.FRAME_LOWEST_VALUE) {
-        if (FingerprintUtility.hasNegativeSimilarFrameStartTimeEx(b)
-            && FingerprintUtility.hasSimilarFrameStartTime(b, c)
-            && FingerprintUtility.hasSimilarFrameStartTime(c, d)) {
-
-          if (distance > 1096L) {
-            newTags.add(b);
-            index += 3;
-          }
-        }
-      }
-    }
-    return newTags;
+        return tags;
   }
 }

@@ -38,8 +38,7 @@ public FindFingerPrintResponse findFingerPrintsAudioStream(
       Long dataOffset,
       short[] data,
       Long fingerprintRate,
-      StringBuffer dataFingerprintBuffer,
-      int dataFingerprintBufferSize);
+      String dataFingerprint);
 
   public LinkedList<FingerprintThreadCollector> parallelFingerprintCollect(
       short[] data,

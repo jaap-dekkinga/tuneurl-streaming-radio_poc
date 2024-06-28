@@ -2,7 +2,7 @@
  * @license BSD 3-Clause License
  *
  * @copyright Copyright (c) 2023-2024, Jaap Dekkinga, <jaap.dekkinga@gmail.com>
- * @copyright Copyright (c) 2023-2024, Jaap Dekkinga, <jaap.dekkinga@gmail.com>
+ * @copyright Copyright (c) 2023-2024, Teodoro M. Albon, <albonteddy@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,8 +30,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 "use strict";
-// const base_host = "https://streaming.tuneurl-demo.com";
-const base_host = "http://localhost:8281";
+const base_host = "https://streaming.tuneurl-demo.com";
+// const base_host = "http://localhost:8281";
 const LOAD_FROM_THIS_URL = "http://stream.radiojar.com/vzv0nkgsw7uvv";
 // const TEST_MP3_FILE = base_host + "/audio/10.1s.mp3";
 const TEST_MP3_FILE = base_host + "/audio/10240-audio-streams-0230000.mp3";

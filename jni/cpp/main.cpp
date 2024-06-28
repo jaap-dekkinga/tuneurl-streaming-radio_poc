@@ -556,7 +556,7 @@ SearchResult getSearchResult(vector<int16_t> data, const DataFingerPrint& df) {
   int length = data.size();
 
   int triggerMax = df.max;
-  int segmentSize = 11025;
+  int segmentSize = 12000;
   int interval = 220;
 
   const int START_THRESHOLD = 50;

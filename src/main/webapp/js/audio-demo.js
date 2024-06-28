@@ -262,18 +262,6 @@ class AudioStreamPlayer {
         this.source = this.audioContext.createBufferSource();
         this.source.connect(this.audioContext.destination);
 
-        // ************************************************************************************************
-        // Record the start time
-        this.startedPlayTime = Date.now();
-        // Start the timer
-        this.timerInterval = setInterval(() => {
-            const currentTime = Date.now();
-            this.totalPlayTime += (currentTime - this.startedPlayTime);  // Convert milliseconds to seconds
-            updatePocTitle(this.totalPlayTime);
-            this.startedPlayTime = currentTime;  // Reset start time for the next interval
-        }, 10);  // Update every 10 millisecond
-        // ************************************************************************************************
-
         this.isPaused = false;
         this.isPlaying = true;
         this.isFirstPlay = false;
@@ -290,11 +278,21 @@ class AudioStreamPlayer {
             this.source.start(0);
         }
 
+        // ************************************************************************************************
+        // Record the start time
+        this.startedPlayTime = this.audioContext.currentTime;
+        // Start the timer
+        this.timerInterval = setInterval(() => {
+            const currentTime = this.audioContext.currentTime;
+            this.totalPlayTime += ((currentTime - this.startedPlayTime)* 1000);  // Convert milliseconds to seconds
+            updatePocTitle(this.totalPlayTime);
+            this.startedPlayTime = currentTime;  // Reset start time for the next interval
+        }, 10);  // Update every 10 millisecond
+        // ************************************************************************************************
+
         this.source.onended = () => {
             // console.log('play_stream: onended');
             clearInterval(this.timerInterval);
-            const currentTime = Date.now();
-            this.totalPlayTime += (currentTime - this.startedPlayTime);
     
             this.isPlaying = false;
             this.play(false);
@@ -307,8 +305,6 @@ class AudioStreamPlayer {
         // -----------------------------------------------------------------------
         // Clear the interval and update the total play time
         clearInterval(this.timerInterval);
-        const currentTime = Date.now();
-        this.totalPlayTime += (currentTime - this.startedPlayTime);
         // this.startedPlayTime = 0;
 
         this.pause_buff = this.source.buffer;
@@ -779,7 +775,7 @@ async function showPopupByAudioStream(totalPlayTime) {
     let threshold = 2500;
 
     for (let i = 0; i < activeAudioTags.liveTags.length; i ++) {
-        let diff = totalPlayTime* 1.055 - activeAudioTags.liveTags[i].dataPosition;
+        let diff = totalPlayTime* 1.04 - activeAudioTags.liveTags[i].dataPosition;
 
         if (diff > 0 && diff <= threshold) {
             activeAudioTags.liveTags.splice(i, 1);

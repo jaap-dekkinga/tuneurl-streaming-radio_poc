@@ -146,7 +146,7 @@ public class RedisInstance {
     }
 
     FingerprintResponseNew result = null;
-    String cached = jedis.get("fingerprint--" + url);
+    String cached = jedis.get("fingerprintNew--" + url);
     if (cached != null) {
       try {
         cached = cached.replaceAll("\"", "\\\"");

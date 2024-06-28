@@ -79,11 +79,10 @@ public class TagsHelper {
   public final List<TuneUrlTag> pruneTags(List<TuneUrlTag> tags) {
     int size = tags.size();
 
-    while ( tags.size() > 1) {
+    while (tags.size() > 1) {
       Long dataPostion1 = tags.get(0).getDataPosition();
       Long dataPostion2 = tags.get(1).getDataPosition();
-      if (Math.abs(dataPostion1 -dataPostion2) < 1000)
-        tags.remove(0);
+      if (Math.abs(dataPostion1 - dataPostion2) < 1000) tags.remove(0);
     }
     return tags;
   }
@@ -98,6 +97,6 @@ public class TagsHelper {
    */
   public final List<TuneUrlTag> pruneTagsEx(
       boolean isDebugOn, MessageLogger logger, List<TuneUrlTag> tags) {
-        return tags;
+    return tags;
   }
 }

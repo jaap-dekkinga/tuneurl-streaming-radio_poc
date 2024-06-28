@@ -43,7 +43,6 @@ import com.tuneurl.webrtc.util.util.fingerprint.FingerprintThreadCollector;
 import com.tuneurl.webrtc.util.util.fingerprint.FingerprintUtility;
 import com.tuneurl.webrtc.util.value.Constants;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -164,13 +163,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
 
     LinkedList<FingerprintThreadCollector> fingerprintThreadList =
         parallelFingerprintCollect(
-            data,
-            fingerprintRate,
-            dataFingerprint,
-            maxDuration,
-            counts,
-            rootDir,
-            random);
+            data, fingerprintRate, dataFingerprint, maxDuration, counts, rootDir, random);
 
     for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
       if (fingerprintThreadList.isEmpty()) {
@@ -193,7 +186,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
           boolean duplicate = false;
 
           if (liveTags.size() > 0) {
-            for (int i = 0; i < liveTags.size(); i ++) {
+            for (int i = 0; i < liveTags.size(); i++) {
 
               if (liveTags.get(i).getDataPosition().equals(fcr.getOffset())) {
                 duplicate = true;
@@ -202,8 +195,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
               }
             }
           }
-          if (duplicate)
-            continue;
+          if (duplicate) continue;
 
           timeOffset = fcr.getOffset();
           baseOffset = timeOffset;
@@ -252,11 +244,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
   }
 
   public EvaluateAudioStreamResponse evaluateOneSecondAudioStream(
-      long duration,
-      Long dataOffset,
-      short[] data,
-      Long fingerprintRate,
-      String dataFingerprint) {
+      long duration, Long dataOffset, short[] data, Long fingerprintRate, String dataFingerprint) {
     final String signature = "evaluateOneSecondAudioStream";
     final String signature2 = "evaluateOneSecondAudioStream:Pruning";
     EvaluateAudioStreamResponse response = new EvaluateAudioStreamResponse();
@@ -279,13 +267,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
 
     LinkedList<FingerprintThreadCollector> fingerprintThreadList =
         parallelFingerprintCollect(
-            data,
-            fingerprintRate,
-            dataFingerprint,
-            maxDuration,
-            counts,
-            rootDir,
-            random);
+            data, fingerprintRate, dataFingerprint, maxDuration, counts, rootDir, random);
 
     for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
       if (fingerprintThreadList.isEmpty()) {
@@ -352,11 +334,11 @@ public class AudioStreamServiceImpl implements AudioStreamService {
 
     return response;
   }
-  
+
   public FindFingerPrintResponse findFingerPrintsAudioStream(
-    AudioDataEntry audioDataEntry,
-    EvaluateAudioStreamEntry evaluateAudioStreamEntry,
-    String signature) {
+      AudioDataEntry audioDataEntry,
+      EvaluateAudioStreamEntry evaluateAudioStreamEntry,
+      String signature) {
     // The Audio Stream URL.
     String url = CommonUtil.getString(audioDataEntry.getUrl(), Constants.AUDIOSTREAM_URL_SIZE);
     // The Data.
@@ -372,17 +354,17 @@ public class AudioStreamServiceImpl implements AudioStreamService {
     // The Triggersound Fingerprint Data.
     String dataFingerprint = evaluateAudioStreamEntry.getDataFingerprint();
     this.logger.logEntry(
-          signature,
-          new Object[] {
-              "url=", url,
-              "data=", data.length == size,
-              "size=", size,
-              "SRate=", sampleRate,
-              "duration=", duration,
-              "FRate=", fingerprintRate,
-              "fingerprintData=", dataFingerprint,
-            });
-          
+        signature,
+        new Object[] {
+          "url=", url,
+          "data=", data.length == size,
+          "size=", size,
+          "SRate=", sampleRate,
+          "duration=", duration,
+          "FRate=", fingerprintRate,
+          "fingerprintData=", dataFingerprint,
+        });
+
     Converter.checkAudioDataEntryDataSize(audioDataEntry);
     Converter.validateShortDataSize(data, size);
     // Converter.validateDataSizeEx(dataFingerprint, sizeFingerprint.intValue());
@@ -419,18 +401,18 @@ public class AudioStreamServiceImpl implements AudioStreamService {
     random.setSeed(new Date().getTime());
 
     LinkedList<FingerprintThreadCollector> fingerprintThreadList =
-                parallelFingerprintCollect(
-                    data,
-                    fingerprintRate,
-                    dataFingerprint,
-                    // dataFingerprintBuffer,
-                    // dataFingerprintBufferSize,
-                    maxDuration,
-                    counts,
-                    rootDir,
-                    random);
-      
-      // return new FindFingerPrintResponse();
+        parallelFingerprintCollect(
+            data,
+            fingerprintRate,
+            dataFingerprint,
+            // dataFingerprintBuffer,
+            // dataFingerprintBufferSize,
+            maxDuration,
+            counts,
+            rootDir,
+            random);
+
+    // return new FindFingerPrintResponse();
     for (count = 0L, elapse = 0L; count < counts && elapse < maxDuration; count++, elapse += 100L) {
       if (fingerprintThreadList.isEmpty()) {
         break;
@@ -454,15 +436,14 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         } // if (fcr != null)
       } // if (selection.size() == 5)
     } // for (...)
-  
 
     this.logger.logExit(
         signature, new Object[] {"counts=", counts, "fingerPrints.size", fingerPrints.size()});
-    response.setFingerPrintCounts((long)fingerPrints.size());
+    response.setFingerPrintCounts((long) fingerPrints.size());
     response.setFingerPrints(fingerPrints);
 
     return response;
-}
+  }
 
   private void saveFingerprintsDebug(
       EvaluateAudioStreamEntry evaluateAudioStreamEntry,
@@ -851,12 +832,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
       }
       FingerprintThreadCollector fingerprintThread =
           new FingerprintThreadCollector(
-              rootDir,
-              data,
-              elapse,
-              random,
-              fingerprintRate,
-              dataFingerprint);
+              rootDir, data, elapse, random, fingerprintRate, dataFingerprint);
       fingerprintThreadList.add(fingerprintThread);
 
       Thread t = new Thread(fingerprintThread);
@@ -876,8 +852,14 @@ public class AudioStreamServiceImpl implements AudioStreamService {
   }
 
   @Override
-  public LinkedList<FingerprintThreadCollector> parallelFingerprintCollect(short[] data, Long fingerprintRate,
-      StringBuffer dataFingerprintBuffer, int dataFingerprintBufferSize, long maxDuration, long counts, String rootDir,
+  public LinkedList<FingerprintThreadCollector> parallelFingerprintCollect(
+      short[] data,
+      Long fingerprintRate,
+      StringBuffer dataFingerprintBuffer,
+      int dataFingerprintBufferSize,
+      long maxDuration,
+      long counts,
+      String rootDir,
       Random random) {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'parallelFingerprintCollect'");

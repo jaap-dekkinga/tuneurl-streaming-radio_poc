@@ -18,11 +18,10 @@ public interface AudioStreamService {
       EvaluateAudioStreamEntry evaluateAudioStreamEntry,
       String signature);
 
-public FindFingerPrintResponse findFingerPrintsAudioStream(
-    AudioDataEntry audioDataEntry,
-    EvaluateAudioStreamEntry evaluateAudioStreamEntry,
-    String signature);
-  
+  public FindFingerPrintResponse findFingerPrintsAudioStream(
+      AudioDataEntry audioDataEntry,
+      EvaluateAudioStreamEntry evaluateAudioStreamEntry,
+      String signature);
 
   public AudioStreamDataResponse runWebRtcScript(
       final String signature,
@@ -34,11 +33,7 @@ public FindFingerPrintResponse findFingerPrintsAudioStream(
       throws BaseServiceException;
 
   public EvaluateAudioStreamResponse evaluateOneSecondAudioStream(
-      long duration,
-      Long dataOffset,
-      short[] data,
-      Long fingerprintRate,
-      String dataFingerprint);
+      long duration, Long dataOffset, short[] data, Long fingerprintRate, String dataFingerprint);
 
   public LinkedList<FingerprintThreadCollector> parallelFingerprintCollect(
       short[] data,

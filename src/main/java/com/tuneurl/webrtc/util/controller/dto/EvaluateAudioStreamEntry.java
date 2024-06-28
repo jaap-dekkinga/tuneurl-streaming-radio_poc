@@ -67,8 +67,6 @@ public class EvaluateAudioStreamEntry {
   @JsonProperty("dataFingerprint")
   private String dataFingerprint;
 
-
-
   /** Default constructor for EvaluateAudioStreamEntry class. */
   public EvaluateAudioStreamEntry() {
     // does nothing.

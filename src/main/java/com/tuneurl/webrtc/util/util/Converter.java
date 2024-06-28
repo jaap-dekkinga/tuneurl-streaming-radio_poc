@@ -133,7 +133,8 @@ public final class Converter {
    */
   public static String validateUrlOrGencrc32(final String url) throws BaseServiceException {
     ProcessHelper.checkNullOrEmptyString(url, "AudioDataEntry.Url");
-    // if (!url.startsWith("http://localhost") && (url.length() < 13 || !url.startsWith("https://"))) {
+    // if (!url.startsWith("http://localhost") && (url.length() < 13 ||
+    // !url.startsWith("https://"))) {
     //   CommonUtil.BadRequestException("Specify valid AudioDataEntry.Url");
     // }
     return ProcessHelper.genCrc32(url);
@@ -251,8 +252,7 @@ public final class Converter {
    * @param similarity Double - if null, use {@com.tuneurl.webrtc.util.util.Converter#ZERO}
    * @return TuneUrlTag instance
    */
-  public static final TuneUrlTag convertToTuneUrlTag(
-      final TuneUrlEntry entry, Long similarity) {
+  public static final TuneUrlTag convertToTuneUrlTag(final TuneUrlEntry entry, Long similarity) {
     TuneUrlTag instance = new TuneUrlTag();
     instance.setId(entry.getId());
     instance.setName(CommonUtil.getString(entry.getName(), Constants.AUDIOSTREAM_TITLE_SIZE));

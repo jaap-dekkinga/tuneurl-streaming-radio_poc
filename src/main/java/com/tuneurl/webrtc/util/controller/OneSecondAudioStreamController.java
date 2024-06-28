@@ -35,7 +35,6 @@ import com.tuneurl.webrtc.util.controller.dto.AudioDataEntry;
 import com.tuneurl.webrtc.util.controller.dto.EvaluateAudioStreamEntry;
 import com.tuneurl.webrtc.util.controller.dto.EvaluateAudioStreamResponse;
 import com.tuneurl.webrtc.util.util.*;
-import com.tuneurl.webrtc.util.util.fingerprint.FingerprintUtility;
 import com.tuneurl.webrtc.util.value.Constants;
 import com.tuneurl.webrtc.util.value.UserType;
 import io.swagger.annotations.ApiOperation;
@@ -172,11 +171,7 @@ public class OneSecondAudioStreamController extends BaseController {
 
     EvaluateAudioStreamResponse response =
         audioStreamBaseService.evaluateOneSecondAudioStream(
-            duration,
-            dataOffset,
-            data,
-            fingerprintRate,
-            dataFingerprint);
+            duration, dataOffset, data, fingerprintRate, dataFingerprint);
 
     this.redis.setOneSecondAudioStreamCache(
         httpRequest.getParameter("offset"),

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.springframework.graphql</groupId>
+  <artifactId>spring-graphql-test</artifactId>
+  <version>1.0.6</version>
+  <name>Spring Support for Testing GraphQL Applications</name>
+  <description>Spring Support for Testing GraphQL Applications</description>
+  <url>https://github.com/spring-projects/spring-graphql</url>
+  <organization>
+    <name>Spring IO</name>
+    <url>https://spring.io/projects</url>
+  </organization>
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>andimarek</id>
+      <name>Andreas Marek</name>
+      <email>andimarek@fastmail.fm</email>
+    </developer>
+    <developer>
+      <id>rstoyanchev</id>
+      <name>Rossen Stoyanchev</name>
+      <email>rstoyanchev@vmware.com</email>
+    </developer>
+    <developer>
+      <id>bclozel</id>
+      <name>Brian Clozel</name>
+      <email>bclozel@vmware.com</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/spring-projects/spring-graphql</connection>
+    <developerConnection>scm:git:git://github.com/spring-projects/spring-graphql</developerConnection>
+    <url>https://github.com/spring-projects/spring-graphql</url>
+  </scm>
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/spring-projects/spring-graphql/issues</url>
+  </issueManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.graphql</groupId>
+      <artifactId>spring-graphql</artifactId>
+      <version>1.0.6</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.graphql-java</groupId>
+      <artifactId>graphql-java</artifactId>
+      <version>18.5</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+      <version>3.4.32</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>5.3.30</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>5.3.30</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.jayway.jsonpath</groupId>
+      <artifactId>json-path</artifactId>
+      <version>2.7.0</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+</project>

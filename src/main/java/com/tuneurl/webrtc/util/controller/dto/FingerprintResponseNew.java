@@ -29,201 +29,199 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
- package com.tuneurl.webrtc.util.controller.dto;
+package com.tuneurl.webrtc.util.controller.dto;
 
- import com.fasterxml.jackson.annotation.JsonProperty;
- 
- import com.tuneurl.webrtc.util.controller.dto.FingerprintEntryItem;
- 
- import java.util.List;
- /**
-  * Class FingerprintResponse DTO to hold Fingerprint response.
-  *
-  * <p><strong>Thread Safety: </strong>This class is mutable and not thread safe.
-  *
-  * @author albonteddy@gmail.com
-  * @version 1.0
-  */
- // public class FingerprintResponse {
- 
- //   /**
- //    * The size.
- //    *
- //    * <p>It can be any value.
- //    *
- //    * <p>It has both getter and setter.
- //    *
- //    * <p>It is used in setSize(), getSize().
- //    */
- //   @JsonProperty("size")
- //   private Long size;
- 
- //   /**
- //    * The data.
- //    *
- //    * <p>It can be any value.
- //    *
- //    * <p>It has both getter and setter.
- //    *
- //    * <p>It is used in setData(), getData().
- //    */
- //   @JsonProperty("dataEx")
- //   private String dataEx;
- 
- //   @JsonProperty("data")
- //   private byte[] data;
- 
- //   /** Default constructor for FingerprintResponse class. */
- //   public FingerprintResponse() {
- //     // does nothing.
- //   }
- 
- //   /**
- //    * Retrieves the size.
- //    *
- //    * @return the size
- //    */
- //   public Long getSize() {
- //     return size;
- //   }
- 
- //   /**
- //    * Sets the size.
- //    *
- //    * @param size the size to set
- //    */
- //   public void setSize(Long size) {
- //     this.size = size;
- //   }
- 
- //   /**
- //    * Retrieves the data.
- //    *
- //    * @return the data
- //    */
- //   public String getDataEx() {
- //     return dataEx;
- //   }
- 
- //   /**
- //    * Sets the data.
- //    *
- //    * @param dataEx the data to set
- //    */
- //   public void setDataEx(String dataEx) {
- //     this.dataEx = dataEx;
- //   }
- 
- //   /**
- //    * Sets the data.
- //    *
- //    * @param data the data to set
- //    */
- //   public void setData(byte[] data) {
- //     this.data = data;
- //   }
- 
- //   /**
- //    * Retrieves the data.
- //    *
- //    * @return the data
- //    */
- //   public byte[] getData() {
- //     return data;
- //   }
- 
- //   /**
- //    * To String.
- //    *
- //    * @return String
- //    */
- //   public String toString() {
- //     java.lang.StringBuffer sb = new java.lang.StringBuffer();
- //     sb.append("class FingerprintResponse {\n");
- //     sb.append("    \"size\": ").append(getSize()).append(",\n");
- //     sb.append("    \"data\": ").append('"').append(getData()).append("\"\n");
- //     sb.append("}\n");
- //     return sb.toString();
- //   }
- 
- //   /**
- //    * To String.
- //    *
- //    * @return String
- //    */
- //   public String toJson() {
- //     java.lang.StringBuffer sb = new java.lang.StringBuffer();
- //     sb.append("{");
- //     sb.append("\"size\": ").append(getSize()).append(",");
- //     sb.append("\"dataEx\": ").append('"').append(getDataEx()).append("\"");
- //     sb.append("}");
- //     return sb.toString();
- //   }
- // }
- 
- public class FingerprintResponseNew {
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+
+/**
+ * Class FingerprintResponse DTO to hold Fingerprint response.
+ *
+ * <p><strong>Thread Safety: </strong>This class is mutable and not thread safe.
+ *
+ * @author albonteddy@gmail.com
+ * @version 1.0
+ */
+// public class FingerprintResponse {
+
+//   /**
+//    * The size.
+//    *
+//    * <p>It can be any value.
+//    *
+//    * <p>It has both getter and setter.
+//    *
+//    * <p>It is used in setSize(), getSize().
+//    */
+//   @JsonProperty("size")
+//   private Long size;
+
+//   /**
+//    * The data.
+//    *
+//    * <p>It can be any value.
+//    *
+//    * <p>It has both getter and setter.
+//    *
+//    * <p>It is used in setData(), getData().
+//    */
+//   @JsonProperty("dataEx")
+//   private String dataEx;
+
+//   @JsonProperty("data")
+//   private byte[] data;
+
+//   /** Default constructor for FingerprintResponse class. */
+//   public FingerprintResponse() {
+//     // does nothing.
+//   }
+
+//   /**
+//    * Retrieves the size.
+//    *
+//    * @return the size
+//    */
+//   public Long getSize() {
+//     return size;
+//   }
+
+//   /**
+//    * Sets the size.
+//    *
+//    * @param size the size to set
+//    */
+//   public void setSize(Long size) {
+//     this.size = size;
+//   }
+
+//   /**
+//    * Retrieves the data.
+//    *
+//    * @return the data
+//    */
+//   public String getDataEx() {
+//     return dataEx;
+//   }
+
+//   /**
+//    * Sets the data.
+//    *
+//    * @param dataEx the data to set
+//    */
+//   public void setDataEx(String dataEx) {
+//     this.dataEx = dataEx;
+//   }
+
+//   /**
+//    * Sets the data.
+//    *
+//    * @param data the data to set
+//    */
+//   public void setData(byte[] data) {
+//     this.data = data;
+//   }
+
+//   /**
+//    * Retrieves the data.
+//    *
+//    * @return the data
+//    */
+//   public byte[] getData() {
+//     return data;
+//   }
+
+//   /**
+//    * To String.
+//    *
+//    * @return String
+//    */
+//   public String toString() {
+//     java.lang.StringBuffer sb = new java.lang.StringBuffer();
+//     sb.append("class FingerprintResponse {\n");
+//     sb.append("    \"size\": ").append(getSize()).append(",\n");
+//     sb.append("    \"data\": ").append('"').append(getData()).append("\"\n");
+//     sb.append("}\n");
+//     return sb.toString();
+//   }
+
+//   /**
+//    * To String.
+//    *
+//    * @return String
+//    */
+//   public String toJson() {
+//     java.lang.StringBuffer sb = new java.lang.StringBuffer();
+//     sb.append("{");
+//     sb.append("\"size\": ").append(getSize()).append(",");
+//     sb.append("\"dataEx\": ").append('"').append(getDataEx()).append("\"");
+//     sb.append("}");
+//     return sb.toString();
+//   }
+// }
+
+public class FingerprintResponseNew {
   @JsonProperty("blockCount")
   private Integer blockCount;
 
   @JsonProperty("max")
   private Integer max;
 
-   private List<FingerprintEntryItem> blockInfo;
- 
-   public FingerprintResponseNew() {}
- 
-   public Integer getBlockCount() {
-     return blockCount;    
-   }
- 
-   public void setBlockCount(Integer blockCount) {
-     this.blockCount = blockCount;
-   }
+  private List<FingerprintEntryItem> blockInfo;
 
-   public Integer getMax() {
-    return max;    
+  public FingerprintResponseNew() {}
+
+  public Integer getBlockCount() {
+    return blockCount;
+  }
+
+  public void setBlockCount(Integer blockCount) {
+    this.blockCount = blockCount;
+  }
+
+  public Integer getMax() {
+    return max;
   }
 
   public void setMax(Integer max) {
     this.max = max;
   }
 
-   public List<FingerprintEntryItem> getBlockInfo() {
-     return blockInfo;
-   }
- 
-   public void setBlockInfo(List<FingerprintEntryItem> blockInfo) {
-     this.blockInfo = blockInfo;
-   }
- 
-   @Override
-   public String toString() {
-       StringBuilder sb = new StringBuilder();
-       sb.append("class FingerprintData {\n");
-       sb.append("    \"max\": ").append(getMax()).append(",\n");
-       sb.append("    \"blockCount\": ").append(getBlockCount()).append(",\n");
-       sb.append("    \"blockInfo\": [\n");
-       for (FingerprintEntryItem block : blockInfo) {
-           sb.append(block.toString()).append(",\n");
-       }
-       sb.append("    ]\n");
-       sb.append("}\n");
-       return sb.toString();
+  public List<FingerprintEntryItem> getBlockInfo() {
+    return blockInfo;
+  }
+
+  public void setBlockInfo(List<FingerprintEntryItem> blockInfo) {
+    this.blockInfo = blockInfo;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("class FingerprintData {\n");
+    sb.append("    \"max\": ").append(getMax()).append(",\n");
+    sb.append("    \"blockCount\": ").append(getBlockCount()).append(",\n");
+    sb.append("    \"blockInfo\": [\n");
+    for (FingerprintEntryItem block : blockInfo) {
+      sb.append(block.toString()).append(",\n");
     }
+    sb.append("    ]\n");
+    sb.append("}\n");
+    return sb.toString();
+  }
 
-    public String toJson() {
-        java.lang.StringBuffer sb = new java.lang.StringBuffer();
+  public String toJson() {
+    java.lang.StringBuffer sb = new java.lang.StringBuffer();
 
-        // StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append("\"max\": ").append(getMax()).append(",\n");
-        sb.append("\"blockCount\": ").append(getBlockCount()).append(",\n");
-        sb.append("\"blockInfo\": [\n");
-        for (FingerprintEntryItem block : blockInfo) {
-            sb.append(block.toString()).append(",\n");
-        }
-        sb.append("]\n");
-        sb.append("}");
-        return sb.toString();
-   }
- }
+    // StringBuilder sb = new StringBuilder();
+    sb.append("{");
+    sb.append("\"max\": ").append(getMax()).append(",\n");
+    sb.append("\"blockCount\": ").append(getBlockCount()).append(",\n");
+    sb.append("\"blockInfo\": [\n");
+    for (FingerprintEntryItem block : blockInfo) {
+      sb.append(block.toString()).append(",\n");
+    }
+    sb.append("]\n");
+    sb.append("}");
+    return sb.toString();
+  }
+}

@@ -33,9 +33,6 @@ package com.tuneurl.webrtc.util.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import com.tuneurl.webrtc.util.controller.dto.FingerprintEntryItem;
-
-import java.util.List;
 /**
  * Class FingerprintResponse DTO to hold Fingerprint response.
  *

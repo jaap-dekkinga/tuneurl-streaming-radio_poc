@@ -139,6 +139,7 @@ public class RedisInstance {
 
     return result;
   }
+
   public FingerprintResponseNew getFingerprintCacheNew(String url) {
     if (jedis == null) {
       return null;
@@ -167,6 +168,7 @@ public class RedisInstance {
     }
     jedis.set("fingerprint--" + url, fingerprintResponse.toJson());
   }
+
   public void setFingerprintCacheNew(String url, FingerprintResponseNew fingerprintResponse) {
     if (jedis == null) {
       return;

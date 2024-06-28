@@ -34,14 +34,9 @@ package com.tuneurl.webrtc.util.util.fingerprint;
 import com.tuneurl.webrtc.util.controller.dto.*;
 import com.tuneurl.webrtc.util.util.*;
 import com.tuneurl.webrtc.util.value.Constants;
-
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 import lombok.Getter;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 /**
  * Fingerprint utility.
@@ -212,10 +207,7 @@ public class FingerprintUtility {
    * @param twosize int
    */
   public void writeFingerprintDataWithBuffer(
-      final String fileName,
-      final String dataFingerprint,
-      final short[] two,
-      final int twosize) {
+      final String fileName, final String dataFingerprint, final short[] two, final int twosize) {
 
     final String SPC = " ";
     final String CRLF = "\n";
@@ -278,21 +270,15 @@ public class FingerprintUtility {
       final String rootDir,
       Random random,
       String dataFingerprint) {
-   
+
     short[] cData;
     FingerprintCompareResponse fcr = null;
-    if ((null != fr) && fr.getSize() > 1L) 
-    {
+    if ((null != fr) && fr.getSize() > 1L) {
       cData = fr.getData();
       try {
         fcr =
             fingerprintExternals.runExternalFingerprintModule(
-                random,
-                rootDir,
-                timeOffset,
-                dataFingerprint,
-                cData,
-                cData.length);
+                random, rootDir, timeOffset, dataFingerprint, cData, cData.length);
         if (null == fcr.getOffset()) {
           fcr = null;
         }
@@ -313,12 +299,11 @@ public class FingerprintUtility {
     for (int i = 0; i < selection.size(); i++) {
       FingerprintCompareResponse f = selection.get(i);
       if (f.getSimilarity() > 0) {
-          fcr = f;
-          fr = frSelection.get(i); // Assuming frSelection is another list corresponding to selection
-          break; // Exit loop once a valid selection is made
+        fcr = f;
+        fr = frSelection.get(i); // Assuming frSelection is another list corresponding to selection
+        break; // Exit loop once a valid selection is made
       }
-    }      
+    }
     return new Object[] {fcr, fr};
   }
-
 }

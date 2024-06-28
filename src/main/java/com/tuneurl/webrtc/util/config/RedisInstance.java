@@ -173,6 +173,6 @@ public class RedisInstance {
     if (jedis == null) {
       return;
     }
-    jedis.set("fingerprint--" + url, fingerprintResponse.toJson());
+    jedis.set("fingerprintNew--" + url, fingerprintResponse.toJson());
   }
 }

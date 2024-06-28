@@ -441,7 +441,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         fcr = (FingerprintCompareResponse) fingerprintComparisonsResponse[0];
         fr = (FingerprintResponse) fingerprintComparisonsResponse[1];
 
-        if (fcr != null) {
+        if (fcr != null && fcr.getOffset() < maxDuration - 1000) {
           response.setFingerPrintCount(1L);
           response.setFingerPrint(fcr);
           break;

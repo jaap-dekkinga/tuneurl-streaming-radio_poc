@@ -38,7 +38,7 @@ const TEST_MP3_FILE = base_host + "/audio/10240-audio-streams-0230000.mp3";
 // const TEST_MP3_FILE = base_host + "/audio/webrtc-source_J7XLHMyC.mp3";
 const TRIGGERSOUND_AUDIO_URL = base_host + "/audio/10240-triggersound.wav";
 
-const IF_LOAD_FROM_URL = true;
+const IF_LOAD_FROM_URL = false;
 const APP_TITLE = "Audio Demo Test";
 
 const AMPLITUDE_SIZE = 512;
@@ -259,26 +259,26 @@ class AudioStreamPlayer {
             }    
         }
     
-        this.isPaused = false;
-        this.isPlaying = true;
-        this.isFirstPlay = false;
-        // console.log('AudioStreamPlayer: isPlaying', this.isPlaying);
-    
         this.source = this.audioContext.createBufferSource();
         this.source.connect(this.audioContext.destination);
 
-        // ************************************************************************************************
-        // Record the start time
-        this.startedPlayTime = Date.now();
-        // Start the timer
-        this.timerInterval = setInterval(() => {
-            const currentTime = Date.now();
-            this.totalPlayTime += (currentTime - this.startedPlayTime);  // Convert milliseconds to seconds
-            updatePocTitle(this.totalPlayTime);
-            this.startedPlayTime = currentTime;  // Reset start time for the next interval
-        }, 10);  // Update every 10 millisecond
-        // ************************************************************************************************
+        if (isforce || this.isFirstPlay) {
+            // ************************************************************************************************
+            // Record the start time
+            this.startedPlayTime = Date.now();
+            // Start the timer
+            this.timerInterval = setInterval(() => {
+                const currentTime = Date.now();
+                this.totalPlayTime += (currentTime - this.startedPlayTime);  // Convert milliseconds to seconds
+                updatePocTitle(this.totalPlayTime);
+                this.startedPlayTime = currentTime;  // Reset start time for the next interval
+            }, 10);  // Update every 10 millisecond
+            // ************************************************************************************************
+        }
 
+        this.isPaused = false;
+        this.isPlaying = true;
+        this.isFirstPlay = false;
 
         if (this.pausedAt) {
             this.source.buffer = this.pause_buff;
@@ -928,7 +928,7 @@ async function startCanvas() {
             }); 
 
             // start process C to show pop-up/notification by the TurnUrlTags
-            setInterval(() => showPopupByAudioStream(audioStreamPlayer.totalPlayTime), 10);
+            setInterval(() => showPopupByAudioStream(audioStreamPlayer.totalPlayTime), 100);
             showHidePlayButton(true);
         }
     }

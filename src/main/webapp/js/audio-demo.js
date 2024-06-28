@@ -262,19 +262,17 @@ class AudioStreamPlayer {
         this.source = this.audioContext.createBufferSource();
         this.source.connect(this.audioContext.destination);
 
-        if (isforce || this.isFirstPlay) {
-            // ************************************************************************************************
-            // Record the start time
-            this.startedPlayTime = Date.now();
-            // Start the timer
-            this.timerInterval = setInterval(() => {
-                const currentTime = Date.now();
-                this.totalPlayTime += (currentTime - this.startedPlayTime);  // Convert milliseconds to seconds
-                updatePocTitle(this.totalPlayTime);
-                this.startedPlayTime = currentTime;  // Reset start time for the next interval
-            }, 10);  // Update every 10 millisecond
-            // ************************************************************************************************
-        }
+        // ************************************************************************************************
+        // Record the start time
+        this.startedPlayTime = Date.now();
+        // Start the timer
+        this.timerInterval = setInterval(() => {
+            const currentTime = Date.now();
+            this.totalPlayTime += (currentTime - this.startedPlayTime);  // Convert milliseconds to seconds
+            updatePocTitle(this.totalPlayTime);
+            this.startedPlayTime = currentTime;  // Reset start time for the next interval
+        }, 10);  // Update every 10 millisecond
+        // ************************************************************************************************
 
         this.isPaused = false;
         this.isPlaying = true;
@@ -294,6 +292,7 @@ class AudioStreamPlayer {
 
         this.source.onended = () => {
             // console.log('play_stream: onended');
+            clearInterval(this.timerInterval);
 
             this.isPlaying = false;
             this.play(false);

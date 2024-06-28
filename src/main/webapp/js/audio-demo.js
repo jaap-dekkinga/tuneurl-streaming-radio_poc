@@ -149,8 +149,7 @@ class AudioDataEntry {
 class AudioStreamPlayer {
     constructor(url, callback_stream) {
         this.url = url;
-        // this.audioContext = new (window.AudioContext || window.webkitAudioContext)({sampleRate:44100});
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)({sampleRate:44100});
         this.audioQueue = [];
         this.source = null;
         this.pause_buff = null;
@@ -435,7 +434,7 @@ async function findTriggerSound()
         offset += audioAudioDataEntries[index].length;
     }
     
-    let dataEntry = getAudioBufferChannelData(audioStream, STREAM_DURATION * count, 44100);   
+    let dataEntry = getAudioBufferChannelData(audioStream, STREAM_DURATION * count, 48000);   
     dataEntry.setUrl(audioStreamURL); 
     var datus = {
         audioData: dataEntry,

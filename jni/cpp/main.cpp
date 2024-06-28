@@ -541,7 +541,7 @@ void saveIntoFile(int value) {
 }
 
 float standardizeOffset(int offset) {
-  return (float) offset * 1000 / 11025;
+  return (float) offset * 1000 / 12000;
 }
 
 SearchResult getSearchResult(vector<int16_t> data, const DataFingerPrint& df) {

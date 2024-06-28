@@ -775,7 +775,7 @@ async function showPopupByAudioStream(totalPlayTime) {
     let threshold = 2500;
 
     for (let i = 0; i < activeAudioTags.liveTags.length; i ++) {
-        let diff = totalPlayTime* 1.04 - activeAudioTags.liveTags[i].dataPosition;
+        let diff = totalPlayTime - activeAudioTags.liveTags[i].dataPosition;
 
         if (diff > 0 && diff <= threshold) {
             activeAudioTags.liveTags.splice(i, 1);

@@ -631,7 +631,11 @@ public class AudioStreamController extends BaseController {
     Converter.validateDuration(duration);
     final String fileName = Converter.validateUrlOrGencrc32(url);
     ProcessHelper.checkNullOrEmptyString(fileName, "AudioDataEntry.Url");
-
+    try (FileWriter writer = new FileWriter("11.txt", true)) {
+      writer.write("AudioDataEntry.Url");
+    } catch (IOException e) {
+        e.printStackTrace();
+    }            
     Random random = new Random();
     random.setSeed(new Date().getTime());
     FingerprintResponseNew response =

@@ -137,11 +137,11 @@ public class FingerprintExternals {
   public FingerprintResponseNew runExternalFingerprinting(
       Random random, final String rootDir, final short[] one, final int onesize)
       throws BaseServiceException {
-    try (FileWriter writer = new FileWriter("11.txt", true)) {
-      writer.write(json);
-    } catch (IOException e) {
-        e.printStackTrace();
-    }            
+    // try (FileWriter writer = new FileWriter("11.txt", true)) {
+    //   writer.write(json);
+    // } catch (IOException e) {
+    //     e.printStackTrace();
+    // }            
     final String signature = "runExternalFingerprintModule";
     FingerprintResponseNew response = new FingerprintResponseNew();
     // 1. Size less than 1L signify Fingerprint extraction failure.

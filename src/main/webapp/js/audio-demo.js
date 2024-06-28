@@ -32,7 +32,7 @@
 "use strict";
 const base_host = "https://streaming.tuneurl-demo.com";
 // const base_host = "http://localhost:8281";
-const LOAD_FROM_THIS_URL = "http://stream.radiojar.com/vzv0nkgsw7uvv";
+const LOAD_FROM_THIS_URL = "https://stream.radiojar.com/vzv0nkgsw7uvv";
 // const TEST_MP3_FILE = base_host + "/audio/10.1s.mp3";
 const TEST_MP3_FILE = base_host + "/audio/10240-audio-streams-0230000.mp3";
 // const TEST_MP3_FILE = base_host + "/audio/webrtc-source_J7XLHMyC.mp3";

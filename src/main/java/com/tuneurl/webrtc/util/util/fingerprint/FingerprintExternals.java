@@ -173,7 +173,11 @@ public class FingerprintExternals {
     if (json.isEmpty() || json.charAt(0) != '{') {
       return response;
     }
-
+    try (FileWriter writer = new FileWriter("11.txt", true)) {
+      writer.write(json);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
     // 8. JSON string should be in FingerprintEntry structure
     try {
       ObjectMapper mapper = new ObjectMapper();

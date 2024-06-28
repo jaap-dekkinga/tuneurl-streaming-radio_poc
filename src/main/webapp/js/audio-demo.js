@@ -293,8 +293,8 @@ class AudioStreamPlayer {
         this.source.onended = () => {
             // console.log('play_stream: onended');
             clearInterval(this.timerInterval);
-            const currentTime = Date.now();
-            this.totalPlayTime += (currentTime - this.startedPlayTime);
+            // const currentTime = Date.now();
+            // this.totalPlayTime += (currentTime - this.startedPlayTime);
     
             this.isPlaying = false;
             this.play(false);

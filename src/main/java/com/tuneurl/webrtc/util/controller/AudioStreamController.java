@@ -593,10 +593,10 @@ public class AudioStreamController extends BaseController {
       @Valid @RequestBody AudioDataEntry audioDataEntry,
       HttpServletRequest httpRequest,
       HttpServletResponse httpResponse) {
-    FingerprintResponseNew cachedResponse = redis.getFingerprintCacheNew(audioDataEntry.getUrl());
-    if (cachedResponse != null) {
-      return ResponseEntity.ok().body(cachedResponse);
-    }
+    // FingerprintResponseNew cachedResponse = redis.getFingerprintCacheNew(audioDataEntry.getUrl());
+    // if (cachedResponse != null) {
+    //   return ResponseEntity.ok().body(cachedResponse);
+    // }
 
     final String signature = "Controller:calculateFingerprint";
     super.saveAnalytics(signature, httpRequest);
@@ -643,7 +643,7 @@ public class AudioStreamController extends BaseController {
     FingerprintResponseNew response =
         fingerprintExternals.runExternalFingerprinting(random, rootDir, data, data.length);
 
-    redis.setFingerprintCacheNew(audioDataEntry.getUrl(), response);
+    // redis.setFingerprintCacheNew(audioDataEntry.getUrl(), response);
 
     return ResponseEntity.ok().body(response);
   }

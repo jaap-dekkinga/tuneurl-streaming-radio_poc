@@ -1,11 +1,8 @@
 package com.tuneurl.webrtc.util.util;
 
 import com.tuneurl.webrtc.util.controller.dto.FingerprintCompareResponse;
-import com.tuneurl.webrtc.util.controller.dto.FingerprintResponse;
+import com.tuneurl.webrtc.util.controller.dto.FingerprintResponseNew;
 import com.tuneurl.webrtc.util.controller.dto.TuneUrlTag;
-import com.tuneurl.webrtc.util.util.fingerprint.FingerprintUtility;
-import com.tuneurl.webrtc.util.value.Constants;
-import java.util.ArrayList;
 import java.util.List;
 
 public class TagsHelper {
@@ -22,7 +19,7 @@ public class TagsHelper {
   public final TuneUrlTag newTag(
       boolean updateOffset,
       Long dataOffset,
-      FingerprintResponse fr,
+      FingerprintResponseNew fr,
       FingerprintCompareResponse fcr) {
     TuneUrlTag tag = new TuneUrlTag();
     long offset = fcr.getOffset();
@@ -33,8 +30,11 @@ public class TagsHelper {
     tag.setIndex(offset);
     tag.setFingerprintCompareResponseData(fcr, false);
 
-    final String payload = FingerprintUtility.convertFingerprintToString(fr.getData());
-    tag.setTuneUrlEmptyEntryData(payload);
+    if (null != fr) {
+      final String payload = fr.toJson();
+      tag.setTuneUrlEmptyEntryData(payload);
+    }
+
     return tag;
   }
 
@@ -71,63 +71,20 @@ public class TagsHelper {
   }
 
   /**
-   * Helper method to create Array of tags.
-   *
-   * @param dataOffset Long data offset
-   * @param frSelection List&lt;FingerprintResponse>
-   * @param fcrSelection List&lt;FingerprintCompareResponse>
-   * @return List&lt;TuneUrlTag>
-   */
-  public final List<TuneUrlTag> createTags(
-      Long dataOffset,
-      List<FingerprintResponse> frSelection,
-      List<FingerprintCompareResponse> fcrSelection) {
-    ArrayList<TuneUrlTag> tags = new ArrayList<>();
-    TuneUrlTag tag;
-    FingerprintResponse fx;
-    FingerprintResponse fr;
-    FingerprintCompareResponse fcx;
-    FingerprintCompareResponse fcr;
-    int index, limit = fcrSelection.size();
-    if (limit > 2) {
-      for (index = 0; index < limit; index++) {
-        fr = frSelection.get(index);
-        fcr = fcrSelection.get(index);
-        tag = newTag(false, dataOffset, fr, fcr);
-        tags.add(tag);
-      }
-      // Try to locate the X-Y-X or X-Y-Z-Y-X pattern
-      List<TuneUrlTag> newTag = pruneTags(tags);
-      if (!newTag.isEmpty()) return newTag;
-      tags.clear();
-    }
-    if (limit == 1) {
-      tag = newTag(true, dataOffset, frSelection.get(0), fcrSelection.get(0));
-      tags.add(tag);
-    } else if (limit > 1) {
-      fx = frSelection.get(0);
-      fcx = fcrSelection.get(0);
-      // for (index = 1; index < limit; index++) {
-      //   fr = frSelection.get(index);
-      //   fcr = fcrSelection.get(index);
-      //   if (CommonUtil.compareDouble(fcr.getScore(), fcx.getScore()) > 0) {
-      //     fcx = fcr;
-      //     fx = fr;
-      //   }
-      // }
-      tag = newTag(true, dataOffset, fx, fcx);
-      tags.add(tag);
-    }
-    return tags;
-  }
-
-  /**
    * Helper to prune List of TuneUrlTag
    *
    * @param tags List&lt;TuneUrlTag>
    * @return List&lt;TuneUrlTag>
    */
   public final List<TuneUrlTag> pruneTags(List<TuneUrlTag> tags) {
+    int size = tags.size();
+
+    while ( tags.size() > 1) {
+      Long dataPostion1 = tags.get(0).getDataPosition();
+      Long dataPostion2 = tags.get(1).getDataPosition();
+      if (Math.abs(dataPostion1 -dataPostion2) < 1000)
+        tags.remove(0);
+    }
     return tags;
   }
 

@@ -38,7 +38,7 @@ const TEST_MP3_FILE = base_host + "/audio/10240-audio-streams-0230000.mp3";
 // const TEST_MP3_FILE = base_host + "/audio/webrtc-source_J7XLHMyC.mp3";
 const TRIGGERSOUND_AUDIO_URL = base_host + "/audio/10240-triggersound.wav";
 
-const IF_LOAD_FROM_URL = false;
+const IF_LOAD_FROM_URL = true;
 const APP_TITLE = "Audio Demo Test";
 
 const AMPLITUDE_SIZE = 512;
@@ -477,7 +477,8 @@ async function getTurnUrlTags(datus)
 
         console.log(JSON.stringify({
             tuneUrlCounts: data.tuneUrlCounts,
-            counts: data.tagCounts
+            counts: data.tagCounts,
+            liveTags: data.liveTags
         }));
     })).catch((error => {
         console.error("ERROR:", error);
@@ -829,18 +830,7 @@ async function initTriggerAudio(triggerAudioUrl) {
    
     let audioData = getAudioBufferChannelData(audioBuff.getChannelData(0), 
                 audioBuff.duration, audioBuff.sampleRate);
-    // let end1 = 11025 * 0.24;
-    // let end2 = 11025 * 0.43;
-    // let end3 = 11025 * 0.63;
-    // let end4 = 11025 * 0.8;
-    // let end5 = 11025 * 1;
-    // console.log(JSON.stringify({
-    //     data1: audioData.Data.slice(0, end1),
-    //     data2: audioData.Data.slice(end1, end2),
-    //     data3: audioData.Data.slice(end2, end3),
-    //     data4: audioData.Data.slice(end3, end4),
-    //     data5: audioData.Data.slice(end4, end5),
-    // }));
+
     audioData.setUrl(triggerAudioUrl);
 
     var end = getLocalTimeInMillis();
@@ -863,13 +853,6 @@ async function initTriggerAudio(triggerAudioUrl) {
 
     try {
         const text = await getTextData(resCalculateFingerprint);
-        // data = parseResponseTextDataAsJSON(text, "{", "Missing fingerprint");
-        // try {
-        //     triggerFingerprintData = JSON.parse(data.dataEx)
-
-        // } catch (e) {
-        //     throw Error(e.message)
-        // }
         triggerFingerprintData = text;
         console.log(JSON.stringify({
             data: triggerFingerprintData

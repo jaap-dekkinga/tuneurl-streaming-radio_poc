@@ -96,12 +96,12 @@ public class FingerprintExternals {
     if (json == null) {
       return response;
     }
-    try (FileWriter writer = new FileWriter("11.txt", true)) {
-      writer.write(""+timeOffset);
-      writer.write(json);
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
+    // try (FileWriter writer = new FileWriter("11.txt", true)) {
+    //   writer.write(""+timeOffset);
+    //   writer.write(json);
+    // } catch (IOException e) {
+    //     e.printStackTrace();
+    // }
 
     CompareStringResult result = null;
     if (json.isEmpty() || json.charAt(0) != '{') {

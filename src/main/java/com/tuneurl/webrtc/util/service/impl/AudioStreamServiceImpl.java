@@ -153,7 +153,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
 
     FingerprintCompareResponse fcr = null;
     FingerprintResponse fr = null;
-    FingerprintResponse audioFr;
+    FingerprintResponseNew audioFr;
     if (isDebugOn) {
       ProcessHelper.makeDir(debugDir);
     }
@@ -208,16 +208,16 @@ public class AudioStreamServiceImpl implements AudioStreamService {
           timeOffset = fcr.getOffset();
           baseOffset = timeOffset;
           // Grab the audio after the triggersound
-          timeOffset = timeOffset + 1000L;
+          timeOffset = timeOffset + 3000L;
           iStart = Converter.muldiv(timeOffset, fingerprintRate, 1000L);
-          iEnd = Converter.muldiv(timeOffset + 5000L, fingerprintRate, 1000L);
+          iEnd = Converter.muldiv(timeOffset + 1000L, fingerprintRate, 1000L);
           dSize = (int) (iEnd - iStart);
           dData = Converter.convertListShortEx(data, (int) iStart, dSize);
           if (dData == null) break;
           // Calculate the audio's fingerprint
           // audioFr = ExternalCppModules.calculateFingerprint(null, dData, dData.length);
           audioFr =
-              fingerprintExternals.runExternalFingerprinting_Ex(random, rootDir, dData, dData.length);
+              fingerprintExternals.runExternalFingerprinting(random, rootDir, dData, dData.length);
 
           tag = tagsHelper.newTag(false, 0L, audioFr, fcr);
           liveTags.add(tag);
@@ -237,7 +237,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         } // if (fcr != null)
       } // if (selection.size() == 5)
     } // for (...)
-    // liveTags = tagsHelper.pruneTags(liveTags);
+    liveTags = tagsHelper.pruneTags(liveTags);
     counts = (long) liveTags.size();
     response.setTagCounts(counts);
     response.setLiveTags(liveTags);
@@ -305,7 +305,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         fr = (FingerprintResponse) fingerprintComparisonsResponse[1];
 
         if (null != fcr) {
-          TuneUrlTag tag = tagsHelper.newTag(true, dataOffset, fr, fcr);
+          TuneUrlTag tag = tagsHelper.newTag(true, dataOffset, null, fcr);
           /*
           if (isDebugOn) {
             FingerprintUtility.displayLiveTagsEx(signature, logger, tag);
@@ -317,24 +317,14 @@ public class AudioStreamServiceImpl implements AudioStreamService {
       } // if (selection.size() == 5)
     } // for (count = 0L, ...)
     if (!liveTags.isEmpty()) {
-      tags = tagsHelper.pruneTagsEx(isDebugOn, logger, liveTags);
+      tags = tagsHelper.pruneTags(liveTags);
       if (isDebugOn) {
         logger.logExit(signature2, "before=", liveTags.size(), "after=", tags.size());
       }
       liveTags = new ArrayList<TuneUrlTag>();
+
       for (TuneUrlTag tag : tags) {
-        if (isDebugOn) {
-          logger.logExit(
-              signature,
-              new Object[] {
-                "dataPosition=",
-                tag.getDataPosition(),
-                "durationLimit=",
-                durationLimit,
-                "maxDuration=",
-                dataOffset + maxDuration,
-              });
-        }
+
         tag = updatePayload(dataOffset, random, rootDir, fingerprintRate, tag, data, maxDuration);
         if (tag != null) {
           liveTags.add(tag);
@@ -344,6 +334,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         }
       }
     }
+    liveTags = tagsHelper.pruneTags(liveTags);
     counts = (long) liveTags.size();
     response.setTagCounts(counts);
     response.setLiveTags(liveTags);
@@ -819,7 +810,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
     long iStart, iEnd;
     short[] dData;
     int dSize;
-    FingerprintResponse fr;
+    FingerprintResponseNew fr;
     if (endOffset < duration) {
       tagOffset = tagOffset - dataOffset; // 3880 - 0
       endOffset = endOffset - dataOffset; // 8880 - 0
@@ -830,9 +821,9 @@ public class AudioStreamServiceImpl implements AudioStreamService {
       if (dSize < data.length) { // 10 seconds x 11025 := 110250
         dData = Converter.convertListShortEx(data, (int) iStart, dSize);
         if (dData != null) {
-          fr = fingerprintExternals.runExternalFingerprinting_Ex(random, rootDir, dData, dData.length);
+          fr = fingerprintExternals.runExternalFingerprinting(random, rootDir, dData, dData.length);
 
-          final String payload = FingerprintUtility.convertFingerprintToString(fr.getData());
+          final String payload = fr.toJson();
           tag.setDescription(payload);
           return tag;
         }

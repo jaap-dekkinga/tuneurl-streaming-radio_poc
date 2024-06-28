@@ -541,7 +541,7 @@ async function initAllTags(fingerPrint, timeOffset) {
         url.index = offset;
         activeAudioTags.liveTags.push({...url});
         activeAudioTags.tuneUrlCounts += 1;
-        console.log(url);
+        console.log({...url});
     }
 }
 

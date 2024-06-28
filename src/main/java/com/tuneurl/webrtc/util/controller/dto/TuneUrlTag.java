@@ -103,7 +103,7 @@ public class TuneUrlTag {
    */
   @JsonProperty("info")
   private String info;
-  
+
   /**
    * The Trigger similarity.
    *
@@ -288,7 +288,6 @@ public class TuneUrlTag {
   public void setDataPosition(Long dataPosition) {
     this.dataPosition = dataPosition;
   }
-
 
   public void setFingerprintCompareResponseData(
       FingerprintCompareResponse fcr, boolean shouldSetOffset) {

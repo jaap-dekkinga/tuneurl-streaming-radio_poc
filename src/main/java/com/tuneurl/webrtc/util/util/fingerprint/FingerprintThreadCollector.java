@@ -5,9 +5,6 @@ import com.tuneurl.webrtc.util.controller.dto.FingerprintCompareResponse;
 import com.tuneurl.webrtc.util.controller.dto.FingerprintResponse;
 import com.tuneurl.webrtc.util.util.Converter;
 import com.tuneurl.webrtc.util.value.Constants;
-
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 import lombok.Getter;
@@ -90,9 +87,7 @@ public class FingerprintThreadCollector extends FingerprintUtility implements Ru
 
       fr = fingerprintExternals.runExternalFingerprinting_Ex(random, rootDir, dData, dData.length);
 
-      fcr =
-          compareFingerprint(
-              fr, timeOffset, rootDir, random, dataFingerprint);
+      fcr = compareFingerprint(fr, timeOffset, rootDir, random, dataFingerprint);
 
       if (fcr != null) {
         selection.add(fcr);

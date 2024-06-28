@@ -45,11 +45,11 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
-import java.io.FileWriter;
-import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -593,7 +593,7 @@ public class AudioStreamController extends BaseController {
       @Valid @RequestBody AudioDataEntry audioDataEntry,
       HttpServletRequest httpRequest,
       HttpServletResponse httpResponse) {
-      FingerprintResponseNew cachedResponse = redis.getFingerprintCacheNew(audioDataEntry.getUrl());
+    FingerprintResponseNew cachedResponse = redis.getFingerprintCacheNew(audioDataEntry.getUrl());
     if (cachedResponse != null) {
       return ResponseEntity.ok().body(cachedResponse);
     }
@@ -636,8 +636,8 @@ public class AudioStreamController extends BaseController {
     try (FileWriter writer = new FileWriter("11.txt", true)) {
       writer.write("AudioDataEntry.Url");
     } catch (IOException e) {
-        e.printStackTrace();
-    }            
+      e.printStackTrace();
+    }
     Random random = new Random();
     random.setSeed(new Date().getTime());
     FingerprintResponseNew response =
@@ -732,7 +732,8 @@ public class AudioStreamController extends BaseController {
    * <b>B. Output is FindFingerPrintResponse</b>
    *
    * <ul>
-   *   <li><code>FindFingerPrintResponse.fingerPrintCounts</code>: total number of FingerprintCompareResponse.
+   *   <li><code>FindFingerPrintResponse.fingerPrintCounts</code>: total number of
+   *       FingerprintCompareResponse.
    *   <li><code>FindFingerPrintResponse.fingerPrints</code>: array of FingerprintCompareResponse.
    * </ul>
    *
@@ -767,7 +768,7 @@ public class AudioStreamController extends BaseController {
     super.saveAnalytics(signature, httpRequest);
 
     AudioDataEntry audioDataEntry = evaluateAudioStreamEntry.getAudioData();
-    
+
     // 1. Check for ADMIN or USER role.
     if (!super.canAccessAudioWithoutLogin()) {
       super.getSdkClientCredentials(signature, UserType.LOGIN_FOR_USER, httpRequest, httpResponse);
@@ -775,12 +776,11 @@ public class AudioStreamController extends BaseController {
 
     // FindFingerPrintResponse response1 = new FindFingerPrintResponse();
     // return ResponseEntity.ok().body(response1);
-    
+
     FindFingerPrintResponse response =
         audioStreamBaseService.findFingerPrintsAudioStream(
             audioDataEntry, evaluateAudioStreamEntry, signature);
 
     return ResponseEntity.ok().body(response);
   }
-
 }

@@ -72,7 +72,6 @@ public class CompareStringResult {
     // does nothing.
   }
 
-  
   /**
    * Retrieves the offset.
    *
@@ -116,7 +115,7 @@ public class CompareStringResult {
    */
   public String toString() {
     java.lang.StringBuffer sb = new java.lang.StringBuffer();
-     sb.append("    \"offset\": ").append('"').append(getOffset()).append("\",\n");
+    sb.append("    \"offset\": ").append('"').append(getOffset()).append("\",\n");
     sb.append("    \"similarity\": ").append('"').append(getSimilarity()).append("\"\n");
     sb.append("}\n");
     return sb.toString();

@@ -56,7 +56,7 @@ public class FindFingerPrintResponse {
   @JsonProperty("fingerPrintCounts")
   private Long fingerPrintCounts;
 
-    /**
+  /**
    * The array of FingetPrintOffset.
    *
    * <p>It can be any value.

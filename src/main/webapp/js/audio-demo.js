@@ -2,7 +2,7 @@
  * @license BSD 3-Clause License
  *
  * @copyright Copyright (c) 2023-2024, Jaap Dekkinga, <jaap.dekkinga@gmail.com>
- * @copyright Copyright (c) 2023-2024, Teodoro M. Albon, <albonteddy@gmail.com>
+ * @copyright Copyright (c) 2023-2024, Jaap Dekkinga, <jaap.dekkinga@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,9 +30,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 "use strict";
-const base_host = "https://streaming.tuneurl-demo.com";
-// const base_host = "http://localhost:8281";
-const LOAD_FROM_THIS_URL = "https://stream.radiojar.com/vzv0nkgsw7uvv";
+// const base_host = "https://streaming.tuneurl-demo.com";
+const base_host = "http://localhost:8281";
+const LOAD_FROM_THIS_URL = "http://stream.radiojar.com/vzv0nkgsw7uvv";
 // const TEST_MP3_FILE = base_host + "/audio/10.1s.mp3";
 const TEST_MP3_FILE = base_host + "/audio/10240-audio-streams-0230000.mp3";
 // const TEST_MP3_FILE = base_host + "/audio/webrtc-source_J7XLHMyC.mp3";
@@ -416,12 +416,12 @@ async function generateDataEntries()
 // start process B to find the trigerSound
 async function findTriggerSound()
 {
-    if (audioAudioDataEntries.length < 6) return;
+    if (audioAudioDataEntries.length < 2) return;
     if (!triggerFingerprintData) return;
 
 
     let offset  = 0;
-    let count = 6;
+    let count = 2;
     if (count > audioAudioDataEntries.length)
         count = audioAudioDataEntries.length;
     let length = 0;
@@ -450,8 +450,8 @@ async function getTurnUrlTags(datus)
     let sData = JSON.stringify(datus);
 
     let timeOffset = index_DataEntry * STREAM_DURATION * 1e3;
-    appendMessages(`Calling evaluateAudioStream API- ${timeOffset}`);
-    const res = await fetch(base_host + "/dev/v3/evaluateAudioStream", {
+    appendMessages(`Calling findFingerPrintsAudioStream API- ${timeOffset}`);
+    const res = await fetch(base_host + "/dev/v3/findFingerPrintsAudioStream", {
         method: "POST",
         mode: "cors",
         headers: {
@@ -463,16 +463,17 @@ async function getTurnUrlTags(datus)
         body: sData
     }).then((response => getTextData(response))).then((text => {
         data = parseResponseTextDataAsJSON(text, "{", "No Trigger sound found");
-        if (data.tagCounts) {
-            initAllTags(data.liveTags, data.tuneUrlCounts, timeOffset);
-
-            let remove_count = Math.floor((data.liveTags[0].dataPosition/1e3 + 6) / STREAM_DURATION);
+        if (data.count) {
+            let remove_count = Math.floor((data.fingerPrint.offset/1e3 + 6) / STREAM_DURATION);
             index_DataEntry += remove_count;
             audioAudioDataEntries.splice(0, remove_count);
+
+            initAllTags(data.fingerPrint, timeOffset);
+
         }
         else {
-            index_DataEntry += 2;
-            audioAudioDataEntries.splice(0, 2);
+            index_DataEntry += 1;
+            audioAudioDataEntries.splice(0, 1);
         }
 
         console.log(JSON.stringify({
@@ -484,30 +485,63 @@ async function getTurnUrlTags(datus)
         console.error("ERROR:", error);
         appendMessages("evaluateAudioStream API on ERROR: " + error)
     }))    
+
+    // let timeOffset = index_DataEntry * STREAM_DURATION * 1e3;
+    // appendMessages(`Calling evaluateAudioStream API- ${timeOffset}`);
+    // const res = await fetch(base_host + "/dev/v3/evaluateAudioStream", {
+    //     method: "POST",
+    //     mode: "cors",
+    //     headers: {
+    //         "Content-type": "application/json; charset=UTF-8",
+    //         Accept: "application/json",
+    //         "Access-Control-Allow-Origin": "*",
+    //         Authorization: "Bearer " + userToken
+    //     },
+    //     body: sData
+    // }).then((response => getTextData(response))).then((text => {
+    //     data = parseResponseTextDataAsJSON(text, "{", "No Trigger sound found");
+    //     if (data.tagCounts) {
+    //         initAllTags(data.liveTags, data.tuneUrlCounts, timeOffset);
+
+    //         let remove_count = Math.floor((data.liveTags[0].dataPosition/1e3 + 6) / STREAM_DURATION);
+    //         index_DataEntry += remove_count;
+    //         audioAudioDataEntries.splice(0, remove_count);
+    //     }
+    //     else {
+    //         index_DataEntry += 2;
+    //         audioAudioDataEntries.splice(0, 2);
+    //     }
+
+    //     console.log(JSON.stringify({
+    //         tuneUrlCounts: data.tuneUrlCounts,
+    //         counts: data.tagCounts,
+    //         liveTags: data.liveTags
+    //     }));
+    // })).catch((error => {
+    //     console.error("ERROR:", error);
+    //     appendMessages("evaluateAudioStream API on ERROR: " + error)
+    // }))    
 }
 
-async function initAllTags(liveTags, urlCounts, timeOffset) {
-    let index;
-    for (index = 0; index < urlCounts; index++) {
-        let tag = liveTags[index];
-        let dataPosition = tag.dataPosition;
-        let offset = tag.index;
-        let payload = "" + tag.description;
-        console.log(JSON.stringify({
-            offset: timeOffset,
-            index: offset,
-            dataOffset: dataPosition
-        }));
-        let url = await loadTuneUrlPage(payload, {
-            similarity: tag.similarity
-        });
-        if (url !== null) {
-            url.dataPosition = dataPosition + timeOffset;
-            url.index = offset;
-            activeAudioTags.liveTags.push({...url});
-            activeAudioTags.tuneUrlCounts += 1;
-            console.log(url);
-        }
+async function initAllTags(fingerPrint, timeOffset) {
+    
+    let dataPosition = fingerPrint.offset;
+    let offset = fingerPrint.offset;
+    let payload = "";
+    console.log(JSON.stringify({
+        offset: timeOffset,
+        index: offset,
+        dataOffset: dataPosition
+    }));
+    let url = await loadTuneUrlPage(payload, {
+        similarity: fingerPrint.similarity
+    });
+    if (url !== null) {
+        url.dataPosition = dataPosition + timeOffset;
+        url.index = offset;
+        activeAudioTags.liveTags.push({...url});
+        activeAudioTags.tuneUrlCounts += 1;
+        console.log(url);
     }
 }
 
@@ -741,18 +775,17 @@ function executeChannelModal(iRef) {
 
 async function showPopupByAudioStream(totalPlayTime) {
 
-    let threshold = 1000;
+    let threshold = 2500;
 
-    const notifications = activeAudioTags.liveTags.map(tag => {
-        return tag.dataPosition
-    })
+    for (let i = 0; i < activeAudioTags.liveTags.length; i ++) {
+        let diff = totalPlayTime - activeAudioTags.liveTags[i].dataPosition;
 
-    const activate = notifications.some((notification) => {
-        return (totalPlayTime - notification) > 0 && (totalPlayTime - notification) <= threshold;
-    })
+        if (diff > 0 && diff <= threshold) {
+            activeAudioTags.liveTags.splice(i, 1);
+            activateChannelModal(0);
 
-    if (activate) { // found it, show popup modal
-        activateChannelModal(0)
+            break;
+        }
     }
 }
 

@@ -53,10 +53,10 @@ public class FindFingerPrintResponse {
    *
    * <p>It is used in setFingerPrintCount(), getFingerPrintCount().
    */
-  @JsonProperty("fingerPrintCounts")
-  private Long fingerPrintCounts;
+  @JsonProperty("count")
+  private Long fingerPrintCount;
 
-  /**
+    /**
    * The array of FingetPrintOffset.
    *
    * <p>It can be any value.
@@ -65,8 +65,8 @@ public class FindFingerPrintResponse {
    *
    * <p>It is used in setFingerPrintCount(), getFingerPrintCount().
    */
-  @JsonProperty("fingerPrints")
-  private List<FingerprintCompareResponse> fingerPrints;
+  @JsonProperty("fingerPrint")
+  private FingerprintCompareResponse fingerPrint;
 
   /** Default constructor for FindFingerPrintResponse class. */
   public FindFingerPrintResponse() {
@@ -78,8 +78,8 @@ public class FindFingerPrintResponse {
    *
    * @return the actual FingerprintCompareResponse counts
    */
-  public void setFingerPrintCounts(Long fingerPrintCounts) {
-    this.fingerPrintCounts = fingerPrintCounts;
+  public void setFingerPrintCount(Long fingerPrintCount) {
+    this.fingerPrintCount = fingerPrintCount;
   }
 
   /**
@@ -87,8 +87,8 @@ public class FindFingerPrintResponse {
    *
    * @return the FingerprintCompareResponse counts
    */
-  public Long getFingerPrintCounts() {
-    return fingerPrintCounts;
+  public Long getFingerPrintCount() {
+    return fingerPrintCount;
   }
 
   /**
@@ -96,8 +96,8 @@ public class FindFingerPrintResponse {
    *
    * @return the list of FingerprintCompareResponse
    */
-  public List<FingerprintCompareResponse> getFingerPrints() {
-    return fingerPrints;
+  public FingerprintCompareResponse getFingerPrint() {
+    return fingerPrint;
   }
 
   /**
@@ -105,8 +105,8 @@ public class FindFingerPrintResponse {
    *
    * @param fingerPrints the array of FingerprintCompareResponse to set
    */
-  public void setFingerPrints(List<FingerprintCompareResponse> fingerPrints) {
-    this.fingerPrints = fingerPrints;
+  public void setFingerPrint(FingerprintCompareResponse fingerPrint) {
+    this.fingerPrint = fingerPrint;
   }
 
   /**
@@ -117,8 +117,8 @@ public class FindFingerPrintResponse {
   public String toString() {
     StringBuffer sb = new StringBuffer();
     sb.append("class FindFingerPrintResponse {\n");
-    sb.append("    \"fingerPrintCounts\": ").append(getFingerPrintCounts()).append(",\n");
-    sb.append("    \"fingerPrints\": ").append('"').append(getFingerPrints()).append("\"\n");
+    sb.append("    \"fingerPrintCounts\": ").append(getFingerPrintCount()).append(",\n");
+    sb.append("    \"fingerPrints\": ").append('"').append(getFingerPrint()).append("\"\n");
     sb.append("}\n");
     return sb.toString();
   }
@@ -131,8 +131,8 @@ public class FindFingerPrintResponse {
   public String toJSON() {
     StringBuffer sb = new StringBuffer();
     sb.append("{");
-    sb.append("\"fingerPrintCounts\": ").append(getFingerPrintCounts()).append(",");
-    sb.append("\"fingerPrints\": ").append('"').append(getFingerPrints()).append("\"");
+    sb.append("\"fingerPrintCounts\": ").append(getFingerPrintCount()).append(",");
+    sb.append("\"fingerPrints\": ").append('"').append(getFingerPrint()).append("\"");
     sb.append("}");
     return sb.toString();
   }

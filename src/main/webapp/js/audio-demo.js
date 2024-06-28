@@ -149,7 +149,8 @@ class AudioDataEntry {
 class AudioStreamPlayer {
     constructor(url, callback_stream) {
         this.url = url;
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)({sampleRate:44100});
+        // this.audioContext = new (window.AudioContext || window.webkitAudioContext)({sampleRate:44100});
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         this.audioQueue = [];
         this.source = null;
         this.pause_buff = null;

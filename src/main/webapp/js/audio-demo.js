@@ -165,6 +165,8 @@ class AudioStreamPlayer {
         this.totalPlayTime = 0;
         this.timerInterval = null;
         this.startedPlayTime = 0;
+        
+        this.totaltime = 0;
         // ----------------------
     }
 
@@ -276,6 +278,7 @@ class AudioStreamPlayer {
             this.source.buffer = this.audioQueue.shift();
             this.startTime = this.audioContext.currentTime;
             this.source.start(0);
+            this.totaltime += (this.source.buffer.duration * 1000);
         }
 
         // ************************************************************************************************
@@ -294,6 +297,7 @@ class AudioStreamPlayer {
             // console.log('play_stream: onended');
             clearInterval(this.timerInterval);
     
+            this.totalPlayTime = this.totaltime;
             this.isPlaying = false;
             this.play(false);
         };

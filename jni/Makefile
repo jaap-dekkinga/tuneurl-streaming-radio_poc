@@ -30,19 +30,19 @@ all: fingerprintexec
 
 do-test: fingerprintexec  fingerprint-comparison-test.txt
 		@echo "Test for jsExtractFingerprint"
-		/home/justin/audio/fingerprintexec fingerprint < fingerprint-test.txt > fingerprint-result.txt
+		fingerprintexec fingerprint < fingerprint-test.txt > fingerprint-result.txt
 		@echo "Test for jsCompareFingerprint"
-		/home/justin/audio/fingerprintexec < fingerprint-comparison-test.txt
+		fingerprintexec < fingerprint-comparison-test.txt
 
 fingerprintexec: ../script/runExternalFingerprintModule.sh  $(OBJECTS)
 		g++ $(LDD_DEFS) -o fingerprintexec $(OBJECTS)
-		@mkdir -p /home/justin/audio/ 
-		@rm -f /home/justin/audio/fingerprintexec
-		@cp -f fingerprintexec /home/justin/audio/fingerprintexec
-		chmod +x /home/justin/audio/fingerprintexec
-		@rm -f /home/justin/audio/runExternalFingerprintModule.sh
-		@cp -f ../script/runExternalFingerprintModule.sh  /home/justin/audio/runExternalFingerprintModule.sh
-		chmod +x /home/justin/audio/runExternalFingerprintModule.sh
+		@mkdir -p /home/ubuntu/audio/ 
+		@rm -f /home/ubuntu/audio/fingerprintexec
+		@cp -f fingerprintexec /home/ubuntu/audio/fingerprintexec
+		chmod +x /home/ubuntu/audio/fingerprintexec
+		@rm -f /home/ubuntu/audio/runExternalFingerprintModule.sh
+		@cp -f ../script/runExternalFingerprintModule.sh  /home/ubuntu/audio/runExternalFingerprintModule.sh
+		chmod +x /home/ubuntu/audio/runExternalFingerprintModule.sh
 
 main.o: cpp/main.cpp Makefile
 	  g++ $(DEPS) $(INCS) -c cpp/main.cpp -o main.o

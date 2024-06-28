@@ -239,7 +239,7 @@ public final class Constants {
   public static final String TUNEURL_SEARCH_API_URL =
       "https://pnz3vadc52.execute-api.us-east-2.amazonaws.com/dev/search-fingerprint";
 
-  public static final boolean DEBUG_FINGERPRINTING = true;
+  public static final boolean DEBUG_FINGERPRINTING = false;
 
   /* 100 millisecond elapse time. 20 gives 5 tags. */
   public static final int FINGERPRINT_INCREMENT_DELTA = 20;

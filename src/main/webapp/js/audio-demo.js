@@ -293,7 +293,9 @@ class AudioStreamPlayer {
         this.source.onended = () => {
             // console.log('play_stream: onended');
             clearInterval(this.timerInterval);
-
+            const currentTime = Date.now();
+            this.totalPlayTime += (currentTime - this.startedPlayTime);
+    
             this.isPlaying = false;
             this.play(false);
         };
@@ -433,7 +435,7 @@ async function findTriggerSound()
         offset += audioAudioDataEntries[index].length;
     }
     
-    let dataEntry = getAudioBufferChannelData(audioStream, STREAM_DURATION * count, 48000);   
+    let dataEntry = getAudioBufferChannelData(audioStream, STREAM_DURATION * count, 44100);   
     dataEntry.setUrl(audioStreamURL); 
     var datus = {
         audioData: dataEntry,
@@ -777,7 +779,7 @@ async function showPopupByAudioStream(totalPlayTime) {
     let threshold = 2500;
 
     for (let i = 0; i < activeAudioTags.liveTags.length; i ++) {
-        let diff = totalPlayTime - activeAudioTags.liveTags[i].dataPosition;
+        let diff = totalPlayTime* 1.1 - activeAudioTags.liveTags[i].dataPosition;
 
         if (diff > 0 && diff <= threshold) {
             activeAudioTags.liveTags.splice(i, 1);

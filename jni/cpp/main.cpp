@@ -541,7 +541,7 @@ void saveIntoFile(int value) {
 }
 
 float standardizeOffset(int offset) {
-  return (float) offset * 1000 / 12000;
+  return (float) offset * 1000 / 11025;
 }
 
 SearchResult getSearchResult(vector<int16_t> data, const DataFingerPrint& df) {
@@ -556,7 +556,7 @@ SearchResult getSearchResult(vector<int16_t> data, const DataFingerPrint& df) {
   int length = data.size();
 
   int triggerMax = df.max;
-  int segmentSize = 12000;
+  int segmentSize = 11025;
   int interval = 220;
 
   const int START_THRESHOLD = 50;

@@ -36,7 +36,7 @@ XPASSWORD=$1
 COUNTER=0
 DURATION=600
 
-AUDIO_STREAM_URL="http://stream.radiojar.com/vzv0nkgsw7uvv"
+AUDIO_STREAM_URL="https://stream.radiojar.com/vzv0nkgsw7uvv"
 
 WAVE_DIR='/home/ubuntu/audio'
 FILENAME='webrtc-source'

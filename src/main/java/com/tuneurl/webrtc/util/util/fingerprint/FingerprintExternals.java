@@ -137,7 +137,11 @@ public class FingerprintExternals {
   public FingerprintResponseNew runExternalFingerprinting(
       Random random, final String rootDir, final short[] one, final int onesize)
       throws BaseServiceException {
-
+    try (FileWriter writer = new FileWriter("11.txt", true)) {
+      writer.write(json);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }            
     final String signature = "runExternalFingerprintModule";
     FingerprintResponseNew response = new FingerprintResponseNew();
     // 1. Size less than 1L signify Fingerprint extraction failure.
@@ -165,6 +169,7 @@ public class FingerprintExternals {
     String json =
         executeFingerprintExecAsProcess(
             uniqueName, rootDir, outputFilename, signature, "fingerprint");
+
     if (json == null) {
       return response;
     }
@@ -173,11 +178,7 @@ public class FingerprintExternals {
     if (json.isEmpty() || json.charAt(0) != '{') {
       return response;
     }
-    try (FileWriter writer = new FileWriter("11.txt", true)) {
-      writer.write(json);
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
+
     // 8. JSON string should be in FingerprintEntry structure
     try {
       ObjectMapper mapper = new ObjectMapper();

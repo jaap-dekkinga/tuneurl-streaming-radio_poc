@@ -32,7 +32,7 @@
 "use strict";
 const base_host = "https://streaming.tuneurl-demo.com";
 // const base_host = "http://localhost:8281";
-const LOAD_FROM_THIS_URL = "http://stream.radiojar.com/vzv0nkgsw7uvv";
+const LOAD_FROM_THIS_URL = "https://stream.radiojar.com/vzv0nkgsw7uvv";
 // const TEST_MP3_FILE = base_host + "/audio/10.1s.mp3";
 const TEST_MP3_FILE = base_host + "/audio/10240-audio-streams-0230000.mp3";
 // const TEST_MP3_FILE = base_host + "/audio/webrtc-source_J7XLHMyC.mp3";
@@ -81,6 +81,7 @@ var activeAudioTags = {
     tuneUrlCounts: 0
 };
 let index_DataEntry = 0;
+let g_remove_count = 0;
 let remainStream = new Float32Array(0);
 
 class ContinuousCaller extends EventTarget {
@@ -417,6 +418,18 @@ async function generateDataEntries()
 // start process B to find the trigerSound
 async function findTriggerSound()
 {
+    if (g_remove_count) {
+        if (audioAudioDataEntries.length > g_remove_count) {
+            audioAudioDataEntries.splice(0, g_remove_count);
+            g_remove_count = 0;
+        }
+        else {
+            audioAudioDataEntries.splice(0, audioAudioDataEntries.length);
+            g_remove_count -= audioAudioDataEntries.length;
+            return;        
+        }
+    }
+
     if (audioAudioDataEntries.length < 2) return;
     if (!triggerFingerprintData) return;
 
@@ -467,7 +480,15 @@ async function getTurnUrlTags(datus)
         if (data.count) {
             let remove_count = Math.floor((data.fingerPrint.offset/1e3 + 6) / STREAM_DURATION);
             index_DataEntry += remove_count;
-            audioAudioDataEntries.splice(0, remove_count);
+            if (remove_count > audioAudioDataEntries.length) {
+                g_remove_count = remove_count - audioAudioDataEntries.length;
+                audioAudioDataEntries.splice(0, audioAudioDataEntries.length);
+            }
+            else
+            {
+                g_remove_count = 0;
+                audioAudioDataEntries.splice(0, remove_count);
+            }
 
             initAllTags(data.fingerPrint, timeOffset);
 

@@ -284,11 +284,11 @@ class AudioStreamPlayer {
 
         // ************************************************************************************************
         // Record the start time
-        this.startedPlayTime = this.audioContext.currentTime;
+        this.startedPlayTime = Date.now();
         // Start the timer
         this.timerInterval = setInterval(() => {
-            const currentTime = this.audioContext.currentTime;
-            this.totalPlayTime += ((currentTime - this.startedPlayTime)* 1000);  // Convert milliseconds to seconds
+            const currentTime = Date.now();
+            this.totalPlayTime += (currentTime - this.startedPlayTime);  // Convert milliseconds to seconds
             updatePocTitle(this.totalPlayTime);
             this.startedPlayTime = currentTime;  // Reset start time for the next interval
         }, 10);  // Update every 10 millisecond
@@ -310,8 +310,11 @@ class AudioStreamPlayer {
         // -----------------------------------------------------------------------
         // Clear the interval and update the total play time
         clearInterval(this.timerInterval);
-        // this.startedPlayTime = 0;
 
+        const currentTime = Date.now();
+        this.totalPlayTime += (currentTime - this.startedPlayTime);
+        // this.startedPlayTime = 0;
+        
         this.pause_buff = this.source.buffer;
         this.source.stop();
         this.pausedAt = this.audioContext.currentTime - this.startTime;

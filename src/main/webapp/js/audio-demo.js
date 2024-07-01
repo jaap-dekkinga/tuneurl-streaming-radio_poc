@@ -422,13 +422,14 @@ async function generateDataEntries()
 async function findTriggerSound()
 {
     if (g_remove_count) {
-        if (audioAudioDataEntries.length > g_remove_count) {
+        let length = audioAudioDataEntries.length;
+        if (length > g_remove_count) {
             audioAudioDataEntries.splice(0, g_remove_count);
             g_remove_count = 0;
         }
         else {
-            audioAudioDataEntries.splice(0, audioAudioDataEntries.length);
-            g_remove_count -= audioAudioDataEntries.length;
+            audioAudioDataEntries.splice(0, length);
+            g_remove_count -= length;
             return;        
         }
     }

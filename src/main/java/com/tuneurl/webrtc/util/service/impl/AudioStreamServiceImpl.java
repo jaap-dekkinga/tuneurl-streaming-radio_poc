@@ -394,8 +394,8 @@ public class AudioStreamServiceImpl implements AudioStreamService {
     response.setFingerPrint(null);
     
     long elapse;
-    long maxDuration = Converter.muldiv(1000, duration, 1L);
-    long count, counts = Converter.muldiv(1000, duration, 100);
+    long maxDuration = Converter.muldiv(1000, duration, 1L) - 1500;
+    long count, counts = Converter.muldiv(1000, maxDuration, 100);
 
     String rootDir = this.getSaveAudioFilesFolder(null);
     String debugUniqueName = ProcessHelper.createUniqueFilename();
@@ -441,7 +441,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
         fcr = (FingerprintCompareResponse) fingerprintComparisonsResponse[0];
         fr = (FingerprintResponse) fingerprintComparisonsResponse[1];
 
-        if (fcr != null && fcr.getOffset() < maxDuration - 1000) {
+        if (fcr != null && fcr.getOffset() < maxDuration) {
           response.setFingerPrintCount(1L);
           response.setFingerPrint(fcr);
           break;

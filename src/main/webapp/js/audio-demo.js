@@ -482,9 +482,10 @@ async function getTurnUrlTags(datus)
         if (data.count) {
             let remove_count = Math.floor((data.fingerPrint.offset/1e3 + 6) / STREAM_DURATION);
             index_DataEntry += remove_count;
-            if (remove_count > audioAudioDataEntries.length) {
-                g_remove_count = remove_count - audioAudioDataEntries.length;
-                audioAudioDataEntries.splice(0, audioAudioDataEntries.length);
+            let length = audioAudioDataEntries.length;
+            if (remove_count > length) {
+                g_remove_count = remove_count - length;
+                audioAudioDataEntries.splice(0, length);
             }
             else
             {

@@ -581,8 +581,8 @@ SearchResult getSearchResult(vector<int16_t> data, const DataFingerPrint& df) {
       start_offset = i;
   }
 
-  if (start_offset < 20)
-      return result;
+  // if (start_offset < 20)
+  //     return result;
 
   int start, end;
   float similarity = 0;
@@ -593,6 +593,7 @@ SearchResult getSearchResult(vector<int16_t> data, const DataFingerPrint& df) {
   // saveIntoFile(amplify);
 
   int start_pos = start_offset - 20;
+  if (start_pos < 0) start_pos = 0;
   for (int offset = start_pos; offset < interval; offset++) {
 
     std::vector<BlockInfo> segmentsBlockInfo;

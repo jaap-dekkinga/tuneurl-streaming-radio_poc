@@ -806,7 +806,7 @@ async function showPopupByAudioStream(totalPlayTime) {
         let diff = totalPlayTime - activeAudioTags.liveTags[i].dataPosition;
 
         if (diff > 0 && diff <= threshold) {
-            activeAudioTags.liveTags.splice(i, 1);
+            // activeAudioTags.liveTags.splice(i, 1);
             activateChannelModal(0);
 
             break;

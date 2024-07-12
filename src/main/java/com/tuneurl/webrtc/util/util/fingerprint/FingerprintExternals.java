@@ -14,6 +14,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Random;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class FingerprintExternals {
 
   private static final String fingerprint_prefix =
@@ -123,6 +127,7 @@ public class FingerprintExternals {
     return response;
   }
 
+  
   /**
    * Alternative to ExtractFingerprint(const int16_t *, int):Fingerprint * method with stable
    * results. This make use of main.cpp compiled in the executable at ./jni/fingerprintexec .
@@ -204,7 +209,7 @@ public class FingerprintExternals {
    * @throws BaseServiceException If there is error running the runExternalFingerprintModule.sh
    */
   public FingerprintResponse runExternalFingerprinting_Ex(
-      Random random, final String rootDir, final short[] one, final int onesize)
+      Random random, final String rootDir, String action, final short[] one, final int onesize)
       throws BaseServiceException {
 
     final String signature = "runExternalFingerprintModule";
@@ -232,7 +237,7 @@ public class FingerprintExternals {
     // 6. Run ./jni/fingerprintexec via runExternalFingerprintModule.sh
     // 7. read the JSON string
     String json =
-        executeFingerprintExecAsProcess(uniqueName, rootDir, outputFilename, signature, "stream");
+        executeFingerprintExecAsProcess(uniqueName, rootDir, outputFilename, signature, action);
     if (json == null) {
       return response;
     }
@@ -282,6 +287,13 @@ public class FingerprintExternals {
     String resultFilename = String.format("/tmp/%s.out", uniqueName);
     String command = rootDir + "/runExternalFingerprintModule.sh";
     // 6. Run ./jni/fingerprintexec via runExternalFingerprintModule.sh
+
+    // try (BufferedWriter writer = new BufferedWriter(new FileWriter("action.txt"))) {
+    //   writer.write(action + ' ' + command + ' ' + resultFilename);
+    // } catch (IOException e) {
+    //     e.printStackTrace();
+    // }
+
     ProcessBuilder processBuilder =
         new ProcessBuilder("/bin/bash", command, resultFilename, outputFilename, action);
 

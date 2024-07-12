@@ -153,7 +153,7 @@ public class AudioStreamServiceImpl implements AudioStreamService {
 
     FingerprintCompareResponse fcr = null;
     FingerprintResponse fr = null;
-    FingerprintResponseNew audioFr;
+    FingerprintResponse audioFr;
     if (isDebugOn) {
       ProcessHelper.makeDir(debugDir);
     }
@@ -182,60 +182,31 @@ public class AudioStreamServiceImpl implements AudioStreamService {
       List<FingerprintResponse> frSelection = result.getFrCollection();
       List<FingerprintCompareResponse> selection = result.getFcrCollection();
 
+
       // timeOffset = elapse; // possible legacy code
       if (selection.size() == 5) {
+        // fingerPrints.addAll(selection);
         Object[] fingerprintComparisonsResponse =
             FingerprintUtility.fingerprintComparisons(selection, frSelection, fcr, fr);
         fcr = (FingerprintCompareResponse) fingerprintComparisonsResponse[0];
         fr = (FingerprintResponse) fingerprintComparisonsResponse[1];
 
         if (fcr != null) {
-          boolean duplicate = false;
-
-          if (liveTags.size() > 0) {
-            for (int i = 0; i < liveTags.size(); i ++) {
-
-              if (liveTags.get(i).getDataPosition().equals(fcr.getOffset())) {
-                duplicate = true;
-
-                break;
-              }
-            }
-          }
-          if (duplicate)
-            continue;
-
           timeOffset = fcr.getOffset();
-          baseOffset = timeOffset;
-          // Grab the audio after the triggersound
-          timeOffset = timeOffset + 3000L;
+          timeOffset = timeOffset + 1000L;
           iStart = Converter.muldiv(timeOffset, fingerprintRate, 1000L);
-          iEnd = Converter.muldiv(timeOffset + 1000L, fingerprintRate, 1000L);
+          iEnd = Converter.muldiv(timeOffset + 5000L, fingerprintRate, 1000L);
           dSize = (int) (iEnd - iStart);
           dData = Converter.convertListShortEx(data, (int) iStart, dSize);
-          if (dData == null) break;
-          // Calculate the audio's fingerprint
-          // audioFr = ExternalCppModules.calculateFingerprint(null, dData, dData.length);
+          // Calculate the audio's payload
           audioFr =
-              fingerprintExternals.runExternalFingerprinting(random, rootDir, dData, dData.length);
+              fingerprintExternals.runExternalFingerprinting_Ex(random, rootDir, "fingerprintprev", dData, dData.length);
 
-          tag = tagsHelper.newTag(false, 0L, audioFr, fcr);
+          tag = tagsHelper.newTag(true, 0L, audioFr, fcr);
           liveTags.add(tag);
-
-          /*
-          if (isDebugOn) {
-            saveFingerprintsDebug(
-                evaluateAudioStreamEntry,
-                fr,
-                audioFr,
-                fcr,
-                baseOffset,
-                rootDebugDir,
-                debugUniqueName);
-          } // if (isDebugOn)
-           */
+          break;
         } // if (fcr != null)
-      } // if (selection.size() == 5)
+      } // if (selection.size() == 5) 
     } // for (...)
     liveTags = tagsHelper.pruneTags(liveTags);
     counts = (long) liveTags.size();

@@ -587,6 +587,8 @@ SearchResult getSearchResult(vector<int16_t> data, const DataFingerPrint& df) {
   int start, end;
   float similarity = 0;
   float amplify = 1;
+  bool  is_find = false;
+  const int BLOCK_THRESHOLD = 2;
   BlockInfo info;
   if (dataMax) amplify = (float) triggerMax / dataMax;
 
@@ -596,6 +598,7 @@ SearchResult getSearchResult(vector<int16_t> data, const DataFingerPrint& df) {
   if (start_pos < 0) start_pos = 0;
   for (int offset = start_pos; offset < interval; offset++) {
 
+    is_find = false;
     std::vector<BlockInfo> segmentsBlockInfo;
     for (int index = 0; index < df.blockCount; index++) {
       start = df.blockInfo[index].startRate * segmentSize + offset;
@@ -607,7 +610,30 @@ SearchResult getSearchResult(vector<int16_t> data, const DataFingerPrint& df) {
           info.sum += correctValue(data[i], amplify);
       
       info.average = static_cast<float>(info.sum) / info.blockSize;
+
+      if (index == 0 && info.average < 8)
+        break;
+      if (index == 2 && info.average < 10)
+        break;
+      if ((index == 1 || index == 3) && info.average > BLOCK_THRESHOLD)
+        break;
+      if (index == 4 && info.average < 9)
+        break;
+
+      if (index == 4)
+        is_find = true;
+
       segmentsBlockInfo.push_back(info); // Add this BlockInfo to your vector
+    }
+    if (is_find) {
+      result.blockInfo = segmentsBlockInfo;
+      result.similarity = 1;
+      result.amplify = amplify;
+      result.triggerMax = triggerMax;
+      result.dataMax = dataMax;
+      result.offset = start_offset;      
+      result.offset = offset;
+      return result;
     }
     // adjust amplify
     if (length > segmentSize + offset + 1 && dataMax < abs(data[segmentSize + offset + 1]))
@@ -618,27 +644,58 @@ SearchResult getSearchResult(vector<int16_t> data, const DataFingerPrint& df) {
       else
         amplify = (float) triggerMax / dataMax;
     }
-    result.blockInfo = segmentsBlockInfo;
-    result.similarity = calculateVectorSimilarity(segmentsBlockInfo, df.blockInfo);
-    result.amplify = amplify;
-    result.triggerMax = triggerMax;
-    result.dataMax = dataMax;
-    result.offset = start_offset;
-    if (result.similarity == 1) {
-      
-      result.offset = offset;
-
-      return result;
-    }
   }
   return result;
 }
 
+int doLocalFingerprinting_prev(void) {
+    // local fingerprint
+    int index;
+    int waveLength;
+    int16_t value;
+    uint8_t* data;
+    int			 dataSize;
+
+    std::cin >> waveLength;
+
+    vector<int16_t> data1(waveLength);
+    for (index = 0; index < waveLength; index++) {
+        std::cin >> value;
+        data1[index] = value;
+    }
+    while (index < waveLength) data1[index++] = (int16_t) 0;
+
+    Fingerprint *ptr = ExtractFingerprint((const int16_t *)data1.data(), waveLength);
+    if (ptr != NULL_FINGERPRINT) {
+        data = ptr->data;
+        dataSize = ptr->dataSize;
+        std::cout << "{\"size\":" ;
+        std::cout << dataSize << ",\"data\":[" ;
+        for (index = 0; index < dataSize; index++, data++) {
+            if (index > 0) std::cout << ',';
+            std::cout << (short)*data;
+        }
+        std::cout << "]}" << std::endl ;
+        FingerprintFree(ptr);
+    }
+    else {
+        std::cout << "{\"size\": 0,\"data\":[]}" << std::endl;
+    }
+
+    return 0;
+} /*doLocalFingerprinting_prev*/
+
+
 int main(int argc, char **argv) {
+
+    if (argc > 1 && 0==strncmp(argv[1], "fingerprintprev", 15)) {
+        return doLocalFingerprinting_prev();
+    }
 
     if (argc > 1 && 0==strncmp(argv[1], "fingerprint", 11)) {
         return doLocalFingerprinting();
     }
+
     if (argc > 1 && 0==strncmp(argv[1], "stream", 6)) {
         return doStreamFingerprinting();
     }

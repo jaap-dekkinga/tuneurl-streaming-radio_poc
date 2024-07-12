@@ -46,7 +46,7 @@ const HALF_AMPLITUDE_SIZE = 256;
 const MAXIMUM_DURATION = 1020;
 const FINGERPRINT_SAMPLE_RATE = 10240;
 const STREAM_DURATION = 1.5;
-const IF_SEARCH_API_BROKEN = true;
+const IF_SEARCH_API_BROKEN = false;
 
 const LIVE_INIT = 0;
 const LIVE_WAIT_MODAL_STATE = 1;
@@ -253,7 +253,7 @@ class AudioStreamPlayer {
             const totalDuration = this.audioQueue.reduce((acc, buffer) => acc + buffer.duration, 0);
             console.log('playAudioQueue: totalDuration', totalDuration);
 
-            if (totalDuration < 10 && this.isFirstPlay) {
+            if (totalDuration < 16 && this.isFirstPlay) {
                 return;
             }
         
@@ -419,25 +419,24 @@ async function generateDataEntries()
 // start process B to find the trigerSound
 async function findTriggerSound()
 {
-    if (g_remove_count) {
-        let length = audioAudioDataEntries.length;
-        if (length > g_remove_count) {
-            audioAudioDataEntries.splice(0, g_remove_count);
-            g_remove_count = 0;
-        }
-        else {
-            audioAudioDataEntries.splice(0, length);
-            g_remove_count -= length;
-            return;        
-        }
-    }
+    // if (g_remove_count) {
+    //     let length = audioAudioDataEntries.length;
+    //     if (length > g_remove_count) {
+    //         audioAudioDataEntries.splice(0, g_remove_count);
+    //         g_remove_count = 0;
+    //     }
+    //     else {
+    //         audioAudioDataEntries.splice(0, length);
+    //         g_remove_count -= length;
+    //         return;        
+    //     }
+    // }
 
-    if (audioAudioDataEntries.length < 2) return;
+    let count = 6;
+    if (audioAudioDataEntries.length < count) return;
     if (!triggerFingerprintData) return;
 
-
     let offset  = 0;
-    let count = 2;
     if (count > audioAudioDataEntries.length)
         count = audioAudioDataEntries.length;
     let length = 0;
@@ -466,8 +465,8 @@ async function getTurnUrlTags(datus)
     let sData = JSON.stringify(datus);
 
     let timeOffset = index_DataEntry * STREAM_DURATION * 1e3;
-    appendMessages(`Calling findFingerPrintsAudioStream API- ${timeOffset}`);
-    const res = await fetch(base_host + "/dev/v3/findFingerPrintsAudioStream", {
+    appendMessages(`Calling evaluateAudioStream API- ${timeOffset}`);
+    const res = await fetch(base_host + "/dev/v3/evaluateAudioStream", {
         method: "POST",
         mode: "cors",
         headers: {
@@ -479,26 +478,16 @@ async function getTurnUrlTags(datus)
         body: sData
     }).then((response => getTextData(response))).then((text => {
         data = parseResponseTextDataAsJSON(text, "{", "No Trigger sound found");
-        if (data.count) {
-            let remove_count = Math.floor((data.fingerPrint.offset/1e3 + 6) / STREAM_DURATION);
+        if (data.tagCounts) {
+            initAllTags(data.liveTags[0], timeOffset);
+
+            let remove_count = Math.floor((data.liveTags[0].dataPosition/1e3 + 6) / STREAM_DURATION);
             index_DataEntry += remove_count;
-            let length = audioAudioDataEntries.length;
-            if (remove_count > length) {
-                g_remove_count = remove_count - length;
-                audioAudioDataEntries.splice(0, length);
-            }
-            else
-            {
-                g_remove_count = 0;
-                audioAudioDataEntries.splice(0, remove_count);
-            }
-
-            initAllTags(data.fingerPrint, timeOffset);
-
+            audioAudioDataEntries.splice(0, remove_count);
         }
         else {
-            index_DataEntry += 1;
-            audioAudioDataEntries.splice(0, 1);
+            index_DataEntry += 2;
+            audioAudioDataEntries.splice(0, 2);
         }
 
         console.log(JSON.stringify({
@@ -509,11 +498,10 @@ async function getTurnUrlTags(datus)
     })).catch((error => {
         console.error("ERROR:", error);
         appendMessages("evaluateAudioStream API on ERROR: " + error)
-    }))    
-
+    }))        
     // let timeOffset = index_DataEntry * STREAM_DURATION * 1e3;
-    // appendMessages(`Calling evaluateAudioStream API- ${timeOffset}`);
-    // const res = await fetch(base_host + "/dev/v3/evaluateAudioStream", {
+    // appendMessages(`Calling findFingerPrintsAudioStream API- ${timeOffset}`);
+    // const res = await fetch(base_host + "/dev/v3/findFingerPrintsAudioStream", {
     //     method: "POST",
     //     mode: "cors",
     //     headers: {
@@ -525,16 +513,26 @@ async function getTurnUrlTags(datus)
     //     body: sData
     // }).then((response => getTextData(response))).then((text => {
     //     data = parseResponseTextDataAsJSON(text, "{", "No Trigger sound found");
-    //     if (data.tagCounts) {
-    //         initAllTags(data.liveTags, data.tuneUrlCounts, timeOffset);
-
-    //         let remove_count = Math.floor((data.liveTags[0].dataPosition/1e3 + 6) / STREAM_DURATION);
+    //     if (data.count) {
+    //         let remove_count = Math.floor((data.fingerPrint.offset/1e3 + 6) / STREAM_DURATION);
     //         index_DataEntry += remove_count;
-    //         audioAudioDataEntries.splice(0, remove_count);
+    //         let length = audioAudioDataEntries.length;
+    //         if (remove_count > length) {
+    //             g_remove_count = remove_count - length;
+    //             audioAudioDataEntries.splice(0, length);
+    //         }
+    //         else
+    //         {
+    //             g_remove_count = 0;
+    //             audioAudioDataEntries.splice(0, remove_count);
+    //         }
+
+    //         initAllTags(data.fingerPrint, timeOffset);
+
     //     }
     //     else {
-    //         index_DataEntry += 2;
-    //         audioAudioDataEntries.splice(0, 2);
+    //         index_DataEntry += 1;
+    //         audioAudioDataEntries.splice(0, 1);
     //     }
 
     //     console.log(JSON.stringify({
@@ -546,13 +544,14 @@ async function getTurnUrlTags(datus)
     //     console.error("ERROR:", error);
     //     appendMessages("evaluateAudioStream API on ERROR: " + error)
     // }))    
+
 }
 
 async function initAllTags(fingerPrint, timeOffset) {
     
-    let dataPosition = fingerPrint.offset;
-    let offset = fingerPrint.offset;
-    let payload = "";
+    let dataPosition = fingerPrint.dataPosition;
+    let offset = fingerPrint.index;
+    let payload = "" + fingerPrint.description;
     console.log(JSON.stringify({
         offset: timeOffset,
         index: offset,

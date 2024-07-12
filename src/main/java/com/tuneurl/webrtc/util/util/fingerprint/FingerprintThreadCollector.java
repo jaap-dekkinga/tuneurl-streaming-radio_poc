@@ -85,8 +85,7 @@ public class FingerprintThreadCollector extends FingerprintUtility implements Ru
       dData = Converter.convertListShortEx(data, (int) iStart, dSize);
       if (dData == null) break;
 
-      fr = fingerprintExternals.runExternalFingerprinting_Ex(random, rootDir, dData, dData.length);
-
+      fr = fingerprintExternals.runExternalFingerprinting_Ex(random, rootDir, "stream", dData, dData.length);
       fcr = compareFingerprint(fr, timeOffset, rootDir, random, dataFingerprint);
 
       if (fcr != null) {

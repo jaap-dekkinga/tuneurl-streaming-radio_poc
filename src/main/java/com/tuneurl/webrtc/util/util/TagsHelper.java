@@ -1,8 +1,11 @@
 package com.tuneurl.webrtc.util.util;
 
 import com.tuneurl.webrtc.util.controller.dto.FingerprintCompareResponse;
+import com.tuneurl.webrtc.util.controller.dto.FingerprintResponse;
 import com.tuneurl.webrtc.util.controller.dto.FingerprintResponseNew;
 import com.tuneurl.webrtc.util.controller.dto.TuneUrlTag;
+import com.tuneurl.webrtc.util.util.fingerprint.FingerprintUtility;
+
 import java.util.List;
 
 public class TagsHelper {
@@ -19,7 +22,7 @@ public class TagsHelper {
   public final TuneUrlTag newTag(
       boolean updateOffset,
       Long dataOffset,
-      FingerprintResponseNew fr,
+      FingerprintResponse fr,
       FingerprintCompareResponse fcr) {
     TuneUrlTag tag = new TuneUrlTag();
     long offset = fcr.getOffset();
@@ -31,7 +34,8 @@ public class TagsHelper {
     tag.setFingerprintCompareResponseData(fcr, false);
 
     if (null != fr) {
-      final String payload = fr.toJson();
+      // final String payload = fr.toJson();
+      final String payload = FingerprintUtility.convertFingerprintToString(fr.getData());
       tag.setTuneUrlEmptyEntryData(payload);
     }
 
@@ -77,7 +81,6 @@ public class TagsHelper {
    * @return List&lt;TuneUrlTag>
    */
   public final List<TuneUrlTag> pruneTags(List<TuneUrlTag> tags) {
-    int size = tags.size();
 
     while (tags.size() > 1) {
       Long dataPostion1 = tags.get(0).getDataPosition();

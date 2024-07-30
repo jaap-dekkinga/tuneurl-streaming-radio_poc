@@ -440,7 +440,7 @@ async function findTriggerSound()
         }
 
        
-        let pos = (triggr_fingerprint.offset/1e3 + 1.5)* 44100;
+        let pos = parseInt(triggr_fingerprint.offset/1e3 + 1.5)* 44100;
         let size = 3 * 44100;
 
         let tuneURL_stream = new Float32Array(size);
@@ -454,7 +454,7 @@ async function findTriggerSound()
         g_remove_count = 0;
     }
 
-    let count = 6;
+    let count = 2;
     if (audioAudioDataEntries.length < count) return;
     if (!triggerFingerprintData) return;
 
@@ -631,7 +631,7 @@ async function getTurnUrlTags(datus)
     }).then((response => getTextData(response))).then((text => {
         data = parseResponseTextDataAsJSON(text, "{", "No Trigger sound found");
         if (data.count) {
-            g_remove_count = Math.floor((data.fingerPrint.offset/1e3 + 6) / STREAM_DURATION);
+            g_remove_count = Math.ceil((data.fingerPrint.offset/1e3 + 6) / STREAM_DURATION);
             triggr_fingerprint = data.fingerPrint;
         }
         else {

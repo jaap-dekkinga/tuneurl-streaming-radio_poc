@@ -633,11 +633,7 @@ public class AudioStreamController extends BaseController {
     Converter.validateDuration(duration);
     final String fileName = Converter.validateUrlOrGencrc32(url);
     ProcessHelper.checkNullOrEmptyString(fileName, "AudioDataEntry.Url");
-    try (FileWriter writer = new FileWriter("11.txt", true)) {
-      writer.write("AudioDataEntry.Url");
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+
     Random random = new Random();
     random.setSeed(new Date().getTime());
     FingerprintResponseNew response =
@@ -648,6 +644,75 @@ public class AudioStreamController extends BaseController {
     return ResponseEntity.ok().body(response);
   }
 
+/**
+   * Convert the given data bits into fingerprint.. <br>
+   * <br>
+   * <b>Implementation Notes</b>: <br>
+   * <b>A. Input is <code>AudioDataEntry</code>.</b>
+   *
+   * <ul>
+   *   <li><code>AudioDataEntry.Data</code>: Audio data bits. Array of Byte.
+   *   <li><code>AudioDataEntry.Size</code>: Size of Data.
+   * </ul>
+   *
+   * <br>
+   * <b>B. Output is FingerprintResponse</b>
+   *
+   * <ul>
+   *   <li><code>FingerprintResponse.size</code>: size of Fingerprint.
+   *   <li><code>FingerprintResponse.data</code>: the Fingeprint. Array of Byte.
+   * </ul>
+   *
+   * @param audioDataEntry AudioDataEntry,
+   * @param httpRequest HttpServletRequest HTTP Request
+   * @param httpResponse HttpServletResponse HTTP Response
+   * @return ResponseEntity &lt;FingerprintResponse>
+   */
+  @PostMapping(
+      path = "/dev/v3/extractfingerprint",
+      produces = {MediaType.APPLICATION_JSON_VALUE})
+  @ApiOperation(
+      value = "Convert the given data bits into fingerprint.",
+      response = FingerprintResponse.class)
+  @ApiResponses(
+      value = {
+        @ApiResponse(code = 200, message = "FingerprintResponse"),
+        @ApiResponse(code = 400, message = "BadRequest"),
+        @ApiResponse(code = 401, message = "Unauthorized"),
+        @ApiResponse(code = 403, message = "Forbidden"),
+        @ApiResponse(code = 404, message = "NotFound"),
+        @ApiResponse(code = 500, message = "InternalServerError"),
+      })
+  @CrossOrigin("*")
+  public ResponseEntity<FingerprintResponse> extractfingerprint(
+      @Valid @RequestBody short[] audioData,
+      HttpServletRequest httpRequest,
+      HttpServletResponse httpResponse) {
+    // FingerprintResponseNew cachedResponse = redis.getFingerprintCacheNew(audioDataEntry.getUrl());
+    // if (cachedResponse != null) {
+    //   return ResponseEntity.ok().body(cachedResponse);
+    // }
+
+    final String signature = "Controller:extractfingerprint";
+    // Root dir
+    String rootDir = audioStreamBaseService.getSaveAudioFilesFolder(null);
+
+    // 1. Check for ADMIN or USER role.
+    if (!super.canAccessAudioWithoutLogin()) {
+      super.getSdkClientCredentials(signature, UserType.LOGIN_FOR_USER, httpRequest, httpResponse);
+    }
+    final String fileName = Converter.validateUrlOrGencrc32("https://extractfingerprint.com");
+    ProcessHelper.checkNullOrEmptyString(fileName, "ExtractFingerprint.Url");
+
+    Random random = new Random();
+    random.setSeed(new Date().getTime());
+    FingerprintResponse response =
+        fingerprintExternals.runExternalFingerprinting_Ex(random, rootDir, "fingerprintprev", audioData, audioData.length);
+
+    // redis.setFingerprintCacheNew(audioDataEntry.getUrl(), response);
+
+    return ResponseEntity.ok().body(response);
+  }
   /**
    * Find all triggersound from the given audio stream. <br>
    * <br>

@@ -193,9 +193,9 @@ public class AudioStreamServiceImpl implements AudioStreamService {
 
         if (fcr != null) {
           timeOffset = fcr.getOffset();
-          timeOffset = timeOffset + 1000L;
+          timeOffset = timeOffset + 1500L;
           iStart = Converter.muldiv(timeOffset, fingerprintRate, 1000L);
-          iEnd = Converter.muldiv(timeOffset + 5000L, fingerprintRate, 1000L);
+          iEnd = Converter.muldiv(timeOffset + 3500L, fingerprintRate, 1000L);
           dSize = (int) (iEnd - iStart);
           dData = Converter.convertListShortEx(data, (int) iStart, dSize);
           // Calculate the audio's payload

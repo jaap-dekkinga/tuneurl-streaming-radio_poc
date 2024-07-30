@@ -38,6 +38,7 @@ const TEST_MP3_FILE = base_host + "/audio/10240-audio-streams-0230000.mp3";
 // const TEST_MP3_FILE = base_host + "/audio/webrtc-source_J7XLHMyC.mp3";
 const TRIGGERSOUND_AUDIO_URL = base_host + "/audio/10240-triggersound.wav";
 
+
 const IF_LOAD_FROM_URL = true;
 const APP_TITLE = "Audio Demo Test";
 
@@ -81,8 +82,10 @@ var activeAudioTags = {
     tuneUrlCounts: 0
 };
 let index_DataEntry = 0;
+let triggr_fingerprint = null;
 let g_remove_count = 0;
 let remainStream = new Float32Array(0);
+let activeUrl = null;
 
 class ContinuousCaller extends EventTarget {
     constructor() {
@@ -115,7 +118,7 @@ class AudioDataEntry {
         this.Size = 0;
         this.sampleRate = 44100;
         this.duration = 0;
-        this.fingerprintRate = 10240
+        this.fingerprintRate = FINGERPRINT_SAMPLE_RATE
     }
     setAudioData(data, size, rate, duration, newRate) {
         this.Data = data;
@@ -419,30 +422,51 @@ async function generateDataEntries()
 // start process B to find the trigerSound
 async function findTriggerSound()
 {
-    // if (g_remove_count) {
-    //     let length = audioAudioDataEntries.length;
-    //     if (length > g_remove_count) {
-    //         audioAudioDataEntries.splice(0, g_remove_count);
-    //         g_remove_count = 0;
-    //     }
-    //     else {
-    //         audioAudioDataEntries.splice(0, length);
-    //         g_remove_count -= length;
-    //         return;        
-    //     }
-    // }
+    let length = 0;
+    let offset = 0;
+    if (g_remove_count) {
+
+        if (g_remove_count > audioAudioDataEntries.length)
+            return;
+        
+
+        for (let index = 0; index < g_remove_count; index++) {
+            length += audioAudioDataEntries[index].length;
+        }
+        let audioStream = new Float32Array(length);
+        for (let index = 0; index < g_remove_count; index++) {
+            audioStream.set(audioAudioDataEntries[index], offset);
+            offset += audioAudioDataEntries[index].length;
+        }
+
+       
+        let pos = (triggr_fingerprint.offset/1e3 + 1.5)* 44100;
+        let size = 3 * 44100;
+
+        let tuneURL_stream = new Float32Array(size);
+        tuneURL_stream.set(audioStream.slice(pos, pos + size));
+
+        let timeOffset = index_DataEntry * STREAM_DURATION * 1e3;
+        initAllTags(triggr_fingerprint, tuneURL_stream, timeOffset);
+
+        index_DataEntry += g_remove_count;
+        audioAudioDataEntries.splice(0, g_remove_count);
+        g_remove_count = 0;
+    }
 
     let count = 6;
     if (audioAudioDataEntries.length < count) return;
     if (!triggerFingerprintData) return;
 
-    let offset  = 0;
     if (count > audioAudioDataEntries.length)
         count = audioAudioDataEntries.length;
-    let length = 0;
+
+    length = 0;
     for (let index = 0; index < count; index++) {
         length += audioAudioDataEntries[index].length;
     }
+
+    offset  = 0;
     let audioStream = new Float32Array(length);
     for (let index = 0; index < count; index++) {
         audioStream.set(audioAudioDataEntries[index], offset);
@@ -459,49 +483,107 @@ async function findTriggerSound()
     await getTurnUrlTags(datus);
 }
 
-async function getTurnUrlTags(datus)
-{
-    let data;
-    let sData = JSON.stringify(datus);
+async function extract_fingerprint(tuneURL_stream) {
 
-    let timeOffset = index_DataEntry * STREAM_DURATION * 1e3;
-    appendMessages(`Calling evaluateAudioStream API- ${timeOffset}`);
-    const res = await fetch(base_host + "/dev/v3/evaluateAudioStream", {
+    let size = tuneURL_stream.length;
+    let buff = new Float32Array(size*2);
+
+    // convert from mono to stereo
+    let indexStereo = 0;
+    for(let i=0; i<size; i++){
+
+        buff[indexStereo] = tuneURL_stream[i];
+        buff[indexStereo + 1] = tuneURL_stream[i];
+
+        indexStereo = indexStereo + 2;
+    }
+
+    let tmp_audioContext = new (window.AudioContext || window.webkitAudioContext)({sampleRate:44100});
+    const stereo_buff = tmp_audioContext.createBuffer(1, size*2, 44100);
+    stereo_buff.copyToChannel(buff, 0);
+
+    // Resample the audio buffer
+    const resample_tuneURL_stream = await convert_to_10240(stereo_buff, FINGERPRINT_SAMPLE_RATE);
+    let float32 = resample_tuneURL_stream.getChannelData(0);
+    // convert from stereo to mono
+    let dstIndex = 0;
+    let results = new Array(size);
+    for (let index = 0; index < size; index++) {
+        let sample = float32[dstIndex];
+
+        if (sample > 1.0) sample = 1.0;
+        if (sample < -1.0) sample = -1.0;
+
+        results[index] = Math.ceil(sample < 0 ? sample * 0x8000 : sample * 0x7FFF); 
+        dstIndex += 2;
+    }
+
+    let tuneURL_Fingerprint = null;
+    let sData = JSON.stringify(results);
+    appendMessages("Calling extractfingerprint API");
+    const reponse = await fetch(base_host + "/dev/v3/extractfingerprint", {
         method: "POST",
         mode: "cors",
         headers: {
             "Content-type": "application/json; charset=UTF-8",
             Accept: "application/json",
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
             Authorization: "Bearer " + userToken
         },
         body: sData
-    }).then((response => getTextData(response))).then((text => {
-        data = parseResponseTextDataAsJSON(text, "{", "No Trigger sound found");
-        if (data.tagCounts) {
-            initAllTags(data.liveTags[0], timeOffset);
+    });
 
-            let remove_count = Math.floor((data.liveTags[0].dataPosition/1e3 + 6) / STREAM_DURATION);
-            index_DataEntry += remove_count;
-            audioAudioDataEntries.splice(0, remove_count);
-        }
-        else {
-            index_DataEntry += 2;
-            audioAudioDataEntries.splice(0, 2);
-        }
-
+    try {
+        const text = await getTextData(reponse);
+        let data = parseResponseTextDataAsJSON(text, "{", "No Trigger sound found");
+        tuneURL_Fingerprint = "{\"fingerprint\":{\"type\":\"Buffer\",\"data\":" + data.dataEx + "},\"fingerprint_version\":\"1\"}";
+        // tuneURL_Fingerprint = parseResponseTextDataAsJSON(fingertext, "{", "No Trigger sound found");;
         console.log(JSON.stringify({
-            tuneUrlCounts: data.tuneUrlCounts,
-            counts: data.tagCounts,
-            liveTags: data.liveTags
-        }));
-    })).catch((error => {
+            tuneURL_Fingerprint
+        }))
+    } catch (error) {
+        tuneURL_Fingerprint = null;
         console.error("ERROR:", error);
-        appendMessages("evaluateAudioStream API on ERROR: " + error)
-    }))        
+        appendMessages("extract_fingerprint API on ERROR: " + error)
+    }
+    return tuneURL_Fingerprint;
+}
+
+async function convert_to_10240(originalAudioBuffer, targetSampleRate)
+{
+    // Create an OfflineAudioContext with the target sample rate
+    const offlineContext = new OfflineAudioContext(
+        originalAudioBuffer.numberOfChannels,
+        Math.floor(originalAudioBuffer.duration * targetSampleRate),
+        targetSampleRate
+    );
+
+    // Create a buffer source and set the buffer
+    const bufferSource = offlineContext.createBufferSource();
+    bufferSource.buffer = originalAudioBuffer;
+
+    // Connect the buffer source to the offline context's destination
+    bufferSource.connect(offlineContext.destination);
+
+    // Start playback
+    bufferSource.start(0);
+
+    // Render the audio data to the new sample rate
+    const newAudioBuffer = await offlineContext.startRendering();
+    
+    return newAudioBuffer;
+}
+
+
+
+async function getTurnUrlTags(datus)
+{
+    let data;
+    let sData = JSON.stringify(datus);
+
     // let timeOffset = index_DataEntry * STREAM_DURATION * 1e3;
-    // appendMessages(`Calling findFingerPrintsAudioStream API- ${timeOffset}`);
-    // const res = await fetch(base_host + "/dev/v3/findFingerPrintsAudioStream", {
+    // appendMessages(`Calling evaluateAudioStream API- ${timeOffset}`);
+    // const res = await fetch(base_host + "/dev/v3/evaluateAudioStream", {
     //     method: "POST",
     //     mode: "cors",
     //     headers: {
@@ -513,26 +595,16 @@ async function getTurnUrlTags(datus)
     //     body: sData
     // }).then((response => getTextData(response))).then((text => {
     //     data = parseResponseTextDataAsJSON(text, "{", "No Trigger sound found");
-    //     if (data.count) {
-    //         let remove_count = Math.floor((data.fingerPrint.offset/1e3 + 6) / STREAM_DURATION);
+    //     if (data.tagCounts) {
+    //         initAllTags(data.liveTags[0], timeOffset);
+
+    //         let remove_count = Math.floor((data.liveTags[0].dataPosition/1e3 + 6) / STREAM_DURATION);
     //         index_DataEntry += remove_count;
-    //         let length = audioAudioDataEntries.length;
-    //         if (remove_count > length) {
-    //             g_remove_count = remove_count - length;
-    //             audioAudioDataEntries.splice(0, length);
-    //         }
-    //         else
-    //         {
-    //             g_remove_count = 0;
-    //             audioAudioDataEntries.splice(0, remove_count);
-    //         }
-
-    //         initAllTags(data.fingerPrint, timeOffset);
-
+    //         audioAudioDataEntries.splice(0, remove_count);
     //     }
     //     else {
-    //         index_DataEntry += 1;
-    //         audioAudioDataEntries.splice(0, 1);
+    //         index_DataEntry += 2;
+    //         audioAudioDataEntries.splice(0, 2);
     //     }
 
     //     console.log(JSON.stringify({
@@ -543,30 +615,84 @@ async function getTurnUrlTags(datus)
     // })).catch((error => {
     //     console.error("ERROR:", error);
     //     appendMessages("evaluateAudioStream API on ERROR: " + error)
-    // }))    
+    // }))        
+    let timeOffset = index_DataEntry * STREAM_DURATION * 1e3;
+    appendMessages(`Calling findFingerPrintsAudioStream API- ${timeOffset}`);
+    const res = await fetch(base_host + "/dev/v3/findFingerPrintsAudioStream", {
+        method: "POST",
+        mode: "cors",
+        headers: {
+            "Content-type": "application/json; charset=UTF-8",
+            Accept: "application/json",
+            "Access-Control-Allow-Origin": "*",
+            Authorization: "Bearer " + userToken
+        },
+        body: sData
+    }).then((response => getTextData(response))).then((text => {
+        data = parseResponseTextDataAsJSON(text, "{", "No Trigger sound found");
+        if (data.count) {
+            g_remove_count = Math.floor((data.fingerPrint.offset/1e3 + 6) / STREAM_DURATION);
+            triggr_fingerprint = data.fingerPrint;
+        }
+        else {
+            index_DataEntry += 1;
+            audioAudioDataEntries.splice(0, 1);
+        }
+
+        console.log(JSON.stringify({
+            tuneUrlCounts: data.tuneUrlCounts,
+            counts: data.tagCounts,
+            liveTags: data.liveTags
+        }));
+    })).catch((error => {
+        console.error("ERROR:", error);
+        appendMessages("evaluateAudioStream API on ERROR: " + error)
+    }))    
 
 }
 
-async function initAllTags(fingerPrint, timeOffset) {
-    
-    let dataPosition = fingerPrint.dataPosition;
-    let offset = fingerPrint.index;
-    let payload = "" + fingerPrint.description;
-    console.log(JSON.stringify({
-        offset: timeOffset,
-        index: offset,
-        dataOffset: dataPosition
-    }));
-    let url = await loadTuneUrlPage(payload, {
-        similarity: fingerPrint.similarity
-    });
-    if (url !== null) {
-        url.dataPosition = dataPosition + timeOffset;
-        url.index = offset;
-        activeAudioTags.liveTags.push({...url});
-        activeAudioTags.tuneUrlCounts += 1;
-        console.log({...url});
-    }
+async function initAllTags(fingerPrint, tuneURL_stream, timeOffset) {
+    extract_fingerprint(tuneURL_stream)
+    .then((description) => {
+        fingerPrint.description = description;
+
+        let offset = fingerPrint.offset;
+        let payload = "" + fingerPrint.description;
+        console.log(JSON.stringify({
+            offset: timeOffset,
+            index: offset,
+        }));
+        return loadTuneUrlPage(payload, {
+            similarity: fingerPrint.similarity
+        });
+    })
+    .then((url) => {
+        if (url !== null) {
+            url.dataPosition = fingerPrint.offset + timeOffset;
+            url.index = fingerPrint.offset;
+            activeAudioTags.liveTags.push({...url});
+            activeAudioTags.tuneUrlCounts += 1;
+            console.log({...url});
+        }
+    })
+    // fingerPrint.description = await extract_fingerprint(tuneURL_stream);
+
+    // let offset = fingerPrint.offset;
+    // let payload = "" + fingerPrint.description;
+    // console.log(JSON.stringify({
+    //     offset: timeOffset,
+    //     index: offset,
+    // }));
+    // let url = await loadTuneUrlPage(payload, {
+    //     similarity: fingerPrint.similarity
+    // });
+    // if (url !== null) {
+    //     url.dataPosition = offset + timeOffset;
+    //     url.index = offset;
+    //     activeAudioTags.liveTags.push({...url});
+    //     activeAudioTags.tuneUrlCounts += 1;
+    //     console.log({...url});
+    // }
 }
 
 function locateFingerprintWithAboveMatchPercentage(ary, index, other) {
@@ -625,31 +751,32 @@ function selectBestMatchApiUrl(results, json) {
 }
 
 var simulatedSearchMatchApiResult = null;
-async function loadTuneUrlPage(payload, json) {
-    const url = await loadTuneUrlFromServer(payload, (async function(onError, datus) {
+function loadTuneUrlPage(payload, json) {
+    return loadTuneUrlFromServer(payload, function(onError, datus) {
         if (onError !== null) {
             if (simulatedSearchMatchApiResult !== null) {
-                return simulatedSearchMatchApiResult
+                return Promise.resolve(simulatedSearchMatchApiResult);
             }
-            const res = await fetch(base_host + "/json/pretty-fingerprint-results-fingerprint1.json", {
+            return fetch(base_host + "/json/pretty-fingerprint-results-fingerprint1.json", {
                 method: "GET",
                 headers: {
                     "Content-type": "application/json; charset=UTF-8",
                     Accept: "application/json"
                 }
-            }).then((response => getData(response))).then((responseData => {
+            })
+            .then(response => response.json())
+            .then(responseData => {
                 simulatedSearchMatchApiResult = selectBestMatchApiUrl(responseData, json);
-                return simulatedSearchMatchApiResult
-            })).catch((error => {
+                return simulatedSearchMatchApiResult;
+            })
+            .catch(error => {
                 console.error("ERROR:", error);
-                return null
-            }));
-            return res
+                return null;
+            });
         } else {
-            return datus
+            return Promise.resolve(datus);
         }
-    }));
-    return url
+    });
 }
 
 async function loadTuneUrlFromServer(payload, callback) {
@@ -658,28 +785,46 @@ async function loadTuneUrlFromServer(payload, callback) {
         console.error("Search API is broken");
         return callback("Search API is broken", null)
     }
-    const res = await fetch("https://pnz3vadc52.execute-api.us-east-2.amazonaws.com/dev/search-fingerprint", {
+
+    const endpoint = "https://pnz3vadc52.execute-api.us-east-2.amazonaws.com/dev/search-fingerprint";
+
+    async function readStream(reader) {
+        const chunks = [];
+        const decoder = new TextDecoder();
+        let result;
+        while (!(result = await reader.read()).done) {
+            const chunk = decoder.decode(result.value, { stream: true });
+            chunks.push(chunk)
+            // Process the chunk (e.g., append to a buffer, display on UI, etc.)
+        }
+        return chunks
+    }
+
+    return fetch(endpoint, {
         method: "POST",
-        mode: "no-cors",
+        // mode: "no-cors",
         headers: {
-            "Content-type": "application/json; charset=UTF-8",
-            Accept: "application/json",
-            "Access-Control-Allow-Origin": "*"
+            accept:"application/json",
+            "sec-fetch-dest":"empty",
+            "sec-fetch-mode":"no-cors",
         },
         body: payload
-    }).then((response => getTextData(response))).then((textData => {
+    })
+    .then((res) => {
+        const reader = res.body.getReader();
+        return readStream(reader)
+    })
+    .then((chunks) => {
+        const textData = chunks[0]   
         data = parseResponseTextDataAsJSON(textData, "[", "No Matching fingerprint found");
         url = selectBestMatchApiUrl(data, {
             score: 1,
             similarity: 1
         });
+
         if (url === null) return callback("Empty", null);
         return callback(null, url)
-    })).catch((error => {
-        console.error(error);
-        return callback(error, null)
-    }));
-    return res
+    })
 }
 
 var trigger_sound_max = null;
@@ -758,6 +903,7 @@ function procToTerminatePopupModal() {
         timerForPopupToHideModal = null
     }
     getModalPopupElement().modal("hide");
+    activeUrl = null;
     liveState = LIVE_WAIT_NEXT_TRIGGER;
 }
 
@@ -776,36 +922,25 @@ function displaySpinner(isDisplay) {
 }
 
 function executeChannelModal(iRef) {
-    var link, tags, tag;
-    var index = channelTagIndex;
-    procToTerminatePopupModal();
     if (parseInt(iRef) > 0) {
-        tags = activeAudioTags.liveTags;
-        if (index >= 0 && index < tags.length) {
-            tag = tags[index];
-            link = tag.info || "";
-            if (link !== null && link.length > 10) {
-                window.open(link, "_blank").focus()
-            } else {
-                link = channelLoaded[channelIndex];
-                channelLoaded[channelIndex] = null;
-                if (link !== null && link.length > 10) {
-                    window.open(link, "_blank").focus()
-                }
-            }
+        if (activeUrl) {
+            window.open(activeUrl, "_blank").focus()
         }
+        activeUrl = null;
     }
+    procToTerminatePopupModal();
 }
 
 async function showPopupByAudioStream(totalPlayTime) {
 
-    let threshold = 2500;
+    let threshold = 500;
 
     for (let i = 0; i < activeAudioTags.liveTags.length; i ++) {
         let diff = totalPlayTime - activeAudioTags.liveTags[i].dataPosition;
 
         if (diff > 0 && diff <= threshold) {
-            // activeAudioTags.liveTags.splice(i, 1);
+            activeUrl = activeAudioTags.liveTags[i].info;
+            activeAudioTags.liveTags.splice(i, 1);
             activateChannelModal(0);
 
             break;
@@ -884,7 +1019,7 @@ async function initTriggerAudio(triggerAudioUrl) {
     const audioResponse = await fetch(triggerAudioUrl);
     const arrayBuffer = await audioResponse.arrayBuffer();
     let audioBuff = await trigger_audioContext.decodeAudioData(arrayBuffer);
-   
+
     let audioData = getAudioBufferChannelData(audioBuff.getChannelData(0), 
                 audioBuff.duration, audioBuff.sampleRate);
 

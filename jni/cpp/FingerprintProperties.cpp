@@ -14,7 +14,7 @@
 int FingerprintProperties::numRobustPointsPerFrame = 4;
 
 // the number of audio samples in a frame (it is suggested to be the FFT Size)
-int FingerprintProperties::sampleSizePerFrame = 1024; // 2048;
+int FingerprintProperties::sampleSizePerFrame = 2048;
 
 // overlapFactor: 8 means each move 1/8 nSample length. 1 means no overlap, better 1, 2, 4, 8 ... 32
 int FingerprintProperties::overlapFactor = 4;
@@ -22,10 +22,10 @@ int FingerprintProperties::overlapFactor = 4;
 int FingerprintProperties::numFilterBanks = 4;
 
 // low pass
-int FingerprintProperties::upperBoundedFrequency = 4224; // 1500;
+int FingerprintProperties::upperBoundedFrequency = 1500;
 
 // high pass
-int FingerprintProperties::lowerBoundedFrequency = 264; // 400;
+int FingerprintProperties::lowerBoundedFrequency = 400;
 
 // in order to have 5fps with 2048 sampleSizePerFrame, wave's sample rate need to be 10240 (sampleSizePerFrame * fps)
 int FingerprintProperties::fps = 5;

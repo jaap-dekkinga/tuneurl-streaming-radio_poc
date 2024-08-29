@@ -30,6 +30,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 "use strict";
+const uniqueUserId = Math.floor(Math.random() * 1e12).toString().padStart(16, '0');
+
 const base_host = "https://streaming.tuneurl-demo.com";
 // const base_host = "http://localhost:8281";
 const LOAD_FROM_THIS_URL = "https://stream.radiojar.com/vzv0nkgsw7uvv";
@@ -86,6 +88,7 @@ let triggr_fingerprint = null;
 let g_remove_count = 0;
 let remainStream = new Float32Array(0);
 let activeUrl = null;
+let currentTag = null;
 
 class ContinuousCaller extends EventTarget {
     constructor() {
@@ -779,6 +782,43 @@ function loadTuneUrlPage(payload, json) {
     });
 }
 
+const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}${minutes}`;
+};
+
+async function reportUserInteraction(tuneurlId, interestAction = "heard") {
+    const now = new Date();
+    const utcTime = formatDate(now);
+
+    const data = [
+        {
+            "UserID": uniqueUserId,
+            "Date": utcTime,
+            "TuneURL_ID": String(tuneurlId),
+            "Interest_action": interestAction,
+        }
+    ];
+
+    console.log(data)
+
+    // Send the request using fetch
+    fetch('https://65neejq3c9.execute-api.us-east-2.amazonaws.com/interests', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'text/plain',
+        },
+        body: JSON.stringify(data),
+    })
+    .then(response => response.json())
+    .then(data => console.log('Success:', data))
+    .catch((error) => console.error('Error:', error));
+}
+
 async function loadTuneUrlFromServer(payload, callback) {
     let data, url;
     if (IF_SEARCH_API_BROKEN) {
@@ -908,6 +948,10 @@ function procToTerminatePopupModal() {
 }
 
 async function activateChannelModal(btnumber) {
+    console.log("currentTag", currentTag);
+    // report api
+    reportUserInteraction(currentTag.id, "heard");
+
     getModalPopupElement().modal("show");
     timerForPopupToHideModal = setTimeout(procToTerminatePopupModal, 7e3);
     return true
@@ -923,10 +967,13 @@ function displaySpinner(isDisplay) {
 
 function executeChannelModal(iRef) {
     if (parseInt(iRef) > 0) {
+        reportUserInteraction(currentTag.id, "interested");
         if (activeUrl) {
             window.open(activeUrl, "_blank").focus()
         }
         activeUrl = null;
+    } else {
+        reportUserInteraction(currentTag.id, "uninterested");
     }
     procToTerminatePopupModal();
 }
@@ -940,6 +987,7 @@ async function showPopupByAudioStream(totalPlayTime) {
 
         if (diff > 0 && diff <= threshold) {
             activeUrl = activeAudioTags.liveTags[i].info;
+            currentTag = activeAudioTags.liveTags[i];
             activeAudioTags.liveTags.splice(i, 1);
             activateChannelModal(0);
 

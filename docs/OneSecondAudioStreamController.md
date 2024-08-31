@@ -105,7 +105,7 @@ async function loadTuneUrlPage(payload, json)
 
 ```
 
-15. Looking at the `pretty-audio-demo.js`, the audio-clip to test for **TuneUrl** is saved at `audioFile`. It an AudioFileLoader class that convert audio-clip into array of integers and accessible as **audioFile.getAudioData()** . The `audioFile` can came from a URL (**see const LOAD_FROM_THIS_URL = "http://stream.radiojar.com/vzv0nkgsw7uvv";**) or Audio file (**see const TEST_MP3_FILE = "https://streaming.tuneurl-demo.com/audio/10240-audio-streams-0230000.mp3";**).
+15. Looking at the `pretty-audio-demo.js`, the audio-clip to test for **TuneUrl** is saved at `audioFile`. It an AudioFileLoader class that convert audio-clip into array of integers and accessible as **audioFile.getAudioData()** . The `audioFile` can came from a URL (**see const LOAD_FROM_THIS_URL = " https://demo.streamguys1.com/tuneurl";**) or Audio file (**see const TEST_MP3_FILE = "https://streaming.tuneurl-demo.com/audio/10240-audio-streams-0230000.mp3";**).
 
 
 16. For every `QUEUEING_NEXT_DURATION` (5000 milli-seconds), a `QUEUEING_LOAD_DURATION` (10000 milli-seconds) audio data is send to **POST /dev/v3/evaluateOneSecondAudioStream?offset=OFFSET** to check if such audio have valid **TuneUrl** information at the given offset.

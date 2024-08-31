@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2024 Teodoro M. Albon, <albonteddy@gmail.com> All rights reserved.
+# Copyright (c) 2024 TuneURL Inc. All rights reserved.
 #
 sockproc=$(ps -efww | grep "$USER " | grep "webrtc.util-1.1.1.jar" | grep "javax.net.ssl" | cut -c9-18)
 if [ "x$sockproc" != "x" ]; then

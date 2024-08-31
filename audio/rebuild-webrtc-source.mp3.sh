@@ -1,8 +1,5 @@
 #!/bin/bash
 #
-# BSD 3-Clause License
-#
-# Copyright (c) 2024, Teodoro M. Albon, <albonteddy@gmail.com>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -36,7 +33,7 @@ XPASSWORD=$1
 COUNTER=0
 DURATION=600
 
-AUDIO_STREAM_URL="https://stream.radiojar.com/vzv0nkgsw7uvv"
+AUDIO_STREAM_URL="https://demo.streamguys1.com/tuneurl"
 
 WAVE_DIR='/home/ubuntu/audio'
 FILENAME='webrtc-source'

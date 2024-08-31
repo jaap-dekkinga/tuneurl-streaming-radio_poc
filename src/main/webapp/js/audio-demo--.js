@@ -1,8 +1,7 @@
 /**
  * @license BSD 3-Clause License
  *
- * @copyright Copyright (c) 2023-2024, Jaap Dekkinga, <jaap.dekkinga@gmail.com>
- * @copyright Copyright (c) 2023-2024, Teodoro M. Albon, <albonteddy@gmail.com>
+ * @copyright Copyright (c) 2023-2024, TuneURL Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:

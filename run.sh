@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2024 Teodoro M. Albon, <albonteddy@gmail.com> All rights reserved.
+# Copyright (c) 2024 TuneURL Inc. All rights reserved.
 #
 export DB_SCHEMA=poctuneurl
 export SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/$DB_SCHEMA

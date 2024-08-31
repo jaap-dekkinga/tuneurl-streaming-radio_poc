@@ -2,7 +2,7 @@
 #
 # BSD 3-Clause License
 #
-# Copyright (c) 2024, Teodoro M. Albon, <albonteddy@gmail.com>
+# Copyright (c) 2024, TuneURL Inc.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -47,7 +47,7 @@ if_exists "/home/ubuntu/audio/webrtc-source.mp3" ;
 if_exists "/home/ubuntu/audio/webrtc-source.wav" ;
 
 
-# url=http://stream.radiojar.com/vzv0nkgsw7uvv
+# url=https://demo.streamguys1.com/tuneurl
 # crc32=d24d176b, duration=11
 cp -f /home/ubuntu/audio/webrtc-source.mp3  /home/ubuntu/audio/d24d176b11.mp3
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/d24d176b.wav
@@ -77,7 +77,7 @@ cp -f /home/ubuntu/audio/webrtc-source.mp3  /home/ubuntu/audio/c818b1bb11.mp3
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/c818b1bb.wav
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/c818b1bb11.wav
 
-# url=http://stream.radiojar.com/vzv0nkgsw7uvv
+# url=https://demo.streamguys1.com/tuneurl
 # crc32=977c457f, duration=30
 cp -f /home/ubuntu/audio/webrtc-source.mp3  /home/ubuntu/audio/977c457f30.mp3
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/977c457f.wav
@@ -107,7 +107,7 @@ cp -f /home/ubuntu/audio/webrtc-source.mp3  /home/ubuntu/audio/8d29e3af30.mp3
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/8d29e3af.wav
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/8d29e3af30.wav
 
-# url=http://stream.radiojar.com/vzv0nkgsw7uvv
+# url=https://demo.streamguys1.com/tuneurl
 # crc32=ea0bb13a, duration=60
 cp -f /home/ubuntu/audio/webrtc-source.mp3  /home/ubuntu/audio/ea0bb13a60.mp3
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/ea0bb13a.wav
@@ -137,7 +137,7 @@ cp -f /home/ubuntu/audio/webrtc-source.mp3  /home/ubuntu/audio/f05e17ea60.mp3
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/f05e17ea.wav
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/f05e17ea60.wav
 
-# url=http://stream.radiojar.com/vzv0nkgsw7uvv
+# url=https://demo.streamguys1.com/tuneurl
 # crc32=515860fa, duration=240
 cp -f /home/ubuntu/audio/webrtc-source.mp3  /home/ubuntu/audio/515860fa240.mp3
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/515860fa.wav
@@ -167,7 +167,7 @@ cp -f /home/ubuntu/audio/webrtc-source.mp3  /home/ubuntu/audio/d791e788240.mp3
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/d791e788.wav
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/d791e788240.wav
 
-# url=http://stream.radiojar.com/vzv0nkgsw7uvv
+# url=https://demo.streamguys1.com/tuneurl
 # crc32=06c0ad4b, duration=320
 cp -f /home/ubuntu/audio/webrtc-source.mp3  /home/ubuntu/audio/06c0ad4b320.mp3
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/06c0ad4b.wav
@@ -197,7 +197,7 @@ cp -f /home/ubuntu/audio/webrtc-source.mp3  /home/ubuntu/audio/80092a39320.mp3
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/80092a39.wav
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/80092a39320.wav
 
-# url=http://stream.radiojar.com/vzv0nkgsw7uvv
+# url=https://demo.streamguys1.com/tuneurl
 # crc32=323d0d22, duration=600
 cp -f /home/ubuntu/audio/webrtc-source.mp3  /home/ubuntu/audio/323d0d22600.mp3
 cp -f /home/ubuntu/audio/webrtc-source.wav  /home/ubuntu/audio/323d0d22.wav

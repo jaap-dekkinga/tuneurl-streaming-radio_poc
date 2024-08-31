@@ -165,7 +165,7 @@ cp -f src/main/webapp/audio/10240-audio-streams-0230000.mp3  /home/ubuntu/audio/
 
 ```
 
-#### 6.2 Or rebuild webrtc-source.mp3 from "http://stream.radiojar.com/vzv0nkgsw7uvv"
+#### 6.2 Or rebuild webrtc-source.mp3 from "https://demo.streamguys1.com/tuneurl"
 
 6.2 Create `/home/ubuntu/audio/rebuild-webrtc-source.mp3.sh`
 

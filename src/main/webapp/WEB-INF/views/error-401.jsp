@@ -1,7 +1,7 @@
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
-<!-- Copyright (c) July 28, 2023 albonteddy@gmail.com. All rights reserved. -->
+<!-- Copyright (c) July 28, 2023 TuneURL Inc.. All rights reserved. -->
     <head>
         <meta http-equiv="content-type" content="text/html; charset=windows-1252">
         <title>Unauthorized access</title>

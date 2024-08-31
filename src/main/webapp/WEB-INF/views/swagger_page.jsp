@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<!-- Copyright (c) October 2023 albonteddy@gmail.com. All rights reserved. -->
+<!-- Copyright (c) October 2023 TuneURL Inc.. All rights reserved. -->
 <html lang="en">
   <head>
     <meta charset="UTF-8">

@@ -1,8 +1,7 @@
 /**
  * @license BSD 3-Clause License
  *
- * @copyright Copyright (c) 2023-2024, Jaap Dekkinga, <jaap.dekkinga@gmail.com>
- * @copyright Copyright (c) 2023-2024, Teodoro M. Albon, <albonteddy@gmail.com>
+ * @copyright Copyright (c) 2023-2024, TuneURL Inc
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -1466,7 +1465,7 @@ async function startCanvas() {
     if (isJWTloaded) {
         await initTriggerAudio('https://streamradiolocal.tmalbon.com/audio/10240-triggersound.wav');
         if (triggerFingerprintSize > 0) {
-            await initLoadFromUrl('http://stream.radiojar.com/vzv0nkgsw7uvv');
+            await initLoadFromUrl('https://demo.streamguys1.com/tuneurl');
             if (IF_LOAD_ALL_AUDIO_STREAM) {
                 emitTuneUrlInstruction(true, 0);
                 await saveAudioEx(initAllTagsEx);

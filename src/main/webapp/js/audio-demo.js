@@ -206,7 +206,6 @@ class AudioStreamPlayer {
                 bytesRead = 0;
                 
                 let audioData = await this.audioContext.decodeAudioData(audioBuffer.buffer);
-                // console.log('fetchAudioStream: audioData', audioData);
                 // call hook_func
                 if (this.callback_stream)
                     this.callback_stream(audioData);
@@ -582,42 +581,7 @@ async function getTurnUrlTags(datus)
 {
     let data;
     let sData = JSON.stringify(datus);
-
-    // let timeOffset = index_DataEntry * STREAM_DURATION * 1e3;
-    // appendMessages(`Calling evaluateAudioStream API- ${timeOffset}`);
-    // const res = await fetch(base_host + "/dev/v3/evaluateAudioStream", {
-    //     method: "POST",
-    //     mode: "cors",
-    //     headers: {
-    //         "Content-type": "application/json; charset=UTF-8",
-    //         Accept: "application/json",
-    //         "Access-Control-Allow-Origin": "*",
-    //         Authorization: "Bearer " + userToken
-    //     },
-    //     body: sData
-    // }).then((response => getTextData(response))).then((text => {
-    //     data = parseResponseTextDataAsJSON(text, "{", "No Trigger sound found");
-    //     if (data.tagCounts) {
-    //         initAllTags(data.liveTags[0], timeOffset);
-
-    //         let remove_count = Math.floor((data.liveTags[0].dataPosition/1e3 + 6) / STREAM_DURATION);
-    //         index_DataEntry += remove_count;
-    //         audioAudioDataEntries.splice(0, remove_count);
-    //     }
-    //     else {
-    //         index_DataEntry += 2;
-    //         audioAudioDataEntries.splice(0, 2);
-    //     }
-
-    //     console.log(JSON.stringify({
-    //         tuneUrlCounts: data.tuneUrlCounts,
-    //         counts: data.tagCounts,
-    //         liveTags: data.liveTags
-    //     }));
-    // })).catch((error => {
-    //     console.error("ERROR:", error);
-    //     appendMessages("evaluateAudioStream API on ERROR: " + error)
-    // }))        
+       
     let timeOffset = index_DataEntry * STREAM_DURATION * 1e3;
     appendMessages(`Calling findFingerPrintsAudioStream API- ${timeOffset}`);
     const res = await fetch(base_host + "/dev/v3/findFingerPrintsAudioStream", {
@@ -677,24 +641,6 @@ async function initAllTags(fingerPrint, tuneURL_stream, timeOffset) {
             console.log({...url});
         }
     })
-    // fingerPrint.description = await extract_fingerprint(tuneURL_stream);
-
-    // let offset = fingerPrint.offset;
-    // let payload = "" + fingerPrint.description;
-    // console.log(JSON.stringify({
-    //     offset: timeOffset,
-    //     index: offset,
-    // }));
-    // let url = await loadTuneUrlPage(payload, {
-    //     similarity: fingerPrint.similarity
-    // });
-    // if (url !== null) {
-    //     url.dataPosition = offset + timeOffset;
-    //     url.index = offset;
-    //     activeAudioTags.liveTags.push({...url});
-    //     activeAudioTags.tuneUrlCounts += 1;
-    //     console.log({...url});
-    // }
 }
 
 function locateFingerprintWithAboveMatchPercentage(ary, index, other) {
@@ -931,9 +877,24 @@ function getModalPopupElement() {
     return modalPopupElement
 }
 
+function convertMillisecondsToTime(ms) {
+    // Calculate total seconds
+    let totalSeconds = Math.floor(ms / 1000);
+
+    // Calculate minutes and seconds
+    let minutes = Math.floor(totalSeconds / 60);
+    let seconds = totalSeconds % 60;
+
+    // Pad minutes and seconds with leading zeros if needed
+    minutes = minutes.toString().padStart(2, '0');
+    seconds = seconds.toString().padStart(2, '0');
+
+    return `${minutes}:${seconds}`;
+}
+
 function updatePocTitle(totalPlayTime) {
-    var title = APP_TITLE + " - " + (totalPlayTime / 1000).toFixed(2) + 's';
-    document.getElementById("pocTitle").innerHTML = title
+    var content = convertMillisecondsToTime(totalPlayTime);
+    document.getElementById("pocTitle").innerHTML = content;
 }
 
 function procToTerminatePopupModal() {
@@ -1004,9 +965,6 @@ function showHidePlayButton(isDisplay) {
     }
 }
 
-function setButtonPlayOrPause(isPlay) {
-    document.getElementById("playorpause").innerText = isPlay ? "Play" : "Pause"
-}
 function showMethodRunTime(title, atStart, atEnd) {
     var diff = atEnd - atStart;
     console.log(`Runtime: ${title}, s:${atStart}, e:${atEnd}, d:${diff}`)
@@ -1016,7 +974,7 @@ async function playonclick() {
     if (!audioStreamPlayer.isPlaying) {
         try {
             await audioStreamPlayer.play();
-            setButtonPlayOrPause(false);
+            // setButtonPlayOrPause(false);
         } catch (error) {
             console.error(`Error streaming audio play: ${error}`);
         }  
@@ -1024,7 +982,7 @@ async function playonclick() {
     else {
         try {
             await audioStreamPlayer.pause();
-            setButtonPlayOrPause(true);
+            // setButtonPlayOrPause(true);
         } catch (error) {
             console.error(`Error streaming audio pause: ${error}`);
         }  
@@ -1107,7 +1065,7 @@ async function startCanvas() {
     console.log("startCanvas");
     initVariables();
     displaySpinner(true);
-    setButtonPlayOrPause(true);
+    // setButtonPlayOrPause(true);
 
     await doLogin();
     if (isJWTloaded) {

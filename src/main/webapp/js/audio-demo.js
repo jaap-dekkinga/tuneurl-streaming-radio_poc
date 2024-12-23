@@ -33,13 +33,23 @@ const uniqueUserId = Math.floor(Math.random() * 1e12).toString().padStart(16, '0
 
 const base_host = "https://streaming.tuneurl-demo.com";
 // const base_host = "http://localhost:8281";
-const LOAD_FROM_THIS_URL = "https://stream.radiojar.com/vzv0nkgsw7uvv";
+let LOAD_FROM_THIS_URL = "https://stream.radiojar.com/vzv0nkgsw7uvv";
 // const TEST_MP3_FILE = base_host + "/audio/10.1s.mp3";
 const TEST_MP3_FILE = base_host + "/audio/10240-audio-streams-0230000.mp3";
 // const TEST_MP3_FILE = base_host + "/audio/webrtc-source_J7XLHMyC.mp3";
 const TRIGGERSOUND_AUDIO_URL = base_host + "/audio/10240-triggersound.wav";
+document.addEventListener('DOMContentLoaded', function () {
+    // Select the first item in the dropdown
+    let firstItem = document.querySelector('.dropdown-item');
 
+    // Set the button text to the first item's text
+    //document.getElementById('dropdownMenuButton').textContent = firstItem.textContent;
 
+    // Highlight the first item as active
+    firstItem.classList.add('active');
+    document.getElementById('selectedItem').textContent = firstItem.textContent;
+
+});
 const IF_LOAD_FROM_URL = true;
 const APP_TITLE = "Audio Demo Test";
 
@@ -155,7 +165,7 @@ class AudioDataEntry {
 class AudioStreamPlayer {
     constructor(url, callback_stream) {
         this.url = url;
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)({sampleRate:44100});
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
         this.audioQueue = [];
         this.source = null;
         this.pause_buff = null;
@@ -171,51 +181,54 @@ class AudioStreamPlayer {
         this.totalPlayTime = 0;
         this.timerInterval = null;
         this.startedPlayTime = 0;
-        
+
         this.totaltime = 0;
         // ----------------------
     }
 
     async __fetchAudioStream() {
         const response = await fetch(this.url);
-        const reader = response.body.getReader();    
-    
+        const reader = response.body.getReader();
+
         const sampleRate = 11025; // Assuming the sample rate is 44100 Hz       
         // Calculate the number of bytes to read for the desired duration
 
         let chunks = [];
         let bytesRead = 0;
         const bytesToRead = sampleRate * STREAM_DURATION * 4; // 4 bytes per sample (32-bit float, stereo)
-    
+
         while (true) {
 
             const { done, value } = await reader.read();
             if (done) break;
 
             chunks.push(value);
-            bytesRead += value.byteLength;
+            bytesRead += value.length;
 
             if (bytesRead >= bytesToRead) {
                 const audioBuffer = new Uint8Array(bytesRead);
                 let offset = 0;
                 for (const chunk of chunks) {
                     audioBuffer.set(chunk, offset);
-                    offset += chunk.byteLength;
+                    offset += chunk.length;
                 }
                 chunks = [];
                 bytesRead = 0;
-                
-                let audioData = await this.audioContext.decodeAudioData(audioBuffer.buffer);
-                // call hook_func
-                if (this.callback_stream)
-                    this.callback_stream(audioData);
-                
-                // Add new audio Segment.
-                const newSegment = await this.__createNewAudioSegment(audioData);
-                if (newSegment) {
-                    this.audioQueue.push(newSegment);
-                    this.play(false);
-                }
+
+                try {
+                    let audioData = await this.audioContext.decodeAudioData(audioBuffer.buffer);
+                    // call hook_func
+                    if (this.callback_stream)
+                        this.callback_stream(audioData);
+
+                    // Add new audio Segment.
+                    const newSegment = await this.__createNewAudioSegment(audioData);
+                    if (newSegment) {
+                        this.audioQueue.push(newSegment);
+                        this.play(false);
+                    }
+                } catch (err) { console.log("error in decode audio"); }
+
             }
         }
     }
@@ -224,13 +237,13 @@ class AudioStreamPlayer {
         if (audioData.length <= 0) {
             return null;
         }
-    
+
         const newSegment = this.audioContext.createBuffer(
             audioData.numberOfChannels,
             audioData.length,
             audioData.sampleRate
         );
-    
+
         for (let channel = 0; channel < audioData.numberOfChannels; channel++) {
             const newData = audioData.getChannelData(channel);
             newSegment.copyToChannel(newData, channel);
@@ -239,20 +252,20 @@ class AudioStreamPlayer {
         return newSegment;
     }
 
-    async play(isforce=true) {
-        if (this.isPaused && !isforce)  return;
-        if (!this.isInit)  this.init();
+    async play(isforce = true) {
+        if (this.isPaused && !isforce) return;
+        if (!this.isInit) this.init();
 
         if (this.audioContext.state === 'suspended') {
             try {
                 await this.audioContext.resume();
             } catch (err) {
                 alert('Press OK and then click anywhere on the page to start the audio.');
-                await new Promise(resolve => document.addEventListener('click', resolve, {once: true}));
+                await new Promise(resolve => document.addEventListener('click', resolve, { once: true }));
                 await this.audioContext.resume();
             }
         }
-    
+
         if (!this.pause_buff) {
             const totalDuration = this.audioQueue.reduce((acc, buffer) => acc + buffer.duration, 0);
             console.log('playAudioQueue: totalDuration', totalDuration);
@@ -260,12 +273,12 @@ class AudioStreamPlayer {
             if (totalDuration < 16 && this.isFirstPlay) {
                 return;
             }
-        
+
             if (this.isPlaying || this.audioQueue.length === 0) {
                 return;
-            }    
+            }
         }
-    
+
         this.source = this.audioContext.createBufferSource();
         this.source.connect(this.audioContext.destination);
 
@@ -287,6 +300,18 @@ class AudioStreamPlayer {
 
         // ************************************************************************************************
         // Record the start time
+        this.startTimer();
+        // ************************************************************************************************
+
+        this.source.onended = () => {
+            // console.log('play_stream: onended');
+            clearInterval(this.timerInterval);
+
+            this.isPlaying = false;
+            this.play(false);
+        };
+    }
+    startTimer() {
         this.startedPlayTime = Date.now();
         // Start the timer
         this.timerInterval = setInterval(() => {
@@ -294,16 +319,7 @@ class AudioStreamPlayer {
             this.totalPlayTime += (currentTime - this.startedPlayTime);  // Convert milliseconds to seconds
             updatePocTitle(this.totalPlayTime);
             this.startedPlayTime = currentTime;  // Reset start time for the next interval
-        }, 10);  // Update every 10 millisecond
-        // ************************************************************************************************
-
-        this.source.onended = () => {
-            // console.log('play_stream: onended');
-            clearInterval(this.timerInterval);
-    
-            this.isPlaying = false;
-            this.play(false);
-        };
+        }, 10);
     }
 
     pause() {
@@ -316,7 +332,7 @@ class AudioStreamPlayer {
         const currentTime = Date.now();
         this.totalPlayTime += (currentTime - this.startedPlayTime);
         // this.startedPlayTime = 0;
-        
+
         this.pause_buff = this.source.buffer;
         this.source.stop();
         this.pausedAt = this.audioContext.currentTime - this.startTime;
@@ -359,23 +375,46 @@ function parseResponseTextDataAsJSON(text, prefix, errMsg) {
     if (data.message) throw Error(data.message);
     return data
 }
+async function getStreamURL() {
+    let streamUrl;
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', async function (event) {
+            event.preventDefault(); // Prevent default link behavior
+            // Get the clicked item
+            let selectedItem = this;
 
+            // Update the selected value display
+            document.getElementById('selectedItem').textContent = selectedItem.textContent;
+
+            document.getElementById("logoImage").src = selectedItem.getAttribute('data-src');
+            // Optionally, highlight the selected item (remove from other items)
+            document.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+            selectedItem.classList.add('active');
+            LOAD_FROM_THIS_URL = selectedItem.getAttribute('data-value');
+            console.log(selectedItem.getAttribute('data-value'));  // Logs the text of the clicked item
+            streamUrl = LOAD_FROM_THIS_URL;
+            console.log("streamUrl 1st ", streamUrl);
+            await startCanvas();
+        });
+    });
+    console.log("streamUrl 2nd ", streamUrl);
+    return streamUrl;
+}
 // press audioStream buffer
-async function audioStream_load(audioData)
-{
-    if (audioData.length == 0)  return;    
+async function audioStream_load(audioData) {
+    if (audioData.length == 0) return;
     audioStreamQueue.push(audioData);
 }
 
 //=======================================================================
 // start process A to generate the dataEntry of STREAM_DURATION
-async function generateDataEntries()
-{
+async function generateDataEntries() {
     const totalDuration = audioStreamQueue.reduce((acc, buffer) => acc + buffer.duration, 0);
     if (totalDuration == 0) return;
 
     let audioData = audioStreamQueue.shift();
     const length_Entry = STREAM_DURATION * audioData.sampleRate;
+
     let audioStream = audioData.getChannelData(0);
 
     let length = remainStream.length + audioStream.length;
@@ -384,7 +423,6 @@ async function generateDataEntries()
         let concatenatedArray = new Float32Array(length);
         concatenatedArray.set(remainStream);
         concatenatedArray.set(audioStream, remainStream.length);
-        
         remainStream = concatenatedArray;
     }
     else {
@@ -405,7 +443,7 @@ async function generateDataEntries()
                 length -= offset;
             }
 
-            entry_stream.set(audioStream.slice(offset_1, offset_1+length_read), offset);
+            entry_stream.set(audioStream.slice(offset_1, offset_1 + length_read), offset);
             audioAudioDataEntries.push(entry_stream);
 
             offset = 0;
@@ -414,22 +452,21 @@ async function generateDataEntries()
         }
         if (length) {
             remainStream = new Float32Array(length)
-            remainStream.set(audioStream.slice(offset_1, offset_1+length)); 
+            remainStream.set(audioStream.slice(offset_1, offset_1 + length));
         }
     }
 }
 
 //=======================================================================
 // start process B to find the trigerSound
-async function findTriggerSound()
-{
+async function findTriggerSound() {
     let length = 0;
     let offset = 0;
     if (g_remove_count) {
 
         if (g_remove_count > audioAudioDataEntries.length)
             return;
-        
+
 
         for (let index = 0; index < g_remove_count; index++) {
             length += audioAudioDataEntries[index].length;
@@ -440,8 +477,8 @@ async function findTriggerSound()
             offset += audioAudioDataEntries[index].length;
         }
 
-       
-        let pos = parseInt(triggr_fingerprint.offset/1e3 + 1.5)* 44100;
+
+        let pos = parseInt(triggr_fingerprint.offset / 1e3 + 1.5) * 44100;
         let size = 3 * 44100;
 
         let tuneURL_stream = new Float32Array(size);
@@ -467,15 +504,15 @@ async function findTriggerSound()
         length += audioAudioDataEntries[index].length;
     }
 
-    offset  = 0;
+    offset = 0;
     let audioStream = new Float32Array(length);
     for (let index = 0; index < count; index++) {
         audioStream.set(audioAudioDataEntries[index], offset);
         offset += audioAudioDataEntries[index].length;
     }
-    
-    let dataEntry = getAudioBufferChannelData(audioStream, STREAM_DURATION * count, 44100);   
-    dataEntry.setUrl(audioStreamURL); 
+
+    let dataEntry = getAudioBufferChannelData(audioStream, STREAM_DURATION * count, 44100);
+    dataEntry.setUrl(audioStreamURL);
     var datus = {
         audioData: dataEntry,
         dataFingerprint: triggerFingerprintData,
@@ -487,11 +524,11 @@ async function findTriggerSound()
 async function extract_fingerprint(tuneURL_stream) {
 
     let size = tuneURL_stream.length;
-    let buff = new Float32Array(size*2);
+    let buff = new Float32Array(size * 2);
 
     // convert from mono to stereo
     let indexStereo = 0;
-    for(let i=0; i<size; i++){
+    for (let i = 0; i < size; i++) {
 
         buff[indexStereo] = tuneURL_stream[i];
         buff[indexStereo + 1] = tuneURL_stream[i];
@@ -499,8 +536,8 @@ async function extract_fingerprint(tuneURL_stream) {
         indexStereo = indexStereo + 2;
     }
 
-    let tmp_audioContext = new (window.AudioContext || window.webkitAudioContext)({sampleRate:44100});
-    const stereo_buff = tmp_audioContext.createBuffer(1, size*2, 44100);
+    let tmp_audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
+    const stereo_buff = tmp_audioContext.createBuffer(1, size * 2, 44100);
     stereo_buff.copyToChannel(buff, 0);
 
     // Resample the audio buffer
@@ -515,7 +552,7 @@ async function extract_fingerprint(tuneURL_stream) {
         if (sample > 1.0) sample = 1.0;
         if (sample < -1.0) sample = -1.0;
 
-        results[index] = Math.ceil(sample < 0 ? sample * 0x8000 : sample * 0x7FFF); 
+        results[index] = Math.ceil(sample < 0 ? sample * 0x8000 : sample * 0x7FFF);
         dstIndex += 2;
     }
 
@@ -550,8 +587,7 @@ async function extract_fingerprint(tuneURL_stream) {
     return tuneURL_Fingerprint;
 }
 
-async function convert_to_10240(originalAudioBuffer, targetSampleRate)
-{
+async function convert_to_10240(originalAudioBuffer, targetSampleRate) {
     // Create an OfflineAudioContext with the target sample rate
     const offlineContext = new OfflineAudioContext(
         originalAudioBuffer.numberOfChannels,
@@ -571,17 +607,16 @@ async function convert_to_10240(originalAudioBuffer, targetSampleRate)
 
     // Render the audio data to the new sample rate
     const newAudioBuffer = await offlineContext.startRendering();
-    
+
     return newAudioBuffer;
 }
 
 
 
-async function getTurnUrlTags(datus)
-{
+async function getTurnUrlTags(datus) {
     let data;
     let sData = JSON.stringify(datus);
-       
+
     let timeOffset = index_DataEntry * STREAM_DURATION * 1e3;
     appendMessages(`Calling findFingerPrintsAudioStream API- ${timeOffset}`);
     const res = await fetch(base_host + "/dev/v3/findFingerPrintsAudioStream", {
@@ -597,7 +632,7 @@ async function getTurnUrlTags(datus)
     }).then((response => getTextData(response))).then((text => {
         data = parseResponseTextDataAsJSON(text, "{", "No Trigger sound found");
         if (data.count) {
-            g_remove_count = Math.ceil((data.fingerPrint.offset/1e3 + 6) / STREAM_DURATION);
+            g_remove_count = Math.ceil((data.fingerPrint.offset / 1e3 + 6) / STREAM_DURATION);
             triggr_fingerprint = data.fingerPrint;
         }
         else {
@@ -613,34 +648,34 @@ async function getTurnUrlTags(datus)
     })).catch((error => {
         console.error("ERROR:", error);
         appendMessages("evaluateAudioStream API on ERROR: " + error)
-    }))    
+    }))
 
 }
 
 async function initAllTags(fingerPrint, tuneURL_stream, timeOffset) {
     extract_fingerprint(tuneURL_stream)
-    .then((description) => {
-        fingerPrint.description = description;
+        .then((description) => {
+            fingerPrint.description = description;
 
-        let offset = fingerPrint.offset;
-        let payload = "" + fingerPrint.description;
-        console.log(JSON.stringify({
-            offset: timeOffset,
-            index: offset,
-        }));
-        return loadTuneUrlPage(payload, {
-            similarity: fingerPrint.similarity
-        });
-    })
-    .then((url) => {
-        if (url !== null) {
-            url.dataPosition = fingerPrint.offset + timeOffset;
-            url.index = fingerPrint.offset;
-            activeAudioTags.liveTags.push({...url});
-            activeAudioTags.tuneUrlCounts += 1;
-            console.log({...url});
-        }
-    })
+            let offset = fingerPrint.offset;
+            let payload = "" + fingerPrint.description;
+            console.log(JSON.stringify({
+                offset: timeOffset,
+                index: offset,
+            }));
+            return loadTuneUrlPage(payload, {
+                similarity: fingerPrint.similarity
+            });
+        })
+        .then((url) => {
+            if (url !== null) {
+                url.dataPosition = fingerPrint.offset + timeOffset;
+                url.index = fingerPrint.offset;
+                activeAudioTags.liveTags.push({ ...url });
+                activeAudioTags.tuneUrlCounts += 1;
+                console.log({ ...url });
+            }
+        })
 }
 
 function locateFingerprintWithAboveMatchPercentage(ary, index, other) {
@@ -700,7 +735,7 @@ function selectBestMatchApiUrl(results, json) {
 
 var simulatedSearchMatchApiResult = null;
 function loadTuneUrlPage(payload, json) {
-    return loadTuneUrlFromServer(payload, function(onError, datus) {
+    return loadTuneUrlFromServer(payload, function (onError, datus) {
         if (onError !== null) {
             if (simulatedSearchMatchApiResult !== null) {
                 return Promise.resolve(simulatedSearchMatchApiResult);
@@ -712,15 +747,15 @@ function loadTuneUrlPage(payload, json) {
                     Accept: "application/json"
                 }
             })
-            .then(response => response.json())
-            .then(responseData => {
-                simulatedSearchMatchApiResult = selectBestMatchApiUrl(responseData, json);
-                return simulatedSearchMatchApiResult;
-            })
-            .catch(error => {
-                console.error("ERROR:", error);
-                return null;
-            });
+                .then(response => response.json())
+                .then(responseData => {
+                    simulatedSearchMatchApiResult = selectBestMatchApiUrl(responseData, json);
+                    return simulatedSearchMatchApiResult;
+                })
+                .catch(error => {
+                    console.error("ERROR:", error);
+                    return null;
+                });
         } else {
             return Promise.resolve(datus);
         }
@@ -759,9 +794,9 @@ async function reportUserInteraction(tuneurlId, interestAction = "heard") {
         },
         body: JSON.stringify(data),
     })
-    .then(response => response.json())
-    .then(data => console.log('Success:', data))
-    .catch((error) => console.error('Error:', error));
+        .then(response => response.json())
+        .then(data => console.log('Success:', data))
+        .catch((error) => console.error('Error:', error));
 }
 
 async function loadTuneUrlFromServer(payload, callback) {
@@ -789,27 +824,27 @@ async function loadTuneUrlFromServer(payload, callback) {
         method: "POST",
         // mode: "no-cors",
         headers: {
-            accept:"application/json",
-            "sec-fetch-dest":"empty",
-            "sec-fetch-mode":"no-cors",
+            accept: "application/json",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "no-cors",
         },
         body: payload
     })
-    .then((res) => {
-        const reader = res.body.getReader();
-        return readStream(reader)
-    })
-    .then((chunks) => {
-        const textData = chunks[0]   
-        data = parseResponseTextDataAsJSON(textData, "[", "No Matching fingerprint found");
-        url = selectBestMatchApiUrl(data, {
-            score: 1,
-            similarity: 1
-        });
+        .then((res) => {
+            const reader = res.body.getReader();
+            return readStream(reader)
+        })
+        .then((chunks) => {
+            const textData = chunks[0]
+            data = parseResponseTextDataAsJSON(textData, "[", "No Matching fingerprint found");
+            url = selectBestMatchApiUrl(data, {
+                score: 1,
+                similarity: 1
+            });
 
-        if (url === null) return callback("Empty", null);
-        return callback(null, url)
-    })
+            if (url === null) return callback("Empty", null);
+            return callback(null, url)
+        })
 }
 
 var trigger_sound_max = null;
@@ -835,7 +870,7 @@ function getAudioBufferChannelData(audioBuffer, duration, sampleRate) {
         if (value < minFloat) minFloat = value;
         if (value > maxFloat) maxFloat = value
     }
-    let divider = .01 + maxFloat - minFloat;        
+    let divider = .01 + maxFloat - minFloat;
 
     // console.log(`divider ${divider}, minFloat = ${minFloat} maxFloat = ${maxFloat}`);
     let iMin = 0;
@@ -940,9 +975,9 @@ function executeChannelModal(iRef) {
 
 async function showPopupByAudioStream(totalPlayTime) {
 
-    let threshold = 500;
+    let threshold = 15000;
 
-    for (let i = 0; i < activeAudioTags.liveTags.length; i ++) {
+    for (let i = 0; i < activeAudioTags.liveTags.length; i++) {
         let diff = totalPlayTime - activeAudioTags.liveTags[i].dataPosition;
 
         if (diff > 0 && diff <= threshold) {
@@ -977,7 +1012,7 @@ async function playonclick() {
             // setButtonPlayOrPause(false);
         } catch (error) {
             console.error(`Error streaming audio play: ${error}`);
-        }  
+        }
     }
     else {
         try {
@@ -985,7 +1020,7 @@ async function playonclick() {
             // setButtonPlayOrPause(true);
         } catch (error) {
             console.error(`Error streaming audio pause: ${error}`);
-        }  
+        }
     }
 
     return true
@@ -1019,14 +1054,14 @@ async function initTriggerAudio(triggerAudioUrl) {
 
     if (triggerFingerprintData) return;
 
-    let trigger_audioContext = new (window.AudioContext || window.webkitAudioContext)({sampleRate:44100});
+    let trigger_audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
 
     const audioResponse = await fetch(triggerAudioUrl);
     const arrayBuffer = await audioResponse.arrayBuffer();
     let audioBuff = await trigger_audioContext.decodeAudioData(arrayBuffer);
 
-    let audioData = getAudioBufferChannelData(audioBuff.getChannelData(0), 
-                audioBuff.duration, audioBuff.sampleRate);
+    let audioData = getAudioBufferChannelData(audioBuff.getChannelData(0),
+        audioBuff.duration, audioBuff.sampleRate);
 
     audioData.setUrl(triggerAudioUrl);
 
@@ -1065,8 +1100,7 @@ async function startCanvas() {
     console.log("startCanvas");
     initVariables();
     displaySpinner(true);
-    // setButtonPlayOrPause(true);
-
+    console.log("LOAD_FROM_THIS_URL 4th ", LOAD_FROM_THIS_URL);
     await doLogin();
     if (isJWTloaded) {
         await initTriggerAudio(TRIGGERSOUND_AUDIO_URL);
@@ -1089,7 +1123,7 @@ async function startCanvas() {
             caller.start_findTriggerSound();
             caller.addEventListener('findTriggerSound_end', () => {
                 caller.start_findTriggerSound();
-            }); 
+            });
 
             // start process C to show pop-up/notification by the TurnUrlTags
             setInterval(() => showPopupByAudioStream(audioStreamPlayer.totalPlayTime), 100);

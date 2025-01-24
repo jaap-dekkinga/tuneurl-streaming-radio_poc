@@ -141,7 +141,7 @@
 	</style>
 </head>
 
-<body id="body" onload="javascript:startCanvas(this);javascript:getStreamURL();">
+<body id="body" onload="javascript:startCanvas(this);">
 	<!-- The Modal -->
 	<div class="modal fade" id="thisModal">
 		<div class="modal-dialog">

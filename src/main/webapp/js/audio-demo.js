@@ -34,18 +34,13 @@ const uniqueUserId = Math.floor(Math.random() * 1e12).toString().padStart(16, '0
 const base_host = "https://streaming.tuneurl-demo.com";
 // const base_host = "http://localhost:8281";
 let LOAD_FROM_THIS_URL = "https://stream.radiojar.com/vzv0nkgsw7uvv";
-//"https://libretime.tuneurl-demo.com:8443/main";
-// "https://stream.radiojar.com/vzv0nkgsw7uvv";
 // const TEST_MP3_FILE = base_host + "/audio/10.1s.mp3";
 const TEST_MP3_FILE = base_host + "/audio/10240-audio-streams-0230000.mp3";
 // const TEST_MP3_FILE = base_host + "/audio/webrtc-source_J7XLHMyC.mp3";
-const TRIGGERSOUND_AUDIO_URL = "https://icecastmediatest.s3.us-east-1.amazonaws.com/Trigger-Audio.mp3";
+const TRIGGERSOUND_AUDIO_URL =  base_host + "/audio/10240-triggersound.wav";
 document.addEventListener('DOMContentLoaded', function () {
     // Select the first item in the dropdown
     let firstItem = document.querySelector('.dropdown-item');
-
-    // Set the button text to the first item's text
-    //document.getElementById('dropdownMenuButton').textContent = firstItem.textContent;
 
     // Highlight the first item as active
     firstItem.classList.add('active');
@@ -259,7 +254,6 @@ class AudioStreamPlayer {
             const newData = audioData.getChannelData(channel);
             newSegment.copyToChannel(newData, channel);
         }
-        // console.log('AudidStreamPlayer::__createNewAudioSegment', audioData.length);
         return newSegment;
     }
 
@@ -315,7 +309,6 @@ class AudioStreamPlayer {
         // ************************************************************************************************
 
         this.source.onended = () => {
-            // console.log('play_stream: onended');
             clearInterval(this.timerInterval);
 
             this.isPlaying = false;
@@ -542,7 +535,6 @@ async function findTriggerSound() {
 async function extract_fingerprint(tuneURL_stream) {
 
     let size = tuneURL_stream.length;
-    // console.log(" tuneURL_stream ", JSON.stringify(tuneURL_stream));
     let buff = new Float32Array(size * 2);
 
     // convert from mono to stereo
@@ -593,9 +585,7 @@ async function extract_fingerprint(tuneURL_stream) {
     try {
         const text = await getTextData(reponse);
         let data = parseResponseTextDataAsJSON(text, "{", "No Trigger sound found");
-        //parseResponseTextDataAsJSON(text, "{", "No Trigger sound found"); data.dataEx
         tuneURL_Fingerprint = "{\"fingerprint\":{\"type\":\"Buffer\",\"data\":" + data.dataEx + "},\"fingerprint_version\":\"1\"}";
-        // tuneURL_Fingerprint = parseResponseTextDataAsJSON(fingertext, "{", "No Trigger sound found");;
         console.log(JSON.stringify({
             tuneURL_Fingerprint
         }))
@@ -723,7 +713,6 @@ function calculateAverageAmplitude(audioBuffer) {
         console.error('Invalid audio data');
         return NaN;
     }
-    // console.log(" audioBuffer.numberOfChannels * audioBuffer.length ", audioBuffer.numberOfChannels, audioBuffer.length);
 
     let sum = 0;
     for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
@@ -755,8 +744,6 @@ function detectOffset(audioBuffer, threshold = 0.01) {
 
 async function getTurnUrlTags(datus) {
     let data;
-    // const newSegment = await createAudioBuffer(datus.audioBuffer);
-    // console.log('newSegment ', newSegment);
     //Compare the two audio segments
     console.log('sData.audioBuffer ', datus.audioBuffer);
 

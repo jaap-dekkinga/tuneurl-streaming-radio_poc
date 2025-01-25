@@ -1,5 +1,0 @@
-User-agent: *
-Disallow: /.well-known/
-Disallow: /v1/
-Disallow: /v2/
-Disallow: /dev/

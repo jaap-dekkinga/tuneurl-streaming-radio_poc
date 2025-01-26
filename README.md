@@ -17,8 +17,6 @@ This is a Maven based project. It is a special version of my upwork gig project 
 
 [Maven 3.8.8](https://archive.apache.org/dist/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz)
 
-[com.albon.auth v1.0.1](lib/com.albon.auth.md)
-
 [MySQL 8.0.36](https://dev.mysql.com/downloads/mysql/8.0.html)
 
 [GNU Wget 1.21.2](https://www.gnu.org/software/wget/)
@@ -226,94 +224,6 @@ rm -f *.o
 rm -f fingerprintexec
 
 ```
-
-### 9. Back-end configuration / settings
-
-9.1 Install `lib/authsdk-1.0.1.jar`
-
-Refer to [lib/com.albon.auth.md](lib/com.albon.auth.md)
-
-9.2 Edit `src/main/resources/application.properties`
-
-```bash
-# Replace streamradiolocal.tmalbon.com with your domain
-
-server.domain.url=https\://streamradiolocal.tmalbon.com/
-audio.stream.url.prefix=https://streamradiolocal.tmalbon.com/dev/v3/audio
-
-```
-
-9.3 Edit `src/main/webapp/js/swagger-initializer.js`
-
-```bash
-# Replace streamradiolocal.tmalbon.com with your domain
-
-    url: "https://streamradiolocal.tmalbon.com/v3/v3tuneurlpoc.json",
-
-```
-
-9.4 Edit `src/main/webapp/js/audio-demo.js`
-
-```bash
-# Replace streamradiolocal.tmalbon.com with your domain
-
-const TEST_MP3_FILE = 'https://streamradiolocal.tmalbon.com/audio/10240-audio-streams-0230000.mp3';
-
-const TRIGGERSOUND_AUDIO_URL = 'https://streamradiolocal.tmalbon.com/audio/10240-triggersound.wav';
-
-        window.location.href = "https://streamradiolocal.tmalbon.com/";
-
-    const res = await fetch("https://streamradiolocal.tmalbon.com/dev/v3/calculateFingerprint", {
-
-            const res = await fetch("https://streamradiolocal.tmalbon.com/json/pretty-fingerprint-results-fingerprint1.json", {
-
-    const res = await fetch(`https://streamradiolocal.tmalbon.com/dev/v3/evaluateOneSecondAudioStream?offset=${timeOffset}`, {
-
-    const res = await fetch("https://streamradiolocal.tmalbon.com/dev/v3/evaluateAudioStream", {
-
-    const res = await fetch(`https://streamradiolocal.tmalbon.com/dev/v3/getAudioStream?conversionId=${conversionId}`, {
-
-        const res = await fetch("https://streamradiolocal.tmalbon.com/dev/v3/saveAudioStream", {
-
-```
-
-9.5 Edit `src/main/webapp/v3/v3tuneurlpoc.json`
-
-```json
-  // Replace streamradiolocal.tmalbon.com with your domain
-
-  "servers": [
-    {
-      "url": "https://streamradiolocal.tmalbon.com",
-      "description": "Stream Radio POC - Java TuneUrl API server URI"
-    }
-  ],
-```
-
-### 10. Build and run `target/webrtc.util-1.1.1.jar`
-
-```bash
-# NOTE: Make sure you have a valid poctuneurl database and installed lib/authsdk-1.0.1.jar
-#
-# See Step 4.3 Create poctuneurl database
-# See Step 9.1 Install `lib/authsdk-1.0.1.jar`
-
-cd ~/tuneurl-poc
-./build.sh clean
-./run.sh
-
-# Exit from AWS EC2 instance to prevent your ssh session to hang. **Don't do the exit on your local dev**
-exit
-
-```
-
-### 11. API is accessible at https://streaming.tuneurl-demo.com/v3/swagger/
-
-<br>
-
-![docs/TuneUrl-SwaggerUIforJavaTuneUrlAPIserver.png](docs/TuneUrl-SwaggerUIforJavaTuneUrlAPIserver.png)
-
-<br>
 
 
 ### 12. TuneUrl-POC architecture

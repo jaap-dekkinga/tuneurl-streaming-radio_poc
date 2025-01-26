@@ -318,7 +318,7 @@ exit
 
 ### 12. TuneUrl-POC architecture
 
-[TuneUrl-POC-architecture](docs/TuneUrl-POC-architecture.pdf)
+[TuneUrl-POC-architecture](docs/TuneUrl-POC-architecture-latest.pdf)
 
 
 [About OneSecondAudioStreamController](docs/OneSecondAudioStreamController.md)

@@ -226,7 +226,7 @@ rm -f fingerprintexec
 ```
 
 
-### 12. TuneUrl-POC architecture
+### 9. TuneUrl-POC architecture
 
 [TuneUrl-POC-architecture](docs/TuneUrl-POC-architecture-latest.pdf)
 

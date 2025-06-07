@@ -34,18 +34,20 @@ const uniqueUserId = Math.floor(Math.random() * 1e12).toString().padStart(16, '0
 const base_host = "https://streaming.tuneurl-demo.com";
 // const base_host = "http://localhost:8281";
 let LOAD_FROM_THIS_URL = "https://stream.radiojar.com/vzv0nkgsw7uvv";
-//"https://libretime.tuneurl-demo.com:8443/main";
-// "https://stream.radiojar.com/vzv0nkgsw7uvv";
 // const TEST_MP3_FILE = base_host + "/audio/10.1s.mp3";
 const TEST_MP3_FILE = base_host + "/audio/10240-audio-streams-0230000.mp3";
 // const TEST_MP3_FILE = base_host + "/audio/webrtc-source_J7XLHMyC.mp3";
-const TRIGGERSOUND_AUDIO_URL = "https://icecastmediatest.s3.us-east-1.amazonaws.com/Trigger-Audio.mp3";
+let radiojar_triggersound_url =  "https://icecastmediatest.s3.us-east-1.amazonaws.com/Trigger-Audio.mp3";
+
+//"https://tuneurl-streaming-radio-poc.s3.us-east-2.amazonaws.com/triggersound_recorded.wav";
+
+const LIBRETIME_TRIGGERSOUND_AUDIO_URL = "https://icecastmediatest.s3.us-east-1.amazonaws.com/Trigger-Audio.mp3";
+//base_host + "/audio/10240-triggersound.wav";
+
+// const TRIGGERSOUND_AUDIO_URL =  base_host + "/audio/10240-triggersound.wav";
 document.addEventListener('DOMContentLoaded', function () {
     // Select the first item in the dropdown
     let firstItem = document.querySelector('.dropdown-item');
-
-    // Set the button text to the first item's text
-    //document.getElementById('dropdownMenuButton').textContent = firstItem.textContent;
 
     // Highlight the first item as active
     firstItem.classList.add('active');
@@ -203,7 +205,7 @@ class AudioStreamPlayer {
 
         let chunks = [];
         let bytesRead = 0;
-        const bytesToRead = sampleRate * STREAM_DURATION * 4; // 4 bytes per sample (32-bit float, stereo)
+        const bytesToRead = sampleRate * STREAM_DURATION * 3; // 4 bytes per sample (32-bit float, stereo)
 
         while (true) {
 
@@ -259,7 +261,6 @@ class AudioStreamPlayer {
             const newData = audioData.getChannelData(channel);
             newSegment.copyToChannel(newData, channel);
         }
-        // console.log('AudidStreamPlayer::__createNewAudioSegment', audioData.length);
         return newSegment;
     }
 
@@ -279,7 +280,7 @@ class AudioStreamPlayer {
 
         if (!this.pause_buff) {
             const totalDuration = this.audioQueue.reduce((acc, buffer) => acc + buffer.duration, 0);
-            console.log('playAudioQueue: totalDuration', totalDuration);
+            // console.log('playAudioQueue: totalDuration', totalDuration);
 
             if (totalDuration < 16 && this.isFirstPlay) {
                 return;
@@ -315,7 +316,6 @@ class AudioStreamPlayer {
         // ************************************************************************************************
 
         this.source.onended = () => {
-            // console.log('play_stream: onended');
             clearInterval(this.timerInterval);
 
             this.isPlaying = false;
@@ -542,7 +542,6 @@ async function findTriggerSound() {
 async function extract_fingerprint(tuneURL_stream) {
 
     let size = tuneURL_stream.length;
-    // console.log(" tuneURL_stream ", JSON.stringify(tuneURL_stream));
     let buff = new Float32Array(size * 2);
 
     // convert from mono to stereo
@@ -591,22 +590,25 @@ async function extract_fingerprint(tuneURL_stream) {
     });
 
     try {
+        // Example usage:
+        // const transformedData = transformData(results, 1000, 128);
+        // console.log("Transformed Data:", transformedData);
+       
+      
+       
         const text = await getTextData(reponse);
-        let data = parseResponseTextDataAsJSON(text, "{", "No Trigger sound found");
-        //parseResponseTextDataAsJSON(text, "{", "No Trigger sound found"); data.dataEx
+        let data = parseResponseTextDataAsJSON(text, "{", "No Trigger sound found"); //data.dataEx
         tuneURL_Fingerprint = "{\"fingerprint\":{\"type\":\"Buffer\",\"data\":" + data.dataEx + "},\"fingerprint_version\":\"1\"}";
-        // tuneURL_Fingerprint = parseResponseTextDataAsJSON(fingertext, "{", "No Trigger sound found");;
         console.log(JSON.stringify({
             tuneURL_Fingerprint
         }))
     } catch (error) {
         tuneURL_Fingerprint = null;
         console.error("ERROR:", error);
-        appendMessages("extract_fingerprint API on ERROR: " + error)
+        // appendMessages("extract_fingerprint API on ERROR: " + error)
     }
     return tuneURL_Fingerprint;
 }
-  
     
 
 async function convert_to_10240(originalAudioBuffer, targetSampleRate) {
@@ -653,11 +655,34 @@ function normalizePCMData(pcmData, bitDepth) {
     return pcmData.map(sample => sample / maxAmplitude);
 }
 
+const calculateRMS = (audioBuffer, channel = 0) => {
+    if (!(audioBuffer instanceof AudioBuffer)) {
+        throw new Error("Invalid input: Expected an AudioBuffer");
+    }
+
+    // Extract PCM data from the selected channel (default is channel 0)
+    const channelData = audioBuffer.getChannelData(channel);
+
+    if (!channelData || channelData.length === 0) return 0; // Handle empty input case
+
+    // Compute RMS (Root Mean Square)
+    const sumOfSquares = channelData.reduce((sum, value) => sum + value ** 2, 0);
+    return Math.sqrt(sumOfSquares / channelData.length);
+};
+
+const areAmplitudesSimilar = (segment1, segment2, thresholdFactor = 0.1) => {
+    const rms1 = calculateRMS(segment1);
+    const rms2 = calculateRMS(segment2);
+
+    const dynamicThreshold = Math.min(rms1, rms2) * thresholdFactor;  
+    return Math.abs(rms1 - rms2) < dynamicThreshold;
+};
+
 function compareAudioSegments(segment1, segment2) {
     const avgAmplitude1 = calculateAverageAmplitude(segment1);
     const avgAmplitude2 = calculateAverageAmplitude(segment2);
-    console.log('avgAmplitude1 - avgAmplitude2 ', avgAmplitude1, avgAmplitude2);
     const count = Math.abs(avgAmplitude1 - avgAmplitude2) < 0.01; // Example threshold
+    // const count = areAmplitudesSimilar(segment1, segment2);
     if (!count) {
         return {
             count: count
@@ -697,7 +722,6 @@ async function extractAudioSegment(audioBuffer, duration) {
 }
 
 async function createAudioBuffer(audioBuffer) {
-    console.log(" audioBuffer.length ", audioBuffer.length);
     const sampleRate = 44100;
     const duration = calculateDuration(audioBuffer, sampleRate, 2);
     // console.log(" duration ", duration);
@@ -723,7 +747,6 @@ function calculateAverageAmplitude(audioBuffer) {
         console.error('Invalid audio data');
         return NaN;
     }
-    // console.log(" audioBuffer.numberOfChannels * audioBuffer.length ", audioBuffer.numberOfChannels, audioBuffer.length);
 
     let sum = 0;
     for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
@@ -755,18 +778,15 @@ function detectOffset(audioBuffer, threshold = 0.01) {
 
 async function getTurnUrlTags(datus) {
     let data;
-    // const newSegment = await createAudioBuffer(datus.audioBuffer);
-    // console.log('newSegment ', newSegment);
     //Compare the two audio segments
-    console.log('sData.audioBuffer ', datus.audioBuffer);
 
     let timeOffset = index_DataEntry * STREAM_DURATION * 1e3;
-    appendMessages(`Calling compareAudioSegments API- ${timeOffset}`);
+    // appendMessages(`Calling compareAudioSegments API- ${timeOffset}`);
     if (datus.audioData) {
         data = compareAudioSegments(triggerAudioData, datus.audioBuffer);
         console.log('Are the two audio segments similar?', data);
         if (data.count) {
-            g_remove_count = Math.ceil((data.fingerPrint.offset / 1e3 + 6) / STREAM_DURATION);
+            g_remove_count = Math.ceil((data.fingerPrint.offset / 1e3 + 8) / STREAM_DURATION);
             triggr_fingerprint = data.fingerPrint;
         } else {
             index_DataEntry += 1;
@@ -793,7 +813,6 @@ async function initAllTags(fingerPrint, tuneURL_stream, timeOffset) {
             });
         })
         .then((url) => {
-            console.log("url ", url);
             if (url) {
                 url.dataPosition = fingerPrint.offset + timeOffset;
                 url.index = fingerPrint.offset;
@@ -806,12 +825,12 @@ async function initAllTags(fingerPrint, tuneURL_stream, timeOffset) {
 
 function locateFingerprintWithAboveMatchPercentage(ary, index, other) {
     let j, k = -1;
-    let rate = 20;
+    let rate = LOAD_FROM_THIS_URL.includes("radiojar") ? 15:20;
     let data, matchPercentage;
     for (j = 0; j < ary.length; j++) {
         if (j !== index && j !== other) {
             data = ary[j];
-            if (data.info !== null && data.info.length > 0 && (data.type === "open_page" || data.type === "save_page")) {
+            if (data.info !== null && data.info.length > 0 && (data.type === "open_page" || data.type === "save_page" || data.type === "API_call")) {
                 matchPercentage = parseInt(data.matchPercentage, 10);
                 console.log("matchPercentage, rate ", matchPercentage, rate);
                 if (matchPercentage > rate) {
@@ -845,7 +864,6 @@ function selectBestMatchApiUrl(results, json) {
     uniquetype = [];
     let i_one;
     let alias = locateFingerprintWithAboveMatchPercentage(results, -1, -1);
-    console.log("alias ", alias);
     i_one = alias[0];
     uniquetype.push(i_one);
     ary = alias[1];
@@ -954,7 +972,6 @@ async function loadTuneUrlFromServer(payload, callback) {
                 score: 1,
                 similarity: 1
             });
-            console.log(" url ", url);
 
             if (url === null) return callback("Empty", null);
             return callback(null, url)
@@ -1008,7 +1025,7 @@ function getAudioBufferChannelData(audioBuffer, duration, sampleRate) {
     }
 
     while (offset < max_limit) results[offset++] = 0;
-    console.log(`divider ${divider}, iMin = ${iMin} iMax = ${iMax} iSum = ${iSum}`);
+    // console.log(`divider ${divider}, iMin = ${iMin} iMax = ${iMax} iSum = ${iSum}`);
     let audioData = new AudioDataEntry;
     let fingerprintRate = parseInt(sampleRate / skip);
     audioData.setAudioData(results, max_limit, sampleRate, duration, fingerprintRate);
@@ -1058,12 +1075,18 @@ function procToTerminatePopupModal() {
 
 async function activateChannelModal(btnumber, title) {
     console.log("currentTag", currentTag);
-    // report api
-    reportUserInteraction(currentTag.id, "heard");
+    if (!navigator.webdriver) {
+     // report api
+     reportUserInteraction(currentTag.id, "heard");
 
-    getModalPopupElement().modal("show");
-    jQuery(".modal-title").html(title);
-    timerForPopupToHideModal = setTimeout(procToTerminatePopupModal, 7e3);
+     getModalPopupElement().modal("show");
+     jQuery(".modal-title").html(title);
+     timerForPopupToHideModal = setTimeout(procToTerminatePopupModal, 7e3);
+     console.log('Running in real browser');
+    } else {
+        console.log('Running in headless mode so skipping modal activation');
+        // If running in headless mode, we can directly execute the channel modal without showing the popup
+    }
     return true
 }
 
@@ -1075,11 +1098,16 @@ function displaySpinner(isDisplay) {
     }
 }
 
-function executeChannelModal(iRef) {
+function executeChannelModal(iRef, noFocus) {
     if (parseInt(iRef) > 0) {
         reportUserInteraction(currentTag.id, "interested");
         if (activeUrl) {
-            window.open(activeUrl, "_blank").focus()
+	    if(noFocus){
+                window.open(activeUrl, "_blank",'noopener,noreferrer');
+            } else {
+                window.open(activeUrl, "_blank").focus();
+            }
+           
         }
         activeUrl = null;
     } else {
@@ -1098,8 +1126,15 @@ async function showPopupByAudioStream(totalPlayTime) {
         if (diff > 0 && diff <= threshold) {
             activeUrl = activeAudioTags.liveTags[i].info;
             currentTag = activeAudioTags.liveTags[i];
-            activeAudioTags.liveTags.splice(i, 1);
-            activateChannelModal(0, currentTag.description);
+		 console.log(" Tuneurl.type ",activeAudioTags.liveTags[i].type);
+            console.log(" activeUrl ",activeUrl);
+            if(activeAudioTags.liveTags[i].type !== "API_call"){
+                activeAudioTags.liveTags.splice(i, 1);
+                activateChannelModal(0, currentTag.description);
+            } else {
+                activeAudioTags.liveTags.splice(i, 1);
+                executeChannelModal(1, true);
+            }
 
             break;
         }
@@ -1204,10 +1239,11 @@ async function startCanvas() {
     displaySpinner(true);
     console.log("LOAD_FROM_THIS_URL 4th ", LOAD_FROM_THIS_URL);
     await doLogin();
-    //if (isJWTloaded) {
-    await initTriggerAudio(TRIGGERSOUND_AUDIO_URL);
+    if (isJWTloaded) {
+    const trigger_url =  LOAD_FROM_THIS_URL.includes("radiojar") ? radiojar_triggersound_url:LIBRETIME_TRIGGERSOUND_AUDIO_URL;
+    await initTriggerAudio(trigger_url);
         if (IF_LOAD_FROM_URL) {
-            audioStreamURL = LOAD_FROM_THIS_URL;
+            audioStreamURL = new URLSearchParams(window.location.search).get('streamUrl') || LOAD_FROM_THIS_URL;
         } else {
             audioStreamURL = TEST_MP3_FILE;
         }
@@ -1229,6 +1265,6 @@ async function startCanvas() {
         // start process C to show pop-up/notification by the TurnUrlTags
         setInterval(() => showPopupByAudioStream(audioStreamPlayer.totalPlayTime), 100);
         showHidePlayButton(true);
-    //}
+    }
     displaySpinner(false)
 }

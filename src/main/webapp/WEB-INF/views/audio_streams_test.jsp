@@ -13,6 +13,7 @@
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
 	<!-- Latest compiled JavaScript -->
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script type="text/javascript" src="/jquery/jquery.min.js"></script>
 	<style>
 		html,
 		body {
@@ -141,7 +142,7 @@
 	</style>
 </head>
 
-<body id="body" onload="javascript:startCanvas(this);">
+<body id="body" onload="javascript:startCanvas(this);javascript:getStreamURL();">
 	<!-- The Modal -->
 	<div class="modal fade" id="thisModal">
 		<div class="modal-dialog">
@@ -149,13 +150,13 @@
 
 				<!-- Modal Header -->
 				<div class="modal-header">
-					<h4 class="modal-title">Intraction</h4>
+					<h4 class="modal-title">Interaction</h4>
 					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 				</div>
 
 				<!-- Modal body -->
 				<div class="modal-body">
-					Are you interested?
+					Are you interested to learn more?
 				</div>
 
 				<!-- Modal footer -->
@@ -174,19 +175,19 @@
 		<header class="masthead">
 			<img src="assets/logo.png" id="logoImage" alt="Left Image" class="header-image">
 			<div>
-				<button style="display: block; padding: 0px;" class="btn dropdown-toggle" type="button" id="dropdownMenuButton"
-					data-bs-toggle="dropdown" aria-expanded="false"> <img src="assets/logo2.png" alt="Right Image"
-						class="header-image">
+				<button style="display: block; padding: 0px;" class="btn dropdown-toggle play current-btn" type="button"
+					id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false"> <img src="assets/logo2.png"
+						alt="Right Image" class="header-image">
 				</button>
 				<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
 					<li><a class="dropdown-item" href="#" data-src="assets/logo.png"
 							data-value="https://stream.radiojar.com/vzv0nkgsw7uvv">Radiojar</a></li>
 					<li><a class="dropdown-item" href="#" data-src="assets/libretime-logo.png"
-							data-value="http://libretime.tuneurl-demo.com:8000/main">Libretime</a></li>
+							data-value="https://libretime.tuneurl-demo.com:8443/main">Libretime</a></li>
 				</ul>
 				<div class="" style="margin-left: 10px;font-weight: bold;">
 					<span id="selectedItem">None</span>
-				  </div>
+				</div>
 			</div>
 		</header>
 
@@ -214,7 +215,8 @@
 				</form>
 
 				<div id="hiddendata" style="display:none"><input type="hidden" id="usertoken" name="usertoken"
-						value="${token}" /></div>
+						value="${token}" />
+				</div>
 				<div id="channelbtn"></div>
 				<h1 id="pocTitle" class="d-flex justify-content-center">00:00</h1>
 

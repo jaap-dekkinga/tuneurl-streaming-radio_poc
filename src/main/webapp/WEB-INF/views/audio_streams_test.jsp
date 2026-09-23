@@ -173,20 +173,20 @@
 
 	<div id="page" class="d-flex h-100 p-3 mx-auto flex-column">
 		<header class="masthead">
-			<img src="assets/logo.png" id="logoImage" alt="Left Image" class="header-image">
+			<img src="assets/ttns-logo-new.png" id="logoImage" alt="Left Image" class="header-image">
 			<div>
 				<button style="display: block; padding: 0px;" class="btn dropdown-toggle play current-btn" type="button"
-					id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false"> <img src="assets/logo2.png"
-						alt="Right Image" class="header-image">
+					id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false"> <img
+						src="assets/ttns-logo-new.png" alt="Right Image" class="header-image">
 				</button>
 				<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-					<li><a class="dropdown-item" href="#" data-src="assets/logo.png"
-							data-value="https://stream.radiojar.com/vzv0nkgsw7uvv">Radiojar</a></li>
+					<li><a class="dropdown-item" href="#" data-src="assets/ttns-logo-new.png"
+							data-value="https://direct.sharp-stream.com/live">TTNS</a></li>
 					<li><a class="dropdown-item" href="#" data-src="assets/libretime-logo.png"
 							data-value="https://libretime.tuneurl-demo.com:8443/main">Libretime</a></li>
 					<li><a class="dropdown-item" href="#"
-				        data-src="https://cdnrf.securenetsystems.net/file_radio/stations_large/KYEZ/v5/logo.png"
-				        data-value="https://radio.securenetsystems.net/cwa/KYEZ">KYEZ</a></li>
+							data-src="https://cdnrf.securenetsystems.net/file_radio/stations_large/KYEZ/v5/logo.png"
+							data-value="https://radio.securenetsystems.net/cwa/KYEZ">KYEZ</a></li>
 				</ul>
 				<div class="" style="margin-left: 10px;font-weight: bold;">
 					<span id="selectedItem">None</span>

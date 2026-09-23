@@ -33,11 +33,11 @@ const uniqueUserId = Math.floor(Math.random() * 1e12).toString().padStart(16, '0
 
 const base_host = "https://streaming.tuneurl-demo.com";
 // const base_host = "http://localhost:8281";
-let LOAD_FROM_THIS_URL = "https://stream.radiojar.com/vzv0nkgsw7uvv";
+let LOAD_FROM_THIS_URL = "https://direct.sharp-stream.com/live";
 // const TEST_MP3_FILE = base_host + "/audio/10.1s.mp3";
 const TEST_MP3_FILE = base_host + "/audio/10240-audio-streams-0230000.mp3";
 // const TEST_MP3_FILE = base_host + "/audio/webrtc-source_J7XLHMyC.mp3";
-let radiojar_triggersound_url =  "https://icecastmediatest.s3.us-east-1.amazonaws.com/Trigger-Audio.mp3";
+let ttns_triggersound_url = base_host + "/audio/ttns_triggersound.wav";
 
 //"https://tuneurl-streaming-radio-poc.s3.us-east-2.amazonaws.com/triggersound_recorded.wav";
 
@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 const IF_LOAD_FROM_URL = true;
 const APP_TITLE = "Audio Demo Test";
+const fingerprint_version = new URLSearchParams(window.location.search).get('V') || '1';
 
 const AMPLITUDE_SIZE = 512;
 const HALF_AMPLITUDE_SIZE = 256;
@@ -63,6 +64,7 @@ const MAXIMUM_DURATION = 1020;
 const FINGERPRINT_SAMPLE_RATE = 10240;
 const STREAM_DURATION = 1.5;
 const IF_SEARCH_API_BROKEN = false;
+const IF_PREPEND_FINGERPRINT_HEADER = fingerprint_version === '2';
 
 const LIVE_INIT = 0;
 const LIVE_WAIT_MODAL_STATE = 1;
@@ -99,6 +101,13 @@ let index_DataEntry = 0;
 let triggr_fingerprint = null;
 let g_remove_count = 0;
 let remainStream = new Float32Array(0);
+
+// --- trigger detection state ---
+let consecutiveMatchCount = 0;
+const MATCH_VOTES_REQUIRED = 2;
+let adaptiveNoiseFloor = null;
+const noiseFloorCalibrationBuffer = [];
+const NOISE_FLOOR_CALIBRATION_FRAMES = 5;
 let activeUrl = null;
 let currentTag = null;
 
@@ -490,13 +499,16 @@ async function findTriggerSound() {
         }
 
 
-        let pos = parseInt(triggr_fingerprint.offset / 1e3 + 1.5) * 44100;
-        let size = 3 * 44100;
+        const size = 3 * 44100;
+        // skip past trigger: offsetMs (NCC position) + 1500ms (trigger duration), sub-second precision
+        let pos = Math.round((triggr_fingerprint.offset + 1500) / 1000 * 44100);
+        // safety: ensure the 3s window stays within buffered audio
+        pos = Math.min(pos, Math.max(0, audioStream.length - size));
 
         let tuneURL_stream = new Float32Array(size);
         tuneURL_stream.set(audioStream.slice(pos, pos + size));
 
-        let timeOffset = index_DataEntry * STREAM_DURATION * 1e3;
+        let timeOffset = triggr_fingerprint.detectedPlayTime ?? (index_DataEntry * STREAM_DURATION * 1e3);
         initAllTags(triggr_fingerprint, tuneURL_stream, timeOffset);
 
         index_DataEntry += g_remove_count;
@@ -593,12 +605,12 @@ async function extract_fingerprint(tuneURL_stream) {
         // Example usage:
         // const transformedData = transformData(results, 1000, 128);
         // console.log("Transformed Data:", transformedData);
-       
-      
-       
+
+
+
         const text = await getTextData(reponse);
         let data = parseResponseTextDataAsJSON(text, "{", "No Trigger sound found"); //data.dataEx
-        tuneURL_Fingerprint = "{\"fingerprint\":{\"type\":\"Buffer\",\"data\":" + data.dataEx + "},\"fingerprint_version\":\"1\"}";
+        tuneURL_Fingerprint = "{\"fingerprint\":{\"type\":\"Buffer\",\"data\":" + data.dataEx + "},\"fingerprint_version\":\"" + fingerprint_version + "\"}";
         console.log(JSON.stringify({
             tuneURL_Fingerprint
         }))
@@ -609,7 +621,7 @@ async function extract_fingerprint(tuneURL_stream) {
     }
     return tuneURL_Fingerprint;
 }
-    
+
 
 async function convert_to_10240(originalAudioBuffer, targetSampleRate) {
     // Create an OfflineAudioContext with the target sample rate
@@ -655,49 +667,200 @@ function normalizePCMData(pcmData, bitDepth) {
     return pcmData.map(sample => sample / maxAmplitude);
 }
 
-const calculateRMS = (audioBuffer, channel = 0) => {
-    if (!(audioBuffer instanceof AudioBuffer)) {
-        throw new Error("Invalid input: Expected an AudioBuffer");
+// =============================================
+// ENHANCED TRIGGER DETECTION — helpers
+// =============================================
+
+const DOWNSAMPLE_STEP = 16;       // effective rate ≈ 2756 Hz
+const NCC_THRESHOLD = 0.09;       // low — stride downsampling aliases waveform; spectral is primary discriminator
+const SPECTRAL_THRESHOLD = 0.80;  // tightened to compensate for lower score bar
+const SCORE_TO_MATCH = 2;         // spectral+zcr sufficient; multi-frame voting is the real gate
+
+function extractMonoDownsampled(audioBuffer) {
+    if (!audioBuffer || audioBuffer.numberOfChannels === 0) return new Float32Array(0);
+    const data = audioBuffer.getChannelData(0);
+    const len = Math.floor(data.length / DOWNSAMPLE_STEP);
+    const out = new Float32Array(len);
+    for (let i = 0; i < len; i++) out[i] = data[i * DOWNSAMPLE_STEP];
+    return out;
+}
+
+function computeRMSFromSamples(samples) {
+    let sum = 0;
+    for (let i = 0; i < samples.length; i++) sum += samples[i] * samples[i];
+    return Math.sqrt(sum / samples.length);
+}
+
+function computeZCR(samples) {
+    let count = 0;
+    for (let i = 1; i < samples.length; i++) {
+        if ((samples[i] >= 0) !== (samples[i - 1] >= 0)) count++;
+    }
+    return count / samples.length;
+}
+
+function computeFFT(realInput) {
+    const n = realInput.length; // must be power of 2
+    const re = new Float32Array(realInput);
+    const im = new Float32Array(n);
+
+    // bit-reversal permutation
+    for (let i = 1, j = 0; i < n; i++) {
+        let bit = n >> 1;
+        for (; j & bit; bit >>= 1) j ^= bit;
+        j ^= bit;
+        if (i < j) { [re[i], re[j]] = [re[j], re[i]]; }
     }
 
-    // Extract PCM data from the selected channel (default is channel 0)
-    const channelData = audioBuffer.getChannelData(channel);
-
-    if (!channelData || channelData.length === 0) return 0; // Handle empty input case
-
-    // Compute RMS (Root Mean Square)
-    const sumOfSquares = channelData.reduce((sum, value) => sum + value ** 2, 0);
-    return Math.sqrt(sumOfSquares / channelData.length);
-};
-
-const areAmplitudesSimilar = (segment1, segment2, thresholdFactor = 0.1) => {
-    const rms1 = calculateRMS(segment1);
-    const rms2 = calculateRMS(segment2);
-
-    const dynamicThreshold = Math.min(rms1, rms2) * thresholdFactor;  
-    return Math.abs(rms1 - rms2) < dynamicThreshold;
-};
-
-function compareAudioSegments(segment1, segment2) {
-    const avgAmplitude1 = calculateAverageAmplitude(segment1);
-    const avgAmplitude2 = calculateAverageAmplitude(segment2);
-    const count = Math.abs(avgAmplitude1 - avgAmplitude2) < 0.01; // Example threshold
-    // const count = areAmplitudesSimilar(segment1, segment2);
-    if (!count) {
-        return {
-            count: count
-        };
-    } else {
-        const offset = detectOffset(triggerAudioData);
-        console.log(`Offset: ${offset} seconds`);
-        return {
-            "count": 1,
-            "fingerPrint": {
-                "similarity": 1,
-                "offset": offset
+    // Cooley-Tukey butterfly
+    for (let len = 2; len <= n; len <<= 1) {
+        const ang = -2 * Math.PI / len;
+        const wRe = Math.cos(ang), wIm = Math.sin(ang);
+        for (let i = 0; i < n; i += len) {
+            let curRe = 1, curIm = 0;
+            for (let k = 0; k < (len >> 1); k++) {
+                const aRe = re[i + k], aIm = im[i + k];
+                const bRe = re[i + k + (len >> 1)], bIm = im[i + k + (len >> 1)];
+                const tRe = bRe * curRe - bIm * curIm;
+                const tIm = bRe * curIm + bIm * curRe;
+                re[i + k] = aRe + tRe; im[i + k] = aIm + tIm;
+                re[i + k + (len >> 1)] = aRe - tRe; im[i + k + (len >> 1)] = aIm - tIm;
+                const nr = curRe * wRe - curIm * wIm;
+                curIm = curRe * wIm + curIm * wRe;
+                curRe = nr;
             }
-        };
+        }
     }
+    return { re, im };
+}
+
+function computeSpectralBandEnergies(samples) {
+    const effectiveSR = 44100 / DOWNSAMPLE_STEP;
+    const nextPow2 = Math.pow(2, Math.ceil(Math.log2(samples.length)));
+    const padded = new Float32Array(nextPow2);
+    padded.set(samples);
+
+    const { re, im } = computeFFT(padded);
+    const freqRes = effectiveSR / nextPow2;
+    const nyquist = effectiveSR / 2;
+    const halfN = nextPow2 >> 1;
+
+    const bands = [[0, 80], [80, 250], [250, 500], [500, 1000], [1000, nyquist]];
+    return bands.map(([lo, hi]) => {
+        const loK = Math.floor(lo / freqRes);
+        const hiK = Math.min(Math.ceil(hi / freqRes), halfN - 1);
+        let energy = 0;
+        for (let k = loK; k <= hiK; k++) energy += re[k] * re[k] + im[k] * im[k];
+        return Math.sqrt(energy / Math.max(1, hiK - loK + 1));
+    });
+}
+
+function spectralCosineSimilarity(a, b) {
+    let dot = 0, magA = 0, magB = 0;
+    for (let i = 0; i < a.length; i++) {
+        dot += a[i] * b[i]; magA += a[i] * a[i]; magB += b[i] * b[i];
+    }
+    return (magA < 1e-10 || magB < 1e-10) ? 0 : dot / (Math.sqrt(magA) * Math.sqrt(magB));
+}
+
+function normalizedCrossCorrelation(trigger, stream) {
+    const n = trigger.length, m = stream.length;
+    if (n === 0 || n > m) return { score: 0, offsetSamples: 0 };
+
+    // pre-compute centered trigger and its std
+    let tMean = 0;
+    for (let i = 0; i < n; i++) tMean += trigger[i];
+    tMean /= n;
+    const tCentered = new Float32Array(n);
+    let tVar = 0;
+    for (let i = 0; i < n; i++) { tCentered[i] = trigger[i] - tMean; tVar += tCentered[i] * tCentered[i]; }
+    const tStd = Math.sqrt(tVar / n);
+    if (tStd < 1e-10) return { score: 0, offsetSamples: 0 };
+
+    // sliding window mean/variance via cumulative sums (O(1) per lag)
+    const cumSum = new Float64Array(m + 1);
+    const cumSumSq = new Float64Array(m + 1);
+    for (let i = 0; i < m; i++) {
+        cumSum[i + 1] = cumSum[i] + stream[i];
+        cumSumSq[i + 1] = cumSumSq[i] + stream[i] * stream[i];
+    }
+
+    let bestScore = -1, bestOffset = 0;
+    for (let lag = 0; lag <= m - n; lag++) {
+        const sMean = (cumSum[lag + n] - cumSum[lag]) / n;
+        const sVar = (cumSumSq[lag + n] - cumSumSq[lag]) / n - sMean * sMean;
+        const sStd = Math.sqrt(Math.max(0, sVar));
+        if (sStd < 1e-10) continue;
+
+        let cc = 0;
+        for (let i = 0; i < n; i++) cc += tCentered[i] * (stream[lag + i] - sMean);
+        const score = cc / (n * tStd * sStd);
+        if (score > bestScore) { bestScore = score; bestOffset = lag; }
+    }
+    return { score: bestScore, offsetSamples: bestOffset };
+}
+
+function updateAdaptiveNoiseFloor(rms) {
+    if (adaptiveNoiseFloor !== null) return;
+    noiseFloorCalibrationBuffer.push(rms);
+    if (noiseFloorCalibrationBuffer.length >= NOISE_FLOOR_CALIBRATION_FRAMES) {
+        adaptiveNoiseFloor = noiseFloorCalibrationBuffer.reduce((a, b) => a + b, 0) / noiseFloorCalibrationBuffer.length;
+        console.log(`Noise floor calibrated: ${adaptiveNoiseFloor.toFixed(5)}`);
+    }
+}
+
+function compareAudioSegments(triggerBuffer, streamBuffer) {
+    const triggerSamples = extractMonoDownsampled(triggerBuffer);
+    const streamSamples = extractMonoDownsampled(streamBuffer);
+    if (triggerSamples.length === 0 || streamSamples.length === 0) return { count: false };
+
+    const streamRMS = computeRMSFromSamples(streamSamples);
+    updateAdaptiveNoiseFloor(streamRMS);
+
+    // reject silent frames before doing any heavy work
+    if (streamRMS < (adaptiveNoiseFloor ?? 0.01) * 0.5) {
+        consecutiveMatchCount = 0;
+        return { count: false };
+    }
+
+    // 1. Normalized cross-correlation (weight 2 — most discriminative)
+    const ncc = normalizedCrossCorrelation(triggerSamples, streamSamples);
+
+    // 2. RMS amplitude similarity
+    const triggerRMS = computeRMSFromSamples(triggerSamples);
+    const rmsMatch = Math.abs(triggerRMS - streamRMS) < Math.min(triggerRMS, streamRMS) * 0.4;
+
+    // 3. Zero-crossing rate similarity
+    const zcrMatch = Math.abs(computeZCR(triggerSamples) - computeZCR(streamSamples)) < 0.15;
+
+    // 4. Spectral band energy similarity
+    const specScore = spectralCosineSimilarity(
+        computeSpectralBandEnergies(triggerSamples),
+        computeSpectralBandEnergies(streamSamples)
+    );
+
+    let score = 0;
+    if (ncc.score > NCC_THRESHOLD) score += 2;
+    if (rmsMatch) score += 1;
+    if (zcrMatch) score += 1;
+    if (specScore > SPECTRAL_THRESHOLD) score += 1;
+
+    console.log(`Trigger — NCC: ${ncc.score.toFixed(3)}, RMS: ${rmsMatch}, ZCR: ${zcrMatch}, Spectral: ${specScore.toFixed(3)}, Score: ${score}/5`);
+
+    if (score >= SCORE_TO_MATCH) {
+        consecutiveMatchCount++;
+        console.log(`Match votes: ${consecutiveMatchCount}/${MATCH_VOTES_REQUIRED}`);
+        if (consecutiveMatchCount >= MATCH_VOTES_REQUIRED) {
+            consecutiveMatchCount = 0;
+            const offsetMs = (ncc.offsetSamples * DOWNSAMPLE_STEP / 44100) * 1000;
+            console.log(`Trigger confirmed — offset: ${(offsetMs / 1000).toFixed(3)}s, NCC: ${ncc.score.toFixed(3)}`);
+            return { count: 1, fingerPrint: { similarity: ncc.score, offset: offsetMs } };
+        }
+    } else {
+        consecutiveMatchCount = 0;
+    }
+
+    return { count: false };
 }
 
 async function extractAudioSegment(audioBuffer, duration) {
@@ -788,6 +951,8 @@ async function getTurnUrlTags(datus) {
         if (data.count) {
             g_remove_count = Math.ceil((data.fingerPrint.offset / 1e3 + 8) / STREAM_DURATION);
             triggr_fingerprint = data.fingerPrint;
+            //fixed time to show popup on correct time
+            triggr_fingerprint.detectedPlayTime = audioStreamPlayer ? audioStreamPlayer.totalPlayTime : index_DataEntry * STREAM_DURATION * 1e3;
         } else {
             index_DataEntry += 1;
             audioAudioDataEntries.splice(0, 1);
@@ -825,7 +990,8 @@ async function initAllTags(fingerPrint, tuneURL_stream, timeOffset) {
 
 function locateFingerprintWithAboveMatchPercentage(ary, index, other) {
     let j, k = -1;
-    let rate = LOAD_FROM_THIS_URL.includes("radiojar") ? 15:20;
+    let isSharpStream = LOAD_FROM_THIS_URL.includes("direct.sharp-stream.com/live/");
+    let rate = isSharpStream ? 15 : 20;
     let data, matchPercentage;
     for (j = 0; j < ary.length; j++) {
         if (j !== index && j !== other) {
@@ -951,6 +1117,17 @@ async function loadTuneUrlFromServer(payload, callback) {
         return chunks
     }
 
+    function buildBody(payload) {
+        if (!IF_PREPEND_FINGERPRINT_HEADER) return payload;
+        try {
+            const parsed = JSON.parse(payload);
+            parsed.fingerprint.data = [255, 2, 2, 1, ...parsed.fingerprint.data];
+            return JSON.stringify(parsed);
+        } catch (e) {
+            return payload;
+        }
+    }
+
     return fetch(endpoint, {
         method: "POST",
         // mode: "no-cors",
@@ -959,7 +1136,7 @@ async function loadTuneUrlFromServer(payload, callback) {
             "sec-fetch-dest": "empty",
             "sec-fetch-mode": "no-cors",
         },
-        body: payload
+        body: buildBody(payload)
     })
         .then((res) => {
             const reader = res.body.getReader();
@@ -1065,7 +1242,7 @@ function updatePocTitle(totalPlayTime) {
 
 function procToTerminatePopupModal() {
     if (timerForPopupToHideModal !== null) {
-        clearInterval(timerForPopupToHideModal);
+        clearTimeout(timerForPopupToHideModal);
         timerForPopupToHideModal = null
     }
     getModalPopupElement().modal("hide");
@@ -1076,13 +1253,13 @@ function procToTerminatePopupModal() {
 async function activateChannelModal(btnumber, title) {
     console.log("currentTag", currentTag);
     if (!navigator.webdriver) {
-     // report api
-     reportUserInteraction(currentTag.id, "heard");
+        // report api
+        reportUserInteraction(currentTag.id, "heard");
 
-     getModalPopupElement().modal("show");
-     jQuery(".modal-title").html(title);
-     timerForPopupToHideModal = setTimeout(procToTerminatePopupModal, 7e3);
-     console.log('Running in real browser');
+        getModalPopupElement().modal("show");
+        jQuery(".modal-title").html(title);
+        timerForPopupToHideModal = setTimeout(procToTerminatePopupModal, 7e3);
+        console.log('Running in real browser');
     } else {
         console.log('Running in headless mode so skipping modal activation');
         // If running in headless mode, we can directly execute the channel modal without showing the popup
@@ -1102,12 +1279,12 @@ function executeChannelModal(iRef, noFocus) {
     if (parseInt(iRef) > 0) {
         reportUserInteraction(currentTag.id, "interested");
         if (activeUrl) {
-	    if(noFocus){
-                window.open(activeUrl, "_blank",'noopener,noreferrer');
+            if (noFocus) {
+                window.open(activeUrl, "_blank", 'noopener,noreferrer');
             } else {
                 window.open(activeUrl, "_blank").focus();
             }
-           
+
         }
         activeUrl = null;
     } else {
@@ -1117,6 +1294,7 @@ function executeChannelModal(iRef, noFocus) {
 }
 
 async function showPopupByAudioStream(totalPlayTime) {
+    if (timerForPopupToHideModal !== null) return; // popup already visible
 
     let threshold = 15000;
 
@@ -1126,9 +1304,9 @@ async function showPopupByAudioStream(totalPlayTime) {
         if (diff > 0 && diff <= threshold) {
             activeUrl = activeAudioTags.liveTags[i].info;
             currentTag = activeAudioTags.liveTags[i];
-		 console.log(" Tuneurl.type ",activeAudioTags.liveTags[i].type);
-            console.log(" activeUrl ",activeUrl);
-            if(activeAudioTags.liveTags[i].type !== "API_call"){
+            console.log(" Tuneurl.type ", activeAudioTags.liveTags[i].type);
+            console.log(" activeUrl ", activeUrl);
+            if (activeAudioTags.liveTags[i].type !== "API_call") {
                 activeAudioTags.liveTags.splice(i, 1);
                 activateChannelModal(0, currentTag.description);
             } else {
@@ -1191,11 +1369,12 @@ async function doLogin() {
 }
 
 function initVariables() {
-
     triggerAudioData = null;
-
     spinnerGif = document.getElementById("spinner");
     playButtonObject = document.getElementById("play");
+    consecutiveMatchCount = 0;
+    adaptiveNoiseFloor = null;
+    noiseFloorCalibrationBuffer.length = 0;
 }
 
 async function initTriggerAudio(triggerAudioUrl) {
@@ -1240,8 +1419,9 @@ async function startCanvas() {
     console.log("LOAD_FROM_THIS_URL 4th ", LOAD_FROM_THIS_URL);
     await doLogin();
     if (isJWTloaded) {
-    const trigger_url =  LOAD_FROM_THIS_URL.includes("radiojar") ? radiojar_triggersound_url:LIBRETIME_TRIGGERSOUND_AUDIO_URL;
-    await initTriggerAudio(trigger_url);
+        const isSharpStream = LOAD_FROM_THIS_URL.includes("direct.sharp-stream.com/live/");
+        const trigger_url = isSharpStream ? ttns_triggersound_url : LIBRETIME_TRIGGERSOUND_AUDIO_URL;
+        await initTriggerAudio(trigger_url);
         if (IF_LOAD_FROM_URL) {
             audioStreamURL = new URLSearchParams(window.location.search).get('streamUrl') || LOAD_FROM_THIS_URL;
         } else {

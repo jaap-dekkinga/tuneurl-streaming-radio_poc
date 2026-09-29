@@ -186,7 +186,7 @@
 							data-value="https://libretime.tuneurl-demo.com:8443/main">Libretime</a></li>
 					<li><a class="dropdown-item" href="#"
 							data-src="https://cdnrf.securenetsystems.net/file_radio/stations_large/KYEZ/v5/logo.png"
-							data-value="https://radio.securenetsystems.net/cwa/KYEZ">KYEZ</a></li>
+							data-value="https://ice23.securenetsystems.net/KYEZ">KYEZ</a></li>
 				</ul>
 				<div class="" style="margin-left: 10px;font-weight: bold;">
 					<span id="selectedItem">None</span>

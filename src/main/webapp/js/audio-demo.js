@@ -990,7 +990,7 @@ async function initAllTags(fingerPrint, tuneURL_stream, timeOffset) {
 
 function locateFingerprintWithAboveMatchPercentage(ary, index, other) {
     let j, k = -1;
-    let isSharpStream = LOAD_FROM_THIS_URL.includes("direct.sharp-stream.com/live/");
+    let isSharpStream = LOAD_FROM_THIS_URL.includes("direct.sharp-stream.com/live");
     let rate = isSharpStream ? 15 : 20;
     let data, matchPercentage;
     for (j = 0; j < ary.length; j++) {
@@ -1419,7 +1419,7 @@ async function startCanvas() {
     console.log("LOAD_FROM_THIS_URL 4th ", LOAD_FROM_THIS_URL);
     await doLogin();
     if (isJWTloaded) {
-        const isSharpStream = LOAD_FROM_THIS_URL.includes("direct.sharp-stream.com/live/");
+        const isSharpStream = LOAD_FROM_THIS_URL.includes("direct.sharp-stream.com/live");
         const trigger_url = isSharpStream ? ttns_triggersound_url : LIBRETIME_TRIGGERSOUND_AUDIO_URL;
         await initTriggerAudio(trigger_url);
         if (IF_LOAD_FROM_URL) {

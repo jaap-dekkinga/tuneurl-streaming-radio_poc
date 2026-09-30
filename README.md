@@ -1,4 +1,4 @@
-### tuneurl-poc
+### tuneurl-poc - owner: Jaap Dekkinga
 
 Stream Radio POC - Java TuneUrl API server
 

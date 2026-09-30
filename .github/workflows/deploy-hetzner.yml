@@ -1,0 +1,101 @@
+name: Deploy JSP and JS to Hetzner
+
+on:
+  push:
+    branches: [main]
+    paths: ['**.jsp', '**.js']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:  
+  group: hetzner-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: production
+    env:
+      SSH_HOST: ${{ secrets.HETZNER_HOST }}
+      SSH_USER: ${{ secrets.HETZNER_USER }}
+      SSH_PORT: ${{ secrets.HETZNER_PORT || '22' }}
+      SSH_KEY: ${{ secrets.HETZNER_SSH_KEY }}
+      KNOWN_HOSTS: ${{ secrets.HETZNER_KNOWN_HOSTS }}
+      SOURCE_ROOT: ${{ vars.DEPLOY_SOURCE_ROOT || '.' }}
+      TARGET_ROOT: ${{ vars.DEPLOY_TARGET_ROOT || '/var/www/html/tuneurl-streaming-radio_poc' }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Configure SSH and validate paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${SSH_HOST:?Missing HETZNER_HOST}"
+          : "${SSH_USER:?Missing HETZNER_USER}"
+          : "${SSH_KEY:?Missing HETZNER_SSH_KEY}"
+          : "${KNOWN_HOSTS:?Missing HETZNER_KNOWN_HOSTS}"
+          [[ "$SSH_HOST" =~ ^[a-zA-Z0-9.-]+$ ]]
+          [[ "$SSH_USER" =~ ^[a-zA-Z0-9_-]+$ ]]
+          [[ "$SSH_PORT" =~ ^[0-9]+$ ]]
+          [[ "$TARGET_ROOT" =~ ^/[a-zA-Z0-9_./-]+$ ]]
+          test -d "$SOURCE_ROOT"
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host hetzner-deploy
+            HostName $SSH_HOST
+            User $SSH_USER
+            Port $SSH_PORT
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            ConnectTimeout 20
+          EOF
+      - name: Select tracked JSP and JS files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os, pathlib, subprocess
+          root = pathlib.Path(os.environ['SOURCE_ROOT']).resolve()
+          repo = pathlib.Path.cwd().resolve()
+          if not root.is_relative_to(repo):
+              raise SystemExit('SOURCE_ROOT must be inside the checkout')
+          files = subprocess.check_output(['git', 'ls-files', '-z']).split(b'\0')
+          selected = []
+          for raw in files:
+              if not raw:
+                  continue
+              p = repo / os.fsdecode(raw)
+              if p.is_relative_to(root) and p.suffix in {'.jsp', '.js'}:
+                  if p.is_symlink() or not p.is_file():
+                      raise SystemExit('Deployment requires regular files: ' + str(p))
+                  selected.append(os.fsencode(p.relative_to(root)))
+          if not selected:
+              raise SystemExit('No JSP/JS files found under SOURCE_ROOT')
+          pathlib.Path('/tmp/deploy-files').write_bytes(b'\0'.join(selected) + b'\0')
+          print('Selected', len(selected), 'JSP/JS files')
+          PY
+      - name: Check existing application
+        run: |
+          ssh hetzner-deploy 'set -eu; cd /var/www/html/tuneurl-streaming-radio_poc; test -f target/webrtc.util-1.1.1.jar; test -x kill.sh; test -x run.sh'
+      - name: Upload JSP and JS files
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -r --checksum --from0 --files-from=/tmp/deploy-files \
+            --omit-dir-times --no-perms --no-owner --no-group \
+            -e ssh "$SOURCE_ROOT/" "hetzner-deploy:$TARGET_ROOT/"
+      - name: Stop and start application
+        run: |
+          ssh hetzner-deploy 'set -eu; cd /var/www/html/tuneurl-streaming-radio_poc; sudo -n ./kill.sh; sudo -n ./run.sh'
+      - name: Remove private key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
